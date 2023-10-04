@@ -1,0 +1,77 @@
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using OnlineRestaurant.Dtos;
+using OnlineRestaurant.Interfaces;
+using OnlineRestaurant.Models;
+
+namespace OnlineRestaurant.Controllers
+{
+    
+    [Route("api/[controller]")]
+    [ApiController]
+    public class ChefController : ControllerBase
+    {
+        private readonly IChefService _chefService;
+
+        public ChefController(IChefService chefService)
+        {
+            _chefService = chefService;
+        }
+
+        
+        [HttpGet]
+        public async Task<IActionResult> GetAllAsync()
+        {
+
+            var chefs = await _chefService.GetChefsAsync();
+             return Ok(chefs);
+        }
+        [HttpPost]
+       
+        public async Task<IActionResult> CreateChefAsync([FromForm] Chef dto)
+        {
+            
+           var Chef = await _chefService.CreateChef(dto);
+            if (!string.IsNullOrEmpty(Chef.Message))
+            {
+                return BadRequest(Chef.Message);
+            }
+            var Message = "تم اضافه الشيف بنجاح";
+            return Ok(new { Chef, Message });
+            
+        }
+        
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateChefAsync(int id, [FromForm] UpdateChefDto chef)
+        {
+            var getchef = await _chefService.GetChefByIdAsync(id);
+
+            if (!string.IsNullOrEmpty(getchef.Message))
+            {
+                return NotFound(getchef.Message);
+            }
+
+            var UpdatedData = _chefService.UpdateChefAsync(getchef, chef);
+            if (!string.IsNullOrEmpty(UpdatedData.Message))
+            {
+                return BadRequest(UpdatedData.Message);
+            }
+            return Ok(UpdatedData);
+        }
+        
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteChefAsync(int id)
+        {
+            
+            var chef = await _chefService.GetChefByIdAsync(id);
+
+            if (!string.IsNullOrEmpty(chef.Message))
+            {
+                return NotFound(chef.Message);
+            }
+            var DeletedData =_chefService.DeleteChefAsync(chef);
+            return Ok(DeletedData);
+        }
+    }
+}

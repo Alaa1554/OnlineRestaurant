@@ -1,0 +1,22 @@
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using OnlineRestaurant.Models;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
+
+namespace OnlineRestaurant.Views
+{
+    public class MealReviewView
+    {
+        public int Id { get; set; }
+        [ MaxLength(100)]
+        public string Text { get; set; }
+        public string UserId { get; set; }
+        public string UserName { get; set; }
+        public DateTime CreatedDate { get; set; }
+        public decimal Rate { get; set; }
+        public int MealId { get; set; }
+        [JsonIgnore]
+        public string Message { get; set; }
+    }
+}
