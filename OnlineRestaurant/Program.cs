@@ -41,7 +41,7 @@ builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IImgService<Chef>, ChefImfService>();
 builder.Services.AddScoped<IImgService<Meal>, MealImgService>();
 builder.Services.AddScoped<IImgService<Category>, CategoryimgService>();
-
+builder.Services.AddCors();
 
 builder.Services.AddTransient<ICartService, CartService>();
 
@@ -79,6 +79,8 @@ if (app.Environment.IsDevelopment())
 }
 app.UseSession();
 app.UseHttpsRedirection();
+app.UseCors(c => c.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
+app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
 

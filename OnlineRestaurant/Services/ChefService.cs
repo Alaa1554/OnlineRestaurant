@@ -65,14 +65,15 @@ namespace OnlineRestaurant.Services
 
         public async Task<IEnumerable<ChefView>> GetChefsAsync()
         {
-            var chefs =await _context.Chefs.Include(c=>c.ChefReviews).Select(c=>new ChefView { 
+            var chefs =await _context.Chefs.Include(c=>c.ChefReviews).Include(c=>c.Meals).Include(c=>c.Category).Select(c=>new ChefView { 
                 Id=c.Id,
-                CategoryId=c.CategoryId,
+                CategoryName=c.Category.Name,
                 ChefImgUrl=c.ChefImgUrl,
                 Name=c.Name,
                 Rate= decimal.Round(c.ChefReviews.Sum(b => b.Rate) /
                c.ChefReviews.Where(b => b.Rate > 0).DefaultIfEmpty().Count(), 1),
                 NumOfRate =c.ChefReviews.Count(c=>c.Rate>0),
+                NumOfMeals=c.Meals.Count()
             })
                 .ToListAsync();
             return chefs;

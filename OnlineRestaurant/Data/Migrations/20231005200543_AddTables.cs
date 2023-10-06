@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace OnlineRestaurant.Migrations
 {
     /// <inheritdoc />
-    public partial class AddDatabase : Migration
+    public partial class AddTables : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -91,13 +91,13 @@ namespace OnlineRestaurant.Migrations
                         column: x => x.CategoryId,
                         principalTable: "Categories",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Meals_Chefs_ChefId",
                         column: x => x.ChefId,
                         principalTable: "Chefs",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.NoAction);
                 });
 
             migrationBuilder.CreateTable(
@@ -144,6 +144,28 @@ namespace OnlineRestaurant.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "Choice",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Price = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    MealAdditionId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Choice", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Choice_MealAdditions_MealAdditionId",
+                        column: x => x.MealAdditionId,
+                        principalTable: "MealAdditions",
+                        principalColumn: "Id",
+                         onDelete: ReferentialAction.Cascade
+                        );
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_ChefReviews_ChefId",
                 table: "ChefReviews",
@@ -153,6 +175,11 @@ namespace OnlineRestaurant.Migrations
                 name: "IX_Chefs_CategoryId",
                 table: "Chefs",
                 column: "CategoryId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Choice_MealAdditionId",
+                table: "Choice",
+                column: "MealAdditionId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_MealAdditions_MealId",
@@ -182,10 +209,13 @@ namespace OnlineRestaurant.Migrations
                 name: "ChefReviews");
 
             migrationBuilder.DropTable(
-                name: "MealAdditions");
+                name: "Choice");
 
             migrationBuilder.DropTable(
                 name: "MealReviews");
+
+            migrationBuilder.DropTable(
+                name: "MealAdditions");
 
             migrationBuilder.DropTable(
                 name: "Meals");

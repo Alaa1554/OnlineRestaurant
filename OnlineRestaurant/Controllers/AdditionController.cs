@@ -57,7 +57,7 @@ namespace OnlineRestaurant.Controllers
                 return Ok(UpdatedData);
             }
             [HttpDelete("{id}")]
-            public async Task<IActionResult> DeleteMeal(int id)
+            public async Task<IActionResult> DeleteAddition(int id)
             {
                 var getaddition = await _additionService.GetMealAdditionByIdAsync(id);
 

@@ -12,8 +12,8 @@ using OnlineRestaurant.Data;
 namespace OnlineRestaurant.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20231003184541_AddDatabase")]
-    partial class AddDatabase
+    [Migration("20231005200543_AddTables")]
+    partial class AddTables
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -319,6 +319,31 @@ namespace OnlineRestaurant.Migrations
                     b.ToTable("ChefReviews");
                 });
 
+            modelBuilder.Entity("OnlineRestaurant.Models.Choice", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("MealAdditionId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MealAdditionId");
+
+                    b.ToTable("Choice");
+                });
+
             modelBuilder.Entity("OnlineRestaurant.Models.Meal", b =>
                 {
                     b.Property<int>("Id")
@@ -490,6 +515,13 @@ namespace OnlineRestaurant.Migrations
                     b.Navigation("Chef");
                 });
 
+            modelBuilder.Entity("OnlineRestaurant.Models.Choice", b =>
+                {
+                    b.HasOne("OnlineRestaurant.Models.MealAddition", null)
+                        .WithMany("Choices")
+                        .HasForeignKey("MealAdditionId");
+                });
+
             modelBuilder.Entity("OnlineRestaurant.Models.Meal", b =>
                 {
                     b.HasOne("OnlineRestaurant.Models.Category", "Category")
@@ -550,6 +582,11 @@ namespace OnlineRestaurant.Migrations
                     b.Navigation("Additions");
 
                     b.Navigation("MealReviews");
+                });
+
+            modelBuilder.Entity("OnlineRestaurant.Models.MealAddition", b =>
+                {
+                    b.Navigation("Choices");
                 });
 #pragma warning restore 612, 618
         }

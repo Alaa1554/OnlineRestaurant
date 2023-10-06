@@ -41,7 +41,10 @@ namespace OnlineRestaurant.Services
 
         public MealAddition DeleteMealAddition(MealAddition mealAddition)
         {
+           
+            
             _context.Remove(mealAddition);
+
             _context.SaveChanges();
             return mealAddition;
         }
@@ -57,10 +60,10 @@ namespace OnlineRestaurant.Services
 
         public async Task<IEnumerable<MealAddition>> GetMealAdditionsAsync(int id)
         {
-            var mealAdditions = await _context.MealAdditions.Where(m=>m.MealId == id).Include(c=>c.Choices).ToListAsync();
-            
-              return mealAdditions;
-            
+            var mealAdditions = await _context.MealAdditions.Where(m => m.MealId == id).Include(c => c.Choices).ToListAsync();
+
+            return mealAdditions;
+
         }
 
         public async Task<MealAddition> UpdateMealAdditionAsync(MealAddition mealAddition, UpdateMealAdditionDto dto)
@@ -70,17 +73,35 @@ namespace OnlineRestaurant.Services
             {
                 return new MealAddition { Message = errormessages };
             }
-            if (dto.MealId!= null)
+
+            if (dto.MealId != null)
             {
                 if (!await _context.Meals.AnyAsync(meal => meal.Id == dto.MealId))
                     return new MealAddition { Message = $"There is no Meal with Id : {dto.MealId}!" };
-                mealAddition.MealId =(int) dto.MealId;
+
+                mealAddition.MealId = (int)dto.MealId;
             }
-           mealAddition.Name=dto.Name??mealAddition.Name;
-            mealAddition.Choices =dto.Choices ?? mealAddition.Choices;
+
+            mealAddition.Name = dto.Name ?? mealAddition.Name;
+
+            if (dto.Choices != null && dto.Choices.Count > 0)
+            {
+                // Remove existing choices
+                mealAddition.Choices.Clear();
+
+                // Add new choices
+                foreach (var choice in dto.Choices)
+                {
+                    mealAddition.Choices.Add(choice);
+                }
+            }
+
             _context.MealAdditions.Update(mealAddition);
             _context.SaveChanges();
+
             return mealAddition;
         }
     }
-}
+        }
+    
+

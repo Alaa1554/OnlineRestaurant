@@ -14,10 +14,10 @@ namespace OnlineRestaurant.Views
         [DisplayName("Image")]
         public string ChefImgUrl { get; set; }
        
-        public int CategoryId { get; set; }
+        public string CategoryName { get; set; }
         public decimal Rate { get; set; }
         public int NumOfRate { get; set; }
-        
+        public int NumOfMeals { get; set; }
 
 
     }
