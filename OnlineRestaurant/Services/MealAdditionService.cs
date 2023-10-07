@@ -41,10 +41,7 @@ namespace OnlineRestaurant.Services
 
         public MealAddition DeleteMealAddition(MealAddition mealAddition)
         {
-           
-            
             _context.Remove(mealAddition);
-
             _context.SaveChanges();
             return mealAddition;
         }
@@ -60,7 +57,7 @@ namespace OnlineRestaurant.Services
 
         public async Task<IEnumerable<MealAddition>> GetMealAdditionsAsync(int id)
         {
-            var mealAdditions = await _context.MealAdditions.Where(m => m.MealId == id).Include(c => c.Choices).ToListAsync();
+            var mealAdditions = await _context.MealAdditions.Where(c=>c.MealId==id).Include(c => c.Choices).ToListAsync();
 
             return mealAdditions;
 
@@ -73,7 +70,7 @@ namespace OnlineRestaurant.Services
             {
                 return new MealAddition { Message = errormessages };
             }
-
+             
             if (dto.MealId != null)
             {
                 if (!await _context.Meals.AnyAsync(meal => meal.Id == dto.MealId))
@@ -81,27 +78,40 @@ namespace OnlineRestaurant.Services
 
                 mealAddition.MealId = (int)dto.MealId;
             }
-
+            
             mealAddition.Name = dto.Name ?? mealAddition.Name;
-
-            if (dto.Choices != null && dto.Choices.Count > 0)
+            if (mealAddition.Choices != null && dto.Choices != null)
             {
-                // Remove existing choices
-                mealAddition.Choices.Clear();
-
+                // Remove existing choices from the database
+                foreach (var choice in mealAddition.Choices.ToList())
+                {
+                  
+                    _context.Remove(choice);
+                    mealAddition.Choices.Remove(choice);
+                }
+                _context.SaveChanges();
                 // Add new choices
                 foreach (var choice in dto.Choices)
                 {
-                    mealAddition.Choices.Add(choice);
+                    var newChoice = new Choice
+                    {
+                        Name = choice.Name,
+                        Price = choice.Price
+                    };
+
+                    mealAddition.Choices.Add(newChoice);
                 }
             }
 
-            _context.MealAdditions.Update(mealAddition);
+            
+
+            
+
             _context.SaveChanges();
 
             return mealAddition;
         }
     }
         }
-    
+
 

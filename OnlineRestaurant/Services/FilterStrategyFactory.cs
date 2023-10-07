@@ -14,7 +14,7 @@ namespace OnlineRestaurant.Services
             _context = context;
         }
 
-        public IFilterStrategy GetFilterStrategy(MealFilter filter)
+        public IEnumerable<IFilterStrategy> GetFilterStrategy(MealFilter filter)
         {
             var strategies = new List<IFilterStrategy>
             {
@@ -24,7 +24,7 @@ namespace OnlineRestaurant.Services
                 new MealNameFilter(filter.MealName,_context),
                 
             };
-            return strategies.SingleOrDefault(strategy => strategy.CanApply(filter));
+            return strategies.Where(strategy => strategy.CanApply(filter));
         }
     }
 }

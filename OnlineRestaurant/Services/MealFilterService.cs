@@ -17,15 +17,20 @@ namespace OnlineRestaurant.Services
 
         public async Task<IEnumerable<MealView>> Filter(MealFilter filter)
         {
-            var filterfactory = new FilterStrategyFactory(_context);
-            var filterstrategy = filterfactory.GetFilterStrategy(filter);
-            if (filterstrategy==null)
+            var filterFactory = new FilterStrategyFactory(_context);
+            var filterStrategies = filterFactory.GetFilterStrategy(filter);
+            if (!filterStrategies.Any())
                 return Enumerable.Empty<MealView>();
-            var meals= await filterstrategy.ApplyFilter();
-            var mealpaginate = Paginate(meals, filter.Page, filter.Size);
-            var ordermeals = Mealsorder(mealpaginate, filter.OrderMeal);
-            return ordermeals;
-             
+
+            IEnumerable<MealView> meals = null;
+            foreach (var view in filterStrategies)
+            {
+                meals = meals?.Intersect(await view.ApplyFilter()) ?? await view.ApplyFilter();
+            }
+
+            var mealPaginate = Paginate(meals, filter.Page, filter.Size);
+            var orderedMeals = Mealsorder(mealPaginate, filter.OrderMeal);
+            return orderedMeals;
         }
         private IEnumerable<MealView> Paginate(IEnumerable<MealView> source, int page, int size) 
         {

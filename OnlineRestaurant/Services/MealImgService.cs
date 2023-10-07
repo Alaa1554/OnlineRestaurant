@@ -49,7 +49,7 @@ namespace OnlineRestaurant.Services
                 meal.MealImgUrl = imgUrl;
                 var imgpath=_webHostEnvironment.WebRootPath+imgUrl;
                 using var datafile =new FileStream(imgpath,FileMode.Create);
-                file.CopyToAsync(datafile);
+                file.CopyTo(datafile);
                 return string.Empty;
             }
         }

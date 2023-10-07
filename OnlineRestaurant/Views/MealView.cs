@@ -27,6 +27,21 @@ namespace OnlineRestaurant.Views
         public string CategoryName { get; set; }
         public decimal Rate { get; set; }
         public int NumOfRate { get; set; }
-        
+        public override bool Equals(object? obj)
+        {
+            if(obj == null&&!(obj is MealView)) 
+                return false;
+            var mealview = obj as MealView;
+            return this.Id==mealview.Id;
+        }
+        public override int GetHashCode()
+        {
+            int hash = 13;
+            hash=(hash*7)+Id.GetHashCode();
+            hash=(hash*7)+ Name.GetHashCode();
+            hash=(hash*7)+ Price.GetHashCode();
+            hash=(hash*7)+ ChefId.GetHashCode();
+            return hash;
+        }
     }
 }

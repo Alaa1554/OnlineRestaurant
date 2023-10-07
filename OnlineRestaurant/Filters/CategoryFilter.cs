@@ -18,7 +18,13 @@ namespace OnlineRestaurant.Filters
 
         public async Task<IEnumerable<MealView>> ApplyFilter()
         {
-            var Meals = await _context.Meals.Include(c => c.Category).Include(c => c.Chef).Where(m => m.Category.Name == _Category.Trim()).Select(
+            var Categories = _Category.Split(',');
+            IEnumerable<Meal> Meals = Enumerable.Empty<Meal>();
+            foreach (var Category in Categories)
+            {
+                Meals = Meals.Union(await _context.Meals.Include(c => c.Category).Include(c => c.Chef).Where(m => m.Category.Name == Category.Trim()).ToListAsync());
+            }
+            var MealsView = Meals.Select(
                     m => new MealView
                     {
                         Id = m.Id,
@@ -30,8 +36,8 @@ namespace OnlineRestaurant.Filters
                         MealImgUrl = m.MealImgUrl,
                         Price = m.Price
                     }
-                    ).ToListAsync();
-            return Meals;
+                    ).ToList();
+            return MealsView;
         }
 
         public bool CanApply(MealFilter filter)
