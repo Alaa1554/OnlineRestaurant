@@ -30,6 +30,7 @@ namespace OnlineRestaurant.Services
 
             var mealPaginate = Paginate(meals, filter.Page, filter.Size);
             var orderedMeals = Mealsorder(mealPaginate, filter.OrderMeal);
+            
             return orderedMeals;
         }
         private IEnumerable<MealView> Paginate(IEnumerable<MealView> source, int page, int size) 
@@ -75,5 +76,6 @@ namespace OnlineRestaurant.Services
             }
             return res;
         }
+       
     }
 }

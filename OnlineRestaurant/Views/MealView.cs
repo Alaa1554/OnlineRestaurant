@@ -27,6 +27,7 @@ namespace OnlineRestaurant.Views
         public string CategoryName { get; set; }
         public decimal Rate { get; set; }
         public int NumOfRate { get; set; }
+   
         public override bool Equals(object? obj)
         {
             if(obj == null&&!(obj is MealView)) 
