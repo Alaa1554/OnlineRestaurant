@@ -7,7 +7,7 @@ namespace OnlineRestaurant.Dtos
     {
         [MaxLength(100)]
         public string? Name { get; set; }
-        public List<Choice>? Choices { get; set; }
+        public UpdateChoiceDto? Choice { get; set; }
         public int? MealId { get; set; }
     }
 }

@@ -12,7 +12,7 @@ using OnlineRestaurant.Data;
 namespace OnlineRestaurant.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20231005200543_AddTables")]
+    [Migration("20231008140059_AddTables")]
     partial class AddTables
     {
         /// <inheritdoc />

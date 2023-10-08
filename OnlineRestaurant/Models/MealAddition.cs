@@ -11,7 +11,7 @@ namespace OnlineRestaurant.Models
         [MaxLength(100)]
         public string Name { get; set; }
        
-        public List<Choice> Choices { get; set; }= new List<Choice>();
+        public List<Choice> Choices { get; set; }
         [ValidateNever,JsonIgnore]
         public Meal Meal { get; set; }
         public int MealId { get; set; }

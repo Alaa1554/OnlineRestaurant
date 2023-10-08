@@ -33,7 +33,7 @@ namespace OnlineRestaurant.Services
                 MealId = Dto.MealId,
                 Choices = Dto.Choices
             };
-
+           
             await _context.AddAsync(mealAddition);
             _context.SaveChanges();
             return mealAddition;
@@ -48,7 +48,7 @@ namespace OnlineRestaurant.Services
 
         public async Task<MealAddition> GetMealAdditionByIdAsync(int id)
         {
-            var mealAddition = await _context.MealAdditions.SingleOrDefaultAsync(m => m.Id == id);
+            var mealAddition = await _context.MealAdditions.Include(c=>c.Choices).SingleOrDefaultAsync(m => m.Id == id);
             if (mealAddition == null)
                 return new MealAddition { Message = $"There is no MealAddition with Id:{id} " };
             return mealAddition;
@@ -57,13 +57,13 @@ namespace OnlineRestaurant.Services
 
         public async Task<IEnumerable<MealAddition>> GetMealAdditionsAsync(int id)
         {
-            var mealAdditions = await _context.MealAdditions.Where(c=>c.MealId==id).Include(c => c.Choices).ToListAsync();
+            var mealAdditions = await _context.MealAdditions.Include(c=>c.Choices).Where(c=>c.MealId==id).ToListAsync();
 
             return mealAdditions;
 
         }
 
-        public async Task<MealAddition> UpdateMealAdditionAsync(MealAddition mealAddition, UpdateMealAdditionDto dto)
+        public async Task<MealAddition> UpdateMealAdditionAsync(MealAddition mealAddition, UpdateMealAdditionDto dto,int? id)
         {
             var errormessages = ValidateHelper<UpdateMealAdditionDto>.Validate(dto);
             if (!string.IsNullOrEmpty(errormessages))
@@ -80,38 +80,25 @@ namespace OnlineRestaurant.Services
             }
             
             mealAddition.Name = dto.Name ?? mealAddition.Name;
-            if (mealAddition.Choices != null && dto.Choices != null)
+            if (id != null)
             {
-                // Remove existing choices from the database
-                foreach (var choice in mealAddition.Choices.ToList())
+                var choice=  mealAddition.Choices.FirstOrDefault(c=>c.Id==id);
+                if (choice == null)
                 {
-                  
-                    _context.Remove(choice);
-                    mealAddition.Choices.Remove(choice);
+                    return new MealAddition { Message = $"There is no Choice with Id : {id}!" };
                 }
-                _context.SaveChanges();
-                // Add new choices
-                foreach (var choice in dto.Choices)
-                {
-                    var newChoice = new Choice
-                    {
-                        Name = choice.Name,
-                        Price = choice.Price
-                    };
-
-                    mealAddition.Choices.Add(newChoice);
-                }
+                choice.Name= dto.Choice.Name ?? choice.Name;
+                choice.Price=dto.Choice.Price??choice.Price;
             }
-
-            
-
             
 
             _context.SaveChanges();
 
             return mealAddition;
         }
+       
     }
-        }
+
+}            
 
 

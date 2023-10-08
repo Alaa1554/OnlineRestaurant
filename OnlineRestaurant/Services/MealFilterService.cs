@@ -9,25 +9,33 @@ namespace OnlineRestaurant.Services
     public class MealFilterService : IMealFilterService
     {
         private readonly ApplicationDbContext _context;
+        private readonly IMealService _mealService;
 
-        public MealFilterService(ApplicationDbContext context)
+        public MealFilterService(ApplicationDbContext context, IMealService mealService)
         {
             _context = context;
+            _mealService = mealService;
         }
 
         public async Task<IEnumerable<MealView>> Filter(MealFilter filter)
         {
             var filterFactory = new FilterStrategyFactory(_context);
             var filterStrategies = filterFactory.GetFilterStrategy(filter);
-            if (!filterStrategies.Any())
-                return Enumerable.Empty<MealView>();
-
+            
             IEnumerable<MealView> meals = null;
-            foreach (var view in filterStrategies)
+            if (filterStrategies.Any())
             {
-                meals = meals?.Intersect(await view.ApplyFilter()) ?? await view.ApplyFilter();
+                foreach (var view in filterStrategies)
+                {
+                    meals = meals?.Intersect(await view.ApplyFilter()) ?? await view.ApplyFilter();
+                }
             }
-
+            else
+            {
+                meals= await _mealService.GetMealsAsync();
+            }
+            
+            
             var mealPaginate = Paginate(meals, filter.Page, filter.Size);
             var orderedMeals = Mealsorder(mealPaginate, filter.OrderMeal);
             

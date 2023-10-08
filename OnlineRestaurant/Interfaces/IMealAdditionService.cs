@@ -9,7 +9,7 @@ namespace OnlineRestaurant.Interfaces
         Task<IEnumerable<MealAddition>> GetMealAdditionsAsync(int id);
         Task<MealAddition> GetMealAdditionByIdAsync(int id);
         Task<MealAddition> CreateMealAddition(MealAddition Dto);
-        Task<MealAddition> UpdateMealAdditionAsync(MealAddition mealAddition, UpdateMealAdditionDto dto);
+        Task<MealAddition> UpdateMealAdditionAsync(MealAddition mealAddition, UpdateMealAdditionDto dto,int? id);
         MealAddition DeleteMealAddition(MealAddition mealAddition);
     }
 }

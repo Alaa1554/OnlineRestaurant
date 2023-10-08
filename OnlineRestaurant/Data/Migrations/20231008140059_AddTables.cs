@@ -162,8 +162,7 @@ namespace OnlineRestaurant.Migrations
                         column: x => x.MealAdditionId,
                         principalTable: "MealAdditions",
                         principalColumn: "Id",
-                         onDelete: ReferentialAction.Cascade
-                        );
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(

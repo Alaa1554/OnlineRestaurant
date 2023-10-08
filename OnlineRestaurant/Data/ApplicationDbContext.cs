@@ -20,6 +20,7 @@ namespace OnlineRestaurant.Data
         public DbSet<MealAddition> MealAdditions { get; set; }
         public DbSet<MealReview> MealReviews { get; set; }
         public DbSet<ChefReview> ChefReviews { get; set; }
+      
         
     }
 }

@@ -39,8 +39,8 @@ namespace OnlineRestaurant.Controllers
                 return Ok(new {Addition,Message});
 
             }
-            [HttpPut("{id}")]
-            public async Task<IActionResult> UpdateAdditionAsync(int id, [FromBody] UpdateMealAdditionDto dto)
+            [HttpPut("{id}/{choiceid?}")]
+            public async Task<IActionResult> UpdateAdditionAsync(int id, [FromBody] UpdateMealAdditionDto dto,int? choiceid)
             {
                 var getaddition = await _additionService.GetMealAdditionByIdAsync(id);
 
@@ -49,7 +49,7 @@ namespace OnlineRestaurant.Controllers
                     return NotFound(getaddition.Message);
                 }
 
-                var UpdatedData = await _additionService.UpdateMealAdditionAsync(getaddition, dto);
+                var UpdatedData = await _additionService.UpdateMealAdditionAsync(getaddition, dto,choiceid);
                 if (!string.IsNullOrEmpty(UpdatedData.Message))
                 {
                     return BadRequest(UpdatedData.Message);
