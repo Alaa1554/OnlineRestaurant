@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using OnlineRestaurant.Data;
 using OnlineRestaurant.Dtos;
 using OnlineRestaurant.Interfaces;
 using OnlineRestaurant.Models;
@@ -13,17 +15,20 @@ namespace OnlineRestaurant.Controllers
     public class MealController : ControllerBase
     {
         private IMealService _mealService;
+        private ApplicationDbContext _context;
 
-        public MealController(IMealService mealService)
+        public MealController(IMealService mealService, ApplicationDbContext context)
         {
             _mealService = mealService;
+            _context = context;
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAllMealAsync()
         {
             var meals =await _mealService.GetMealsAsync();
-            return Ok(meals);
+            var maxprice = await _context.Meals.MaxAsync(m => m.Price);
+            return Ok(new { meals, maxprice });
         }
         
         [HttpPost]
