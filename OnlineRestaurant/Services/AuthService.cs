@@ -26,7 +26,7 @@ namespace OnlineRestaurant.Services
         private readonly JWT _jwt;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IImgService<ApplicationUser> _imgService;
-        private readonly Random _random = new Random();
+
 
         public AuthService(UserManager<ApplicationUser> userManager, IMapper mapper, IOptions<JWT> jwt, RoleManager<IdentityRole> roleManager, IImgService<ApplicationUser> imgService)
         {
@@ -48,25 +48,25 @@ namespace OnlineRestaurant.Services
                 return new AuthModelDto { Message = "UserName Is Already Exist!" };
             }
             var user = _mapper.Map<ApplicationUser>(registermodel);
-            var result= await _userManager.CreateAsync(user,registermodel.Password);
+            var result = await _userManager.CreateAsync(user, registermodel.Password);
             if (!result.Succeeded)
             {
                 var errors = "";
-               foreach (var error in result.Errors)
+                foreach (var error in result.Errors)
                 {
                     errors += $"{error.Description}\t";
                 }
                 return new AuthModelDto { Message = errors };
             }
-            var ImgErrors= _imgService.SetImage(user, registermodel.UserImg);
-            if(!string.IsNullOrEmpty(ImgErrors))
+            var ImgErrors = _imgService.SetImage(user, registermodel.UserImg);
+            if (!string.IsNullOrEmpty(ImgErrors))
             {
                 return new AuthModelDto { Message = ImgErrors };
             }
             await _userManager.AddToRoleAsync(user, "User");
             var jwtSecurityToken = await CreateJwtToken(user);
 
-           var authmodel= new AuthModelDto
+            var authmodel = new AuthModelDto
             {
                 Email = user.Email,
                 ExpiresOn = jwtSecurityToken.ValidTo,
@@ -75,28 +75,28 @@ namespace OnlineRestaurant.Services
                 Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken),
                 UserName = user.UserName,
                 UserImgUrl = user.UserImgUrl,
-                VerificationCode= _random.Next(100000, 999999)
-        };
-            
+                VerificationCode = GenerateRandomCode(),
+            };
+
             return authmodel;
         }
         public async Task<AuthModelDto> GetTokenAsync(TokenRequestDto tokenrequest)
         {
             var authModel = new AuthModelDto();
             var user = await _userManager.FindByEmailAsync(tokenrequest.Email);
-            if (user == null || !await _userManager.CheckPasswordAsync(user,tokenrequest.Password))
+            if (user == null || !await _userManager.CheckPasswordAsync(user, tokenrequest.Password))
             {
                 authModel.Message = "Email or Password is incorrect!";
                 return authModel;
             }
             var jwtSecurityToken = await CreateJwtToken(user);
             var rolelist = await _userManager.GetRolesAsync(user);
-                authModel.Email = user.Email;
-                authModel.ExpiresOn = jwtSecurityToken.ValidTo;
-                authModel.IsAuthenticated = true;
-                authModel.Roles = rolelist.ToList();
-                authModel.Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
-                authModel.UserName = user.UserName;
+            authModel.Email = user.Email;
+            authModel.ExpiresOn = jwtSecurityToken.ValidTo;
+            authModel.IsAuthenticated = true;
+            authModel.Roles = rolelist.ToList();
+            authModel.Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
+            authModel.UserName = user.UserName;
             authModel.UserImgUrl = user.UserImgUrl;
             authModel.VerificationCode = null;
 
@@ -150,14 +150,14 @@ namespace OnlineRestaurant.Services
 
             return jwtSecurityToken;
         }
-        public async Task<AuthModelDto> UpdateImg(string token,IFormFile userimg)
+        public async Task<AuthModelDto> UpdateImg(string token, IFormFile userimg)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var jwtToken = tokenHandler.ReadJwtToken(token) as JwtSecurityToken;
 
             var userId = jwtToken.Claims.FirstOrDefault(c => c.Type == "uid")?.Value;
-            var user=await _userManager.FindByIdAsync(userId);
-           if(!await _userManager.Users.AnyAsync(c => c.Id == userId))
+            var user = await _userManager.FindByIdAsync(userId);
+            if (!await _userManager.Users.AnyAsync(c => c.Id == userId))
             {
                 return new AuthModelDto { Message = "No User is Found!" };
             }
@@ -182,5 +182,41 @@ namespace OnlineRestaurant.Services
         }
 
 
+        public string GenerateRandomCode()
+        {
+            const string characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+            const string numbers = "0123456789";
+            const int codeLength = 6;
+
+            Random random = new Random();
+            char[] code = new char[codeLength];
+
+            // Generate one random character
+            code[0] = characters[random.Next(characters.Length)];
+
+            // Generate one random number
+            code[1] = numbers[random.Next(numbers.Length)];
+
+            // Generate the remaining characters randomly
+            for (int i = 2; i < codeLength; i++)
+            {
+                code[i] = characters[random.Next(characters.Length)];
+            }
+
+            // Shuffle the code array to ensure randomness
+            for (int i = 0; i < codeLength; i++)
+            {
+                int j = random.Next(i, codeLength);
+                char temp = code[i];
+                code[i] = code[j];
+                code[j] = temp;
+            }
+
+            string randomCode = new string(code);
+
+            return randomCode;
+        }
+
     }
 }
+

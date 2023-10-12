@@ -14,7 +14,7 @@ namespace OnlineRestaurant.Dtos
         public DateTime ExpiresOn { get; set; }
         public string UserImgUrl { get; set; }
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public int? VerificationCode { get; set; }
+        public string? VerificationCode { get; set; }
 
 
 
