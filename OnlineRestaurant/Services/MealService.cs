@@ -71,7 +71,7 @@ namespace OnlineRestaurant.Services
 
         public async Task<IEnumerable<MealView>> GetMealsAsync()
         {
-           var meals = await _context.Meals.Include(meal => meal.Chef).Include(b=>b.Category).Include(m=>m.MealReviews).Select(b=>new MealView {
+           var meals = await _context.Meals.Include(meal => meal.Chef).Include(b=>b.Category).Include(m=>m.MealReviews).Select(b=>new MealView  {
                Id =b.Id,
                ChefId =b.ChefId,
                ChefName =b.Chef.Name,
@@ -84,6 +84,7 @@ namespace OnlineRestaurant.Services
                b.MealReviews.Where(b => b.Rate > 0).DefaultIfEmpty().Count()), 1),
             NumOfRate =b.MealReviews.Count(c=>c.Rate>0),
                OldPrice = b.OldPrice==0.00m?null:b.OldPrice,
+               
                
                }).ToListAsync();
             

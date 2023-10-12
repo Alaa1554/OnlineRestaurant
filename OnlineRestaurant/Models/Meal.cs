@@ -34,6 +34,8 @@ namespace OnlineRestaurant.Models
         public List<MealAddition> Additions { get; set; }
         [ValidateNever, JsonIgnore]
         public List<MealReview> MealReviews { get; set; }
+       
+        
 
     }
 }

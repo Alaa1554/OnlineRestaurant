@@ -24,7 +24,7 @@ namespace OnlineRestaurant.Services
             _mapper = mapper;
         }
 
-        public async Task<ChefReviewView> CreateReview(ChefReview review)
+        public async Task<ChefReviewView> CreateReview(string token,ChefReview review)
          {
              var errormessages = ValidateHelper<ChefReview>.Validate(review);
              if (!string.IsNullOrEmpty(errormessages))
@@ -35,21 +35,21 @@ namespace OnlineRestaurant.Services
                 return new ChefReviewView { Message = $"There is no Chef with Id : {review.ChefId}!" };
 
             var tokenHandler = new JwtSecurityTokenHandler();
-             var jwtToken = tokenHandler.ReadJwtToken(review.TokenModel.Token) as JwtSecurityToken;
+             var jwtToken = tokenHandler.ReadJwtToken(token) as JwtSecurityToken;
 
              var userId = jwtToken.Claims.FirstOrDefault(c => c.Type == "uid")?.Value;
              var username = await _userManager.FindByIdAsync(userId);
-            if (!await _context.ChefReviews.AnyAsync(c=>c.UserId == userId)&&await _context.ChefReviews.AnyAsync(c=>c.ChefId==review.ChefId))
+            if (await _context.ChefReviews.AnyAsync(m => m.UserId == userId) && await _context.ChefReviews.AnyAsync(m => m.ChefId == review.ChefId))
             {
                 return new ChefReviewView { Message = "You Already Have a Review" };
             }
-             var Review = new ChefReview
+            var Review = new ChefReview
              {
                  UserName = username.UserName,
                  CreatedDate = DateTime.UtcNow,
                  ChefId = review.ChefId,
                  Text = review.Text,
-                 UserId = userId,
+                 UserId= userId,
                  Rate = review.Rate,
              };
             var view = _mapper.Map<ChefReviewView>(Review);

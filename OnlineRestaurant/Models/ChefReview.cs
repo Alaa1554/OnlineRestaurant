@@ -10,7 +10,7 @@ namespace OnlineRestaurant.Models
         public int Id { get; set; }
         [Required, MaxLength(100)]
         public string Text { get; set; }
-        [ValidateNever]
+        [ValidateNever,JsonIgnore]
         public string UserId { get; set; }
         [ValidateNever]
         public string UserName { get; set; }
@@ -21,9 +21,7 @@ namespace OnlineRestaurant.Models
         public int ChefId { get; set; }
         [Required]
         public decimal Rate { get; set; }
-        [Required,NotMapped]
-        public TokenModel TokenModel { get; set; }
-
+        
         [NotMapped, ValidateNever, JsonIgnore]
         public string Message { get; set; }
     }

@@ -11,12 +11,12 @@ namespace OnlineRestaurant.Controllers
     public class AdditionController : ControllerBase
     {
             private IMealAdditionService _additionService;
-            private IMealService _mealService;
+            
 
-        public AdditionController(IMealAdditionService additionService, IMealService mealService)
+        public AdditionController(IMealAdditionService additionService)
         {
             _additionService = additionService;
-            _mealService = mealService;
+            
         }
 
         [HttpGet("{id}")]

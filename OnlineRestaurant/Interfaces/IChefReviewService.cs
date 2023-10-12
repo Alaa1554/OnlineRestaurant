@@ -8,7 +8,7 @@ namespace OnlineRestaurant.Interfaces
     {
         Task<IEnumerable<ChefReviewView>> GetReviewsAsync(int id);
         Task<ChefReview> GetReviewByIdAsync(int id);
-        Task<ChefReviewView> CreateReview(ChefReview comment);
+        Task<ChefReviewView> CreateReview(string token,ChefReview comment);
         ChefReviewView UpdateReviewAsync(ChefReview comment, UpdateReviewDto dto);
         ChefReviewView DeleteReviewAsync(ChefReview comment);
     }

@@ -9,9 +9,9 @@ namespace OnlineRestaurant.Helpers
     {
         public MappingProfile()
         {
-            CreateMap<RegisterModelDto, ApplicationUser>();
+            CreateMap<RegisterModelDto, ApplicationUser>().ForMember(c=>c.UserImgUrl,ca=>ca.Ignore());
             CreateMap<MealReview, MealReviewView>();
-            CreateMap<ChefReview,ChefReviewView>();
+            CreateMap<ChefReview, ChefReviewView>();
 
         }
     }

@@ -15,5 +15,6 @@ namespace OnlineRestaurant.Dtos
         public string Email { get; set; }
         [Required, StringLength(250)]
         public string Password { get; set; }
+        public IFormFile? UserImg { get; set; }
     }
 }

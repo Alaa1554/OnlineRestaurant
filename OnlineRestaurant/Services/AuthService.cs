@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
+
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using NuGet.Common;
@@ -7,10 +9,13 @@ using OnlineRestaurant.Dtos;
 using OnlineRestaurant.Helpers;
 using OnlineRestaurant.Interfaces;
 using OnlineRestaurant.Models;
+using System;
 using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Text.RegularExpressions;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace OnlineRestaurant.Services
 {
@@ -20,12 +25,16 @@ namespace OnlineRestaurant.Services
         private readonly IMapper _mapper;
         private readonly JWT _jwt;
         private readonly RoleManager<IdentityRole> _roleManager;
-        public AuthService(UserManager<ApplicationUser> userManager, IMapper mapper, IOptions<JWT> jwt, RoleManager<IdentityRole> roleManager)
+        private readonly IImgService<ApplicationUser> _imgService;
+        private readonly Random _random = new Random();
+
+        public AuthService(UserManager<ApplicationUser> userManager, IMapper mapper, IOptions<JWT> jwt, RoleManager<IdentityRole> roleManager, IImgService<ApplicationUser> imgService)
         {
             _userManager = userManager;
             _mapper = mapper;
             _jwt = jwt.Value;
             _roleManager = roleManager;
+            _imgService = imgService;
         }
 
         public async Task<AuthModelDto> RegisterAsync(RegisterModelDto registermodel)
@@ -49,18 +58,27 @@ namespace OnlineRestaurant.Services
                 }
                 return new AuthModelDto { Message = errors };
             }
+            var ImgErrors= _imgService.SetImage(user, registermodel.UserImg);
+            if(!string.IsNullOrEmpty(ImgErrors))
+            {
+                return new AuthModelDto { Message = ImgErrors };
+            }
             await _userManager.AddToRoleAsync(user, "User");
             var jwtSecurityToken = await CreateJwtToken(user);
 
-            return new AuthModelDto
+           var authmodel= new AuthModelDto
             {
                 Email = user.Email,
                 ExpiresOn = jwtSecurityToken.ValidTo,
                 IsAuthenticated = true,
                 Roles = new List<string> { "User" },
                 Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken),
-                UserName = user.UserName
-            };
+                UserName = user.UserName,
+                UserImgUrl = user.UserImgUrl,
+                VerificationCode= _random.Next(100000, 999999)
+        };
+            
+            return authmodel;
         }
         public async Task<AuthModelDto> GetTokenAsync(TokenRequestDto tokenrequest)
         {
@@ -79,6 +97,8 @@ namespace OnlineRestaurant.Services
                 authModel.Roles = rolelist.ToList();
                 authModel.Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
                 authModel.UserName = user.UserName;
+            authModel.UserImgUrl = user.UserImgUrl;
+            authModel.VerificationCode = null;
 
 
             return authModel;
@@ -130,7 +150,37 @@ namespace OnlineRestaurant.Services
 
             return jwtSecurityToken;
         }
+        public async Task<AuthModelDto> UpdateImg(string token,IFormFile userimg)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var jwtToken = tokenHandler.ReadJwtToken(token) as JwtSecurityToken;
 
-      
+            var userId = jwtToken.Claims.FirstOrDefault(c => c.Type == "uid")?.Value;
+            var user=await _userManager.FindByIdAsync(userId);
+           if(!await _userManager.Users.AnyAsync(c => c.Id == userId))
+            {
+                return new AuthModelDto { Message = "No User is Found!" };
+            }
+            _imgService.UpdateImg(user, userimg);
+            if (!string.IsNullOrEmpty(user.Message))
+            {
+                return new AuthModelDto { Message = user.Message };
+            }
+            var jwtSecurityToken = await CreateJwtToken(user);
+            var rolelist = await _userManager.GetRolesAsync(user);
+            var authModel = new AuthModelDto();
+            authModel.Email = user.Email;
+            authModel.ExpiresOn = jwtSecurityToken.ValidTo;
+            authModel.IsAuthenticated = true;
+            authModel.Roles = rolelist.ToList();
+            authModel.Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
+            authModel.UserName = user.UserName;
+            authModel.UserImgUrl = user.UserImgUrl;
+            authModel.VerificationCode = null;
+            return authModel;
+
+        }
+
+
     }
 }

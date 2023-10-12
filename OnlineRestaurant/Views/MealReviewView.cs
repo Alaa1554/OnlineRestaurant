@@ -11,7 +11,7 @@ namespace OnlineRestaurant.Views
         public int Id { get; set; }
         [ MaxLength(100)]
         public string Text { get; set; }
-        public string UserId { get; set; }
+       
         public string UserName { get; set; }
         public DateTime CreatedDate { get; set; }
         public decimal Rate { get; set; }

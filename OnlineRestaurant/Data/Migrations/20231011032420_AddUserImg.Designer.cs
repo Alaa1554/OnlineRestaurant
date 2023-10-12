@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OnlineRestaurant.Data;
 
@@ -11,9 +12,11 @@ using OnlineRestaurant.Data;
 namespace OnlineRestaurant.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231011032420_AddUserImg")]
+    partial class AddUserImg
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -155,42 +158,6 @@ namespace OnlineRestaurant.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("OnlineRestaurant.Models.Address", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("City")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<int>("DepartmentNum")
-                        .HasColumnType("int");
-
-                    b.Property<string>("PhoneNumber")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Street")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Addresses");
-                });
-
             modelBuilder.Entity("OnlineRestaurant.Models.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
@@ -250,6 +217,7 @@ namespace OnlineRestaurant.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("UserImgUrl")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UserName")
@@ -554,17 +522,6 @@ namespace OnlineRestaurant.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("OnlineRestaurant.Models.Address", b =>
-                {
-                    b.HasOne("OnlineRestaurant.Models.ApplicationUser", "User")
-                        .WithMany("Addresses")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("OnlineRestaurant.Models.Chef", b =>
                 {
                     b.HasOne("OnlineRestaurant.Models.Category", "Category")
@@ -633,11 +590,6 @@ namespace OnlineRestaurant.Migrations
                         .IsRequired();
 
                     b.Navigation("Meal");
-                });
-
-            modelBuilder.Entity("OnlineRestaurant.Models.ApplicationUser", b =>
-                {
-                    b.Navigation("Addresses");
                 });
 
             modelBuilder.Entity("OnlineRestaurant.Models.Category", b =>

@@ -24,7 +24,7 @@ namespace OnlineRestaurant.Services
             _mapper = mapper;
         }
 
-        public async Task<MealReviewView> CreateReview(MealReview review)
+        public async Task<MealReviewView> CreateReview(string token,MealReview review)
         {
             var errormessages = ValidateHelper<MealReview>.Validate(review);
             if (!string.IsNullOrEmpty(errormessages))
@@ -35,7 +35,7 @@ namespace OnlineRestaurant.Services
                 return new MealReviewView { Message = $"There is no Meal with Id : {review.MealId}!" };
 
             var tokenHandler = new JwtSecurityTokenHandler();
-            var jwtToken = tokenHandler.ReadJwtToken(review.TokenModel.Token) as JwtSecurityToken;
+            var jwtToken = tokenHandler.ReadJwtToken(token) as JwtSecurityToken;
             
             var userId = jwtToken.Claims.FirstOrDefault(c => c.Type == "uid")?.Value;
             var username =await _userManager.FindByIdAsync(userId);

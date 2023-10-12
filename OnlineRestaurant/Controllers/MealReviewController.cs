@@ -26,10 +26,10 @@ namespace OnlineRestaurant.Controllers
         }
         [HttpPost]
 
-        public async Task<IActionResult> CreateReviewAsync([FromBody] MealReview review)
+        public async Task<IActionResult> CreateReviewAsync([FromHeader] string token,[FromBody] MealReview review)
         {
 
-            var Review = await _mealReviewService.CreateReview(review);
+            var Review = await _mealReviewService.CreateReview(token,review);
             if (!string.IsNullOrEmpty(Review.Message))
             {
                 return BadRequest(Review.Message);

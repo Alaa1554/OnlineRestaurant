@@ -13,6 +13,7 @@ using System.Configuration;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Text.Json;
+using OnlineRestaurant.Dtos;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,16 +32,21 @@ builder.Services.AddDbContext<ApplicationDbContext>(options=>options.UseSqlServe
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddScoped<IAuthService, AuthService>();
+
 builder.Services.AddScoped<IChefService, ChefService>();
 builder.Services.AddScoped<IMealService, MealService>();
 builder.Services.AddScoped<IMealReviewService, MealReviewService>();
 builder.Services.AddScoped<IChefReviewService, ChefReviewService>();
 builder.Services.AddScoped<IMealFilterService, MealFilterService>();
+builder.Services.AddScoped<IAddressService, AddressService>();
 builder.Services.AddScoped<IMealAdditionService, MealAdditionService>();
+builder.Services.AddScoped<IStaticMealAdditionService, StaticMealAdditionService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IImgService<Chef>, ChefImfService>();
+builder.Services.AddScoped<IImgService<ApplicationUser>, UserImgService>();
 builder.Services.AddScoped<IImgService<Meal>, MealImgService>();
 builder.Services.AddScoped<IImgService<Category>, CategoryimgService>();
+builder.Services.AddScoped<IImgService<StaticMealAddition>, AdditionImgService>();
 builder.Services.AddCors();
 
 builder.Services.AddTransient<ICartService, CartService>();

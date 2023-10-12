@@ -10,12 +10,13 @@ namespace OnlineRestaurant.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
+        
         public AuthController(IAuthService authService)
         {
             _authService = authService;
         }
         [HttpPost("register")]
-        public async Task<IActionResult> RegisterAsync([FromBody] RegisterModelDto model)
+        public async Task<IActionResult> RegisterAsync([FromForm] RegisterModelDto model)
         {
             if (!ModelState.IsValid)
             {
@@ -56,6 +57,17 @@ namespace OnlineRestaurant.Controllers
                 return BadRequest(user);
             }
             return Ok(model);
+        }
+        [HttpPut("UpdateImg")]
+        public async Task<IActionResult> UpdateImg([FromHeader] string token, [FromForm] IFormFile userimg)
+        {
+            var User = await _authService.UpdateImg(token,userimg);
+            if (!string.IsNullOrEmpty(User.Message))
+            {
+                return BadRequest(User.Message);
+            }
+            var Message = "تم تحديث الصوره بنجاح";
+            return Ok(new {User, Message});
         }
     }
 }

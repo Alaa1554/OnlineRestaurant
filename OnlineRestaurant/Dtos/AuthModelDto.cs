@@ -1,4 +1,7 @@
-﻿namespace OnlineRestaurant.Dtos
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
+
+namespace OnlineRestaurant.Dtos
 {
     public class AuthModelDto
     {
@@ -9,6 +12,11 @@
         public List<string> Roles { get; set;}
         public string Token { get; set; }
         public DateTime ExpiresOn { get; set; }
+        public string UserImgUrl { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public int? VerificationCode { get; set; }
+
+
 
     }
 }
