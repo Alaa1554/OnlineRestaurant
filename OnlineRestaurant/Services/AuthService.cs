@@ -191,19 +191,19 @@ namespace OnlineRestaurant.Services
             Random random = new Random();
             char[] code = new char[codeLength];
 
-            // Generate one random character
+          
             code[0] = characters[random.Next(characters.Length)];
 
-            // Generate one random number
+            
             code[1] = numbers[random.Next(numbers.Length)];
 
-            // Generate the remaining characters randomly
+           
             for (int i = 2; i < codeLength; i++)
             {
                 code[i] = characters[random.Next(characters.Length)];
             }
 
-            // Shuffle the code array to ensure randomness
+            
             for (int i = 0; i < codeLength; i++)
             {
                 int j = random.Next(i, codeLength);
