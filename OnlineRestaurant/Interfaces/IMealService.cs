@@ -6,7 +6,7 @@ namespace OnlineRestaurant.Interfaces
 {
     public interface IMealService
     {
-        Task<IEnumerable<MealView>> GetMealsAsync();
+        MealByNameView GetMealByNameAsync(string name,string?token);
         Task<Meal> GetMealByIdAsync(int id);
         Task<Meal> CreateMeal(Meal mealDto);
         Task<MealView> UpdateMealAsync(Meal meal,UpdateMealDto dto);

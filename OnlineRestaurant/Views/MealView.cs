@@ -14,6 +14,8 @@ namespace OnlineRestaurant.Views
         public int Id { get; set; }
         
         public string Name { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public string? Description { get; set; }
         public decimal Price { get; set; }
         [DisplayName("Image")]
         public string MealImgUrl { get; set; }

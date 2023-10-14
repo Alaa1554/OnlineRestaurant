@@ -8,5 +8,6 @@ namespace OnlineRestaurant.Interfaces
         Task<AuthModelDto> GetTokenAsync(TokenRequestDto tokenRequest);
         Task<string> AddRoleAsync(AddRoleDto role);
         Task<AuthModelDto> UpdateImg(string token,IFormFile userimg);
+        Task<string> DeleteAccountAsync(string token);
     }
 }

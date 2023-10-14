@@ -15,6 +15,8 @@ namespace OnlineRestaurant.Models
         [ValidateNever]
         public string UserName { get; set; }
         [ValidateNever]
+        public string? UserImg { get; set; }
+        [ValidateNever]
         public DateTime CreatedDate { get; set; }
         [ValidateNever, JsonIgnore]
         public Chef Chef { get; set; }

@@ -38,19 +38,22 @@ namespace OnlineRestaurant.Services
             var jwtToken = tokenHandler.ReadJwtToken(token) as JwtSecurityToken;
             
             var userId = jwtToken.Claims.FirstOrDefault(c => c.Type == "uid")?.Value;
-            var username =await _userManager.FindByIdAsync(userId);
+            var user =await _userManager.FindByIdAsync(userId);
+            
             if (await _context.MealReviews.AnyAsync(m=>m.UserId == userId)&&await _context.MealReviews.AnyAsync(m=>m.MealId==review.MealId))
             {
                 return new MealReviewView { Message = "You Already Have a Review" };
             }
             var Review = new MealReview
             {
-                UserName=username.UserName,
+                UserName=user.UserName,
                 CreatedDate = DateTime.Now,
                 MealId=review.MealId,
                 Text=review.Text,
                 UserId=userId,
                 Rate=review.Rate,
+                UserImg=user.UserImgUrl
+
                 
             };
             var view = _mapper.Map<MealReviewView>(Review);

@@ -18,7 +18,7 @@ namespace OnlineRestaurant.Filters
 
         public async Task<IEnumerable<MealView>> ApplyFilter()
         { 
-            var Meals = await _context.Meals.Include(c => c.Category).Include(c => c.Chef).Where(m => m.Name.Contains(_name)).Select(
+            var Meals = await _context.Meals.Include(c => c.Category).Include(c => c.Chef).Where(m => m.Name.Contains(_name.Trim())).Select(
                     m => new MealView
                     {
                         Id = m.Id,

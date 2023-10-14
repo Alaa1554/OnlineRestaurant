@@ -32,7 +32,23 @@ namespace OnlineRestaurant.Services
             }
             else
             {
-                meals= await _mealService.GetMealsAsync();
+                 meals = await _context.Meals.Include(meal => meal.Chef).Include(b => b.Category).Include(m => m.MealReviews).Select(b => new MealView
+                {
+                    Id = b.Id,
+                    ChefId = b.ChefId,
+                    ChefName = b.Chef.Name,
+                    MealImgUrl = b.MealImgUrl,
+                    Name = b.Name,
+                    Price = b.Price,
+                    Categoryid = b.CategoryId,
+                    CategoryName = b.Category.Name,
+                    Rate = decimal.Round((b.MealReviews.Sum(b => b.Rate) /
+               b.MealReviews.Where(b => b.Rate > 0).DefaultIfEmpty().Count()), 1),
+                    NumOfRate = b.MealReviews.Count(c => c.Rate > 0),
+                    OldPrice = b.OldPrice == 0.00m ? null : b.OldPrice,
+
+
+                }).ToListAsync();
             }
             
             

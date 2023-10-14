@@ -32,7 +32,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options=>options.UseSqlServe
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddScoped<IAuthService, AuthService>();
-
+builder.Services.AddScoped<IWishListService, WishListService>();
 builder.Services.AddScoped<IChefService, ChefService>();
 builder.Services.AddScoped<IMealService, MealService>();
 builder.Services.AddScoped<IMealReviewService, MealReviewService>();

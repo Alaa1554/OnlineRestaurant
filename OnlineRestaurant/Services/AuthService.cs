@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using NuGet.Common;
+using OnlineRestaurant.Data;
 using OnlineRestaurant.Dtos;
 using OnlineRestaurant.Helpers;
 using OnlineRestaurant.Interfaces;
@@ -26,15 +27,17 @@ namespace OnlineRestaurant.Services
         private readonly JWT _jwt;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IImgService<ApplicationUser> _imgService;
+        private readonly ApplicationDbContext _context;
 
 
-        public AuthService(UserManager<ApplicationUser> userManager, IMapper mapper, IOptions<JWT> jwt, RoleManager<IdentityRole> roleManager, IImgService<ApplicationUser> imgService)
+        public AuthService(UserManager<ApplicationUser> userManager, IMapper mapper, IOptions<JWT> jwt, RoleManager<IdentityRole> roleManager, IImgService<ApplicationUser> imgService, ApplicationDbContext context)
         {
             _userManager = userManager;
             _mapper = mapper;
             _jwt = jwt.Value;
             _roleManager = roleManager;
             _imgService = imgService;
+            _context = context;
         }
 
         public async Task<AuthModelDto> RegisterAsync(RegisterModelDto registermodel)
@@ -65,7 +68,11 @@ namespace OnlineRestaurant.Services
             }
             await _userManager.AddToRoleAsync(user, "User");
             var jwtSecurityToken = await CreateJwtToken(user);
-
+            var UserWishList=new WishList { 
+                UserId=user.Id
+            };
+           await  _context.wishLists.AddAsync(UserWishList);
+            _context.SaveChanges();
             var authmodel = new AuthModelDto
             {
                 Email = user.Email,
@@ -181,8 +188,34 @@ namespace OnlineRestaurant.Services
 
         }
 
-
-        public string GenerateRandomCode()
+        public async Task<string> DeleteAccountAsync (string token)
+        {
+            var tokenhandler=new JwtSecurityTokenHandler();
+            var jwttoken=tokenhandler.ReadJwtToken(token) as JwtSecurityToken;
+            var userid = jwttoken.Claims.FirstOrDefault(c => c.Type == "uid")?.Value;
+            if(string.IsNullOrEmpty(userid) )
+            {
+                return  "No User is Found!" ;
+            }
+            var user= await _userManager.FindByIdAsync(userid);
+             if(user == null)
+            {
+                return  "No User is Found!" ;
+            }
+            _imgService.DeleteImg(user);
+            var result= await _userManager.DeleteAsync(user);
+            if (!result.Succeeded)
+            {
+                var errors = "";
+                foreach (var error in result.Errors)
+                {
+                    errors += $"{error.Description}\t";
+                }
+                return  errors ;
+            }
+            return string.Empty ;
+        }
+        private string GenerateRandomCode()
         {
             const string characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
             const string numbers = "0123456789";

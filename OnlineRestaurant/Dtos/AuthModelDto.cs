@@ -15,7 +15,7 @@ namespace OnlineRestaurant.Dtos
         public string UserImgUrl { get; set; }
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? VerificationCode { get; set; }
-
+        
 
 
     }

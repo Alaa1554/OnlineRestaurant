@@ -27,8 +27,8 @@ namespace OnlineRestaurant.Controllers
             {
                 return BadRequest(user.Message);
             }
-
-            return Ok(user);
+            var message = "تم التسجيل بنجاح";
+            return Ok(new { user, message });
         }
         [HttpPost("token")]
         public async Task<IActionResult> GetTokenAsync ([FromBody] TokenRequestDto model)
@@ -56,6 +56,7 @@ namespace OnlineRestaurant.Controllers
             {
                 return BadRequest(user);
             }
+
             return Ok(model);
         }
         [HttpPut("UpdateImg")]
@@ -68,6 +69,17 @@ namespace OnlineRestaurant.Controllers
             }
             var Message = "تم تحديث الصوره بنجاح";
             return Ok(new {User, Message});
+        }
+        [HttpDelete("DeleteAccount")]
+        public async Task<IActionResult> DeleteAccountAsync([FromHeader]string token)
+        {
+            var errormessages=await _authService.DeleteAccountAsync(token);
+            if (!string.IsNullOrEmpty(errormessages))
+            {
+                return BadRequest(errormessages);
+            }
+            var message = "تم حذف الحساب بنجاح";
+            return Ok(message);
         }
     }
 }

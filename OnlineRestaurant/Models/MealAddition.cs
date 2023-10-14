@@ -14,6 +14,7 @@ namespace OnlineRestaurant.Models
         public List<Choice> Choices { get; set; }
         [ValidateNever,JsonIgnore]
         public Meal Meal { get; set; }
+        [JsonIgnore]
         public int MealId { get; set; }
         [NotMapped, ValidateNever, JsonIgnore]
         public string Message { get; set; }

@@ -17,6 +17,8 @@ namespace OnlineRestaurant.Models
         public string UserName { get; set; }
         [ValidateNever]
         public DateTime CreatedDate { get; set; }
+        [ValidateNever]
+        public string? UserImg { get; set; } 
         [ValidateNever,JsonIgnore]
         public Meal Meal { get; set; }
         public int MealId { get; set; }

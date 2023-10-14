@@ -1,4 +1,5 @@
-﻿using Humanizer;
+﻿using AutoMapper;
+using Humanizer;
 using Microsoft.DotNet.Scaffolding.Shared.Messaging;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
@@ -17,10 +18,15 @@ namespace OnlineRestaurant.Services
         private readonly ApplicationDbContext _context;
         
         private readonly IImgService<Meal> _imgService;
-        public MealService(ApplicationDbContext context, IImgService<Meal> imgService)
+        private readonly IWishListService _wishlist;
+        private readonly IMapper _mapper;
+
+        public MealService(ApplicationDbContext context, IImgService<Meal> imgService, IWishListService wishlist, IMapper mapper)
         {
             _context = context;
             _imgService = imgService;
+            _wishlist = wishlist;
+            _mapper = mapper;
         }
         public async Task<Meal> CreateMeal(Meal mealDto)
         {
@@ -69,26 +75,54 @@ namespace OnlineRestaurant.Services
             return meal;
         }
 
-        public async Task<IEnumerable<MealView>> GetMealsAsync()
+        public MealByNameView GetMealByNameAsync(string name,string?token)
         {
-           var meals = await _context.Meals.Include(meal => meal.Chef).Include(b=>b.Category).Include(m=>m.MealReviews).Select(b=>new MealView  {
-               Id =b.Id,
-               ChefId =b.ChefId,
-               ChefName =b.Chef.Name,
-               MealImgUrl =b.MealImgUrl,
-               Name =b.Name,
-               Price =b.Price,
-               Categoryid=b.CategoryId,
-               CategoryName =b.Category.Name,
-               Rate=  decimal.Round((b.MealReviews.Sum(b => b.Rate) /
-               b.MealReviews.Where(b => b.Rate > 0).DefaultIfEmpty().Count()), 1),
-            NumOfRate =b.MealReviews.Count(c=>c.Rate>0),
-               OldPrice = b.OldPrice==0.00m?null:b.OldPrice,
-               
-               
-               }).ToListAsync();
+            var meal = _context.Meals.SingleOrDefault(c=>c.Name==name);
+            string isfavourite;
+            if (string.IsNullOrEmpty(token))
+            {
+                isfavourite = null;
+            }
+            else
+            {
+                var userid = _wishlist.GetUserId(token);
+                var wishlistid=_context.wishLists.SingleOrDefault(v=>v.UserId == userid);
+                if( _context.WishListMeals.Any(w => w.MealId == meal.Id && w.WishListId == wishlistid.Id))
+                {
+                    isfavourite = "true";
+                }
+                else
+                {
+                    isfavourite= "false";
+                }
+            }
+             
             
-           return meals;
+            var getmeal = _context.Meals.Include(meal => meal.Chef).Include(b => b.Category).Include(m => m.MealReviews).Include(m => m.WishListMeals).Include(m => m.Additions).Include(c=>c.MealReviews).SingleOrDefault(c=>c.Name==name);
+            var getbyname = new MealByNameView
+            {
+                Id = getmeal.Id,
+                Description = getmeal.Description ?? null,
+                ChefName = getmeal.Chef.Name,
+                Image = getmeal.MealImgUrl,
+                Name = getmeal.Name,
+                Price = getmeal.Price,
+                IsFavourite = isfavourite,
+                CategoryName = getmeal.Category.Name,
+                Rate = decimal.Round((getmeal.MealReviews.Sum(b => b.Rate) /
+                getmeal.MealReviews.Where(b => b.Rate > 0).DefaultIfEmpty().Count()), 1),
+                NumOfRates = getmeal.MealReviews.Count(c => c.Rate > 0),
+                OldPrice = getmeal.OldPrice == 0.00m ? null : getmeal.OldPrice,
+                StaticMealAdditions = _context.StaticAdditions.ToList(),
+                MealAdditions = getmeal.Additions.ToList(),
+                Reviews = _mapper.Map<List<MealReviewView>>(getmeal.MealReviews),
+
+
+
+            };
+
+
+           return getbyname;
 
         }
 

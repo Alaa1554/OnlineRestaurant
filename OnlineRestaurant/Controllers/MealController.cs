@@ -24,11 +24,11 @@ namespace OnlineRestaurant.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllMealAsync()
+        public IActionResult GetMealByNameAsync([FromQuery]string name, [FromHeader] string? token)
         {
-            var meals =await _mealService.GetMealsAsync();
-            var maxprice = await _context.Meals.MaxAsync(m => m.Price);
-            return Ok(new { meals, maxprice });
+            var meals = _mealService.GetMealByNameAsync(name,token);
+            
+            return Ok( meals);
         }
         
         [HttpPost]
