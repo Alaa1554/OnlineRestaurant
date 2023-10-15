@@ -98,7 +98,7 @@ namespace OnlineRestaurant.Services
             }
              
             
-            var getmeal = _context.Meals.Include(meal => meal.Chef).Include(b => b.Category).Include(m => m.MealReviews).Include(m => m.WishListMeals).Include(m => m.Additions).Include(c=>c.MealReviews).SingleOrDefault(c=>c.Name==name);
+            var getmeal = _context.Meals.Include(meal => meal.Chef).Include(b => b.Category).Include(m => m.MealReviews).Include(m => m.WishListMeals).Include(m => m.Additions).ThenInclude(c=>c.Choices).Include(c=>c.MealReviews).SingleOrDefault(c=>c.Name==name);
             var getbyname = new MealByNameView
             {
                 Id = getmeal.Id,
@@ -114,7 +114,7 @@ namespace OnlineRestaurant.Services
                 NumOfRates = getmeal.MealReviews.Count(c => c.Rate > 0),
                 OldPrice = getmeal.OldPrice == 0.00m ? null : getmeal.OldPrice,
                 StaticMealAdditions = _context.StaticAdditions.ToList(),
-                MealAdditions = getmeal.Additions.ToList(),
+                MealAdditions = getmeal.Additions.Select(x=>new AdditionView { Id=x.Id,Choices=x.Choices,Name=x.Name}).ToList(),
                 Reviews = _mapper.Map<List<MealReviewView>>(getmeal.MealReviews),
 
 

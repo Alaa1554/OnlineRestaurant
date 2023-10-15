@@ -10,11 +10,11 @@ namespace OnlineRestaurant.Models
         public int Id { get; set; }
         [MaxLength(100)]
         public string Name { get; set; }
-       
+        
         public List<Choice> Choices { get; set; }
         [ValidateNever,JsonIgnore]
         public Meal Meal { get; set; }
-        [JsonIgnore]
+        
         public int MealId { get; set; }
         [NotMapped, ValidateNever, JsonIgnore]
         public string Message { get; set; }

@@ -17,7 +17,7 @@ namespace OnlineRestaurant.Views
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? IsFavourite { get; set; }
         public List<StaticMealAddition> StaticMealAdditions { get; set; }
-        public List<MealAddition> MealAdditions { get; set; }
+        public List<AdditionView> MealAdditions { get; set; }
         public decimal Price { get; set; }
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public decimal? OldPrice { get; set; }
