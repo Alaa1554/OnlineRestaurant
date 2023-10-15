@@ -47,6 +47,8 @@ namespace OnlineRestaurant.Services
                 Price = mealDto.Price,
                 CategoryId = mealDto.CategoryId,
                 OldPrice = mealDto.OldPrice,
+                Description = mealDto.Description??null,
+                
         };
             _imgService.SetImage(meal, mealDto.MealImg);
             if (!string.IsNullOrEmpty(meal.Message))
@@ -153,7 +155,9 @@ namespace OnlineRestaurant.Services
             selectedmeal.Name = meal.Name??selectedmeal.Name;
             selectedmeal.CategoryId=meal.CategoryId?? selectedmeal.CategoryId;
             selectedmeal.OldPrice = meal.OldPrice ?? selectedmeal.OldPrice;
-            
+            selectedmeal.Description = meal.Description ?? selectedmeal.Description;
+
+
             _context.Update(selectedmeal);
             _context.SaveChanges();
 

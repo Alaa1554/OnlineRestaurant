@@ -12,5 +12,6 @@ namespace OnlineRestaurant.Dtos
         public decimal? OldPrice { get; set; }
         public int? ChefId { get; set; }
         public int? CategoryId { get; set; }
+        public string? Description { get; set; }
     }
 }
