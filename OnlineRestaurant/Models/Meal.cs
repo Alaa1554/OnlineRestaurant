@@ -35,6 +35,10 @@ namespace OnlineRestaurant.Models
         public string Message { get; set; }
         [NotMapped,Required(ErrorMessage = "This Field is Required"), JsonIgnore]
         public IFormFile MealImg { get; set; }
+        [ValidateNever]
+        public decimal Rate { get; set; }
+        [ValidateNever]
+        public int NumOfRate { get; set; }
         [ValidateNever,JsonIgnore]
         public List<MealAddition> Additions { get; set; }
         [ValidateNever, JsonIgnore]

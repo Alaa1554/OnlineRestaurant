@@ -48,6 +48,7 @@ namespace OnlineRestaurant.Services
                 CategoryId = mealDto.CategoryId,
                 OldPrice = mealDto.OldPrice,
                 Description = mealDto.Description??null,
+               
                 
         };
             _imgService.SetImage(meal, mealDto.MealImg);

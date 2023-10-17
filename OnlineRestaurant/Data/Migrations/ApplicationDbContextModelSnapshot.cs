@@ -188,7 +188,7 @@ namespace OnlineRestaurant.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Addresses");
+                    b.ToTable("Addresses", (string)null);
                 });
 
             modelBuilder.Entity("OnlineRestaurant.Models.ApplicationUser", b =>
@@ -288,7 +288,7 @@ namespace OnlineRestaurant.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Categories");
+                    b.ToTable("Categories", (string)null);
                 });
 
             modelBuilder.Entity("OnlineRestaurant.Models.Chef", b =>
@@ -315,7 +315,7 @@ namespace OnlineRestaurant.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.ToTable("Chefs");
+                    b.ToTable("Chefs", (string)null);
                 });
 
             modelBuilder.Entity("OnlineRestaurant.Models.ChefReview", b =>
@@ -355,7 +355,7 @@ namespace OnlineRestaurant.Migrations
 
                     b.HasIndex("ChefId");
 
-                    b.ToTable("ChefReviews");
+                    b.ToTable("ChefReviews", (string)null);
                 });
 
             modelBuilder.Entity("OnlineRestaurant.Models.Choice", b =>
@@ -380,7 +380,7 @@ namespace OnlineRestaurant.Migrations
 
                     b.HasIndex("MealAdditionId");
 
-                    b.ToTable("Choice");
+                    b.ToTable("Choice", (string)null);
                 });
 
             modelBuilder.Entity("OnlineRestaurant.Models.Meal", b =>
@@ -422,7 +422,7 @@ namespace OnlineRestaurant.Migrations
 
                     b.HasIndex("ChefId");
 
-                    b.ToTable("Meals");
+                    b.ToTable("Meals", (string)null);
                 });
 
             modelBuilder.Entity("OnlineRestaurant.Models.MealAddition", b =>
@@ -445,7 +445,7 @@ namespace OnlineRestaurant.Migrations
 
                     b.HasIndex("MealId");
 
-                    b.ToTable("MealAdditions");
+                    b.ToTable("MealAdditions", (string)null);
                 });
 
             modelBuilder.Entity("OnlineRestaurant.Models.MealReview", b =>
@@ -485,7 +485,7 @@ namespace OnlineRestaurant.Migrations
 
                     b.HasIndex("MealId");
 
-                    b.ToTable("MealReviews");
+                    b.ToTable("MealReviews", (string)null);
                 });
 
             modelBuilder.Entity("OnlineRestaurant.Models.StaticMealAddition", b =>
@@ -510,7 +510,7 @@ namespace OnlineRestaurant.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("StaticAdditions");
+                    b.ToTable("StaticAdditions", (string)null);
                 });
 
             modelBuilder.Entity("OnlineRestaurant.Models.WishList", b =>
@@ -530,7 +530,7 @@ namespace OnlineRestaurant.Migrations
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("wishLists");
+                    b.ToTable("wishLists", (string)null);
                 });
 
             modelBuilder.Entity("OnlineRestaurant.Services.WishListMeals", b =>
@@ -545,7 +545,7 @@ namespace OnlineRestaurant.Migrations
 
                     b.HasIndex("WishListId");
 
-                    b.ToTable("WishListMeals");
+                    b.ToTable("WishListMeals", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 
 using Microsoft.AspNetCore.Identity;
+using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -18,6 +19,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
+
 namespace OnlineRestaurant.Services
 {
     public class AuthService : IAuthService
@@ -28,9 +30,10 @@ namespace OnlineRestaurant.Services
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IImgService<ApplicationUser> _imgService;
         private readonly ApplicationDbContext _context;
+        private readonly SignInManager<ApplicationUser> _signInManager;
 
 
-        public AuthService(UserManager<ApplicationUser> userManager, IMapper mapper, IOptions<JWT> jwt, RoleManager<IdentityRole> roleManager, IImgService<ApplicationUser> imgService, ApplicationDbContext context)
+        public AuthService(UserManager<ApplicationUser> userManager, IMapper mapper, IOptions<JWT> jwt, RoleManager<IdentityRole> roleManager, IImgService<ApplicationUser> imgService, ApplicationDbContext context, SignInManager<ApplicationUser> signInManager)
         {
             _userManager = userManager;
             _mapper = mapper;
@@ -38,6 +41,7 @@ namespace OnlineRestaurant.Services
             _roleManager = roleManager;
             _imgService = imgService;
             _context = context;
+            _signInManager = signInManager;
         }
 
         public async Task<AuthModelDto> RegisterAsync(RegisterModelDto registermodel)
@@ -157,7 +161,7 @@ namespace OnlineRestaurant.Services
 
             return jwtSecurityToken;
         }
-        public async Task<AuthModelDto> UpdateImg(string token, IFormFile userimg)
+        public async Task<AuthModelDto> UpdateAccount(string token, UpdateAccountDto dto)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var jwtToken = tokenHandler.ReadJwtToken(token) as JwtSecurityToken;
@@ -168,10 +172,26 @@ namespace OnlineRestaurant.Services
             {
                 return new AuthModelDto { Message = "No User is Found!" };
             }
-            _imgService.UpdateImg(user, userimg);
-            if (!string.IsNullOrEmpty(user.Message))
+            if (dto.UserImg != null)
             {
-                return new AuthModelDto { Message = user.Message };
+                _imgService.UpdateImg(user, dto.UserImg);
+                if (!string.IsNullOrEmpty(user.Message))
+                {
+                    return new AuthModelDto { Message = user.Message };
+                }
+            }
+            user.FirstName=dto.FristName??user.FirstName;
+            user.LastName=dto.LastName??user.LastName;
+            user.UserName = dto.UserName ?? user.UserName;
+            var result= await _userManager.UpdateAsync(user);
+            if (!result.Succeeded)
+            {
+                var errors = "";
+                foreach (var error in result.Errors)
+                {
+                    errors += $"{error.Description}\t";
+                }
+                return new AuthModelDto { Message = errors };
             }
             var jwtSecurityToken = await CreateJwtToken(user);
             var rolelist = await _userManager.GetRolesAsync(user);
@@ -214,6 +234,31 @@ namespace OnlineRestaurant.Services
                 return  errors ;
             }
             return string.Empty ;
+        }
+        public async Task<string> UpdatePassword(string token,UpdatePasswordDto dto)
+        {
+            var tokenhandler = new JwtSecurityTokenHandler();
+            var jwttoken=tokenhandler.ReadJwtToken(token) as JwtSecurityToken;
+            var userid=jwttoken.Claims.FirstOrDefault(c=>c.Type == "uid")?.Value;
+            var user=await _userManager.FindByIdAsync(userid);
+            
+            if (!await _userManager.CheckPasswordAsync(user, dto.OldPassword)) 
+            { 
+                return  "كلمه السر غير صحيحه" ;
+            }
+           var result= await _userManager.ChangePasswordAsync(user, dto.OldPassword, dto.Password);
+            if (!result.Succeeded)
+            {
+                var errors = "";
+                foreach (var error in result.Errors)
+                {
+                    errors += $"{error.Description}";
+                }
+                return errors;
+            }
+            await _signInManager.RefreshSignInAsync(user);
+            return string.Empty;
+            
         }
         private string GenerateRandomCode()
         {

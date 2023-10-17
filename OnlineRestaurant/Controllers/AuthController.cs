@@ -59,15 +59,15 @@ namespace OnlineRestaurant.Controllers
 
             return Ok(model);
         }
-        [HttpPut("UpdateImg")]
-        public async Task<IActionResult> UpdateImg([FromHeader] string token, [FromForm] IFormFile userimg)
+        [HttpPut("UpdateAccount")]
+        public async Task<IActionResult> UpdateAccount([FromHeader] string token, [FromForm] UpdateAccountDto dto)
         {
-            var User = await _authService.UpdateImg(token,userimg);
+            var User = await _authService.UpdateAccount(token,dto);
             if (!string.IsNullOrEmpty(User.Message))
             {
                 return BadRequest(User.Message);
             }
-            var Message = "تم تحديث الصوره بنجاح";
+            var Message = "تم تحديث التغيرات بنجاح";
             return Ok(new {User, Message});
         }
         [HttpDelete("DeleteAccount")]
@@ -79,6 +79,17 @@ namespace OnlineRestaurant.Controllers
                 return BadRequest(errormessages);
             }
             var message = "تم حذف الحساب بنجاح";
+            return Ok(message);
+        }
+        [HttpPut("UpdatePassword")]
+        public async Task<IActionResult> UpdatePasswordAsync([FromHeader]string token, [FromBody] UpdatePasswordDto dto)
+        {
+            var errormessage = await _authService.UpdatePassword(token, dto);
+            if (!string.IsNullOrEmpty(errormessage))
+            {
+                return BadRequest(errormessage);
+            }
+            var message = "تم تغير كلمه السر بنجاح";
             return Ok(message);
         }
     }

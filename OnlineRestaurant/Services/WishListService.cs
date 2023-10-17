@@ -42,8 +42,22 @@ namespace OnlineRestaurant.Services
         {
             var userid= GetUserId(token);
             var WishList= await _context.wishLists.SingleOrDefaultAsync(c=>c.UserId == userid);
-          
-            var WishListMeals=await _context.WishListMeals.Where(c => c.WishListId == WishList.Id).Include(c => c.Meals).GroupBy(c => c.WishListId).Select(c => new WishListMealView {WishListId=c.Key,Meals=c.Select(x=>x.Meals).ToList()}).ToListAsync();
+            
+            var WishListMeals=await _context.WishListMeals.Where(c => c.WishListId == WishList.Id).Include(c => c.Meals).ThenInclude(c=>c.Additions).Include(c=>c.Meals).ThenInclude(c=>c.Category).Include(c=>c.Meals).ThenInclude(c=>c.Chef).Include(c=>c.Meals).ThenInclude(c=>c.MealReviews).GroupBy(c => c.WishListId).Select(c => new WishListMealView {WishListId=c.Key,Meals=c.Select(x=>x.Meals).Select(c=>new MealView { 
+                Id=c.Id,
+                Categoryid=c.CategoryId,
+                Name=c.Name,
+                CategoryName=c.Category.Name,
+                ChefId=c.ChefId,
+                ChefName=c.Chef.Name,
+                Description=c.Description,
+                MealImgUrl=c.MealImgUrl,
+                Price=c.Price,
+                OldPrice=c.OldPrice,
+                Rate= decimal.Round((c.MealReviews.Sum(b => b.Rate) /
+                c.MealReviews.Where(b => b.Rate > 0).DefaultIfEmpty().Count()), 1),
+                NumOfRate= c.MealReviews.Count(c => c.Rate > 0)
+            }).ToList()}).ToListAsync();
             return WishListMeals;
         }
 
