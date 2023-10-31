@@ -18,7 +18,7 @@ namespace OnlineRestaurant.Filters
 
         public async Task<IEnumerable<MealView>> ApplyFilter()
         { 
-            var Meals = await _context.Meals.Include(c => c.Category).Include(c => c.Chef).Where(m => m.Name.Contains(_name.Trim())).Select(
+            var Meals = await _context.Meals.Include(c => c.Category).Include(c => c.Chef).Include(c=>c.MealReviews).Where(m => m.Name.Contains(_name.Trim())).Select(
                     m => new MealView
                     {
                         Id = m.Id,
@@ -28,7 +28,10 @@ namespace OnlineRestaurant.Filters
                         ChefId = m.ChefId,
                         ChefName = m.Chef.Name,
                         MealImgUrl = m.MealImgUrl,
-                        Price = m.Price
+                        Price = m.Price,
+                        OldPrice= m.OldPrice==0.00m?null:m.OldPrice,
+                        Rate = decimal.Round(m.MealReviews.Sum(c => c.Rate) / m.MealReviews.Where(c => c.Rate > 0).DefaultIfEmpty().Count(), 1),
+                        NumOfRate = m.MealReviews.Count(r => r.Rate > 0)
                     }
                     ).ToListAsync();
             return Meals;

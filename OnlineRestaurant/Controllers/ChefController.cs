@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
+﻿
 using Microsoft.AspNetCore.Mvc;
 using OnlineRestaurant.Dtos;
 using OnlineRestaurant.Interfaces;
@@ -21,7 +20,7 @@ namespace OnlineRestaurant.Controllers
 
         
         [HttpGet]
-        public async Task<IActionResult> GetAllAsync()
+        public async Task<IActionResult> GetAllChefsAsync()
         {
 
             var chefs = await _chefService.GetChefsAsync();
@@ -57,7 +56,8 @@ namespace OnlineRestaurant.Controllers
             {
                 return BadRequest(UpdatedData.Message);
             }
-            return Ok(UpdatedData);
+            var Message = "تم تعديل الشيف  بنجاح";
+            return Ok(new { UpdatedData, Message });
         }
         
         [HttpDelete("{id}")]
@@ -71,7 +71,8 @@ namespace OnlineRestaurant.Controllers
                 return NotFound(chef.Message);
             }
             var DeletedData =_chefService.DeleteChefAsync(chef);
-            return Ok(DeletedData);
+            var Message = "تم حذف الشيف بنجاح";
+            return Ok(new { DeletedData, Message });
         }
     }
 }

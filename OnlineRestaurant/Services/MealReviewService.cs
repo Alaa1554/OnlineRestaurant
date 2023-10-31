@@ -39,7 +39,10 @@ namespace OnlineRestaurant.Services
             
             var userId = jwtToken.Claims.FirstOrDefault(c => c.Type == "uid")?.Value;
             var user =await _userManager.FindByIdAsync(userId);
-            
+            if (!await _userManager.Users.AnyAsync(c => c.Id == userId))
+            {
+                return new MealReviewView { Message = "No User is Found!" };
+            }
             if (await _context.MealReviews.AnyAsync(m=>m.UserId == userId)&&await _context.MealReviews.AnyAsync(m=>m.MealId==review.MealId))
             {
                 return new MealReviewView { Message = "You Already Have a Review" };

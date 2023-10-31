@@ -1,12 +1,11 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
+﻿
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+
 using OnlineRestaurant.Data;
 using OnlineRestaurant.Dtos;
 using OnlineRestaurant.Interfaces;
 using OnlineRestaurant.Models;
-using OnlineRestaurant.Services;
+
 
 namespace OnlineRestaurant.Controllers
 {
@@ -59,7 +58,8 @@ namespace OnlineRestaurant.Controllers
             {
                return BadRequest(UpdatedData.Message);
             }
-            return Ok(UpdatedData);
+            var Message = "تم تعديل الوجبه بنجاح";
+            return Ok(new { UpdatedData, Message });
         }
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteMeal(int id)
@@ -70,7 +70,8 @@ namespace OnlineRestaurant.Controllers
                return NotFound(meal.Message);
             }
             var DeletedData = _mealService.DeleteMeal(meal);
-            return Ok(DeletedData);
+            var Message = "تم حذف الوجبه بنجاح";
+            return Ok(new { DeletedData, Message });
         }
     }
 }

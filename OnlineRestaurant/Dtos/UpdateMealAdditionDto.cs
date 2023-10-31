@@ -1,4 +1,4 @@
-﻿using OnlineRestaurant.Models;
+﻿
 using System.ComponentModel.DataAnnotations;
 
 namespace OnlineRestaurant.Dtos

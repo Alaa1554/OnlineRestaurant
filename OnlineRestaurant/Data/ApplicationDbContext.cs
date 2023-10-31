@@ -18,7 +18,7 @@ namespace OnlineRestaurant.Data
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
-            builder.Entity<WishList>().HasMany(c => c.Meals).WithMany(c => c.WishLists).UsingEntity<WishListMeals>();
+            builder.Entity<WishList>().HasMany(c => c.Meals).WithMany(c => c.WishLists).UsingEntity<WishListMeal>();
         }
         public DbSet<Chef> Chefs { get; set; }
         
@@ -29,7 +29,7 @@ namespace OnlineRestaurant.Data
         public DbSet<ChefReview> ChefReviews { get; set; }
         public DbSet<StaticMealAddition> StaticAdditions { get; set; }
         public DbSet<Address> Addresses { get; set; }
-        public DbSet<WishListMeals> WishListMeals { get;set; }
+        public DbSet<WishListMeal> WishListMeals { get;set; }
         public DbSet<WishList> wishLists { get; set; }
     }
 }

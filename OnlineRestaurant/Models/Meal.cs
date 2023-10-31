@@ -3,7 +3,7 @@ using OnlineRestaurant.Services;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Security.Principal;
+
 using System.Text.Json.Serialization;
 
 namespace OnlineRestaurant.Models
@@ -35,10 +35,13 @@ namespace OnlineRestaurant.Models
         public string Message { get; set; }
         [NotMapped,Required(ErrorMessage = "This Field is Required"), JsonIgnore]
         public IFormFile MealImg { get; set; }
-        [ValidateNever]
+        [ValidateNever,NotMapped]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public decimal Rate { get; set; }
-        [ValidateNever]
+        [ValidateNever,NotMapped]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public int NumOfRate { get; set; }
+        
         [ValidateNever,JsonIgnore]
         public List<MealAddition> Additions { get; set; }
         [ValidateNever, JsonIgnore]
@@ -48,7 +51,7 @@ namespace OnlineRestaurant.Models
         public List<WishList> WishLists { get; set; }
         [ValidateNever, JsonIgnore]
 
-        public IEnumerable<WishListMeals> WishListMeals { get; set; }
+        public IEnumerable<WishListMeal> WishListMeal { get; set; }
        
         
 

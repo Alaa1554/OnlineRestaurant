@@ -1,4 +1,4 @@
-﻿using Humanizer;
+﻿
 using Microsoft.EntityFrameworkCore;
 using OnlineRestaurant.Data;
 using OnlineRestaurant.Dtos;
@@ -76,7 +76,7 @@ namespace OnlineRestaurant.Services
                 if (!await _context.Meals.AnyAsync(meal => meal.Id == dto.MealId))
                     return new MealAddition { Message = $"There is no Meal with Id : {dto.MealId}!" };
 
-                mealAddition.MealId = (int)dto.MealId;
+                mealAddition.MealId = dto.MealId??mealAddition.MealId;
             }
             
             mealAddition.Name = dto.Name ?? mealAddition.Name;
@@ -90,7 +90,7 @@ namespace OnlineRestaurant.Services
                 choice.Name= dto.Choice.Name ?? choice.Name;
                 choice.Price=dto.Choice.Price??choice.Price;
             }
-            
+            _context.Update(mealAddition);
 
             _context.SaveChanges();
 

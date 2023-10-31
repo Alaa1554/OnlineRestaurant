@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using OnlineRestaurant.Data;
 using OnlineRestaurant.Interfaces;
 using OnlineRestaurant.Models;
@@ -10,10 +12,12 @@ namespace OnlineRestaurant.Filters
     {
         private readonly string? _Category;
         private readonly ApplicationDbContext _context;
+       
         public CategoryFilter(string? Category, ApplicationDbContext context)
         {
             _Category = Category;
             _context = context;
+            
         }
 
         public async Task<IEnumerable<MealView>> ApplyFilter()
@@ -22,8 +26,10 @@ namespace OnlineRestaurant.Filters
             IEnumerable<Meal> Meals = Enumerable.Empty<Meal>();
             foreach (var Category in Categories)
             {
-                Meals = Meals.Union(await _context.Meals.Include(c => c.Category).Include(c => c.Chef).Where(m => m.Category.Name == Category.Trim()).ToListAsync());
+                Meals = Meals.Union(await _context.Meals.Include(c => c.Category).Include(c=>c.MealReviews).Include(c => c.Chef).Where(m => m.Category.Name == Category.Trim()).ToListAsync());
             }
+            
+
             var MealsView = Meals.Select(
                     m => new MealView
                     {
@@ -34,7 +40,10 @@ namespace OnlineRestaurant.Filters
                         ChefId = m.ChefId,
                         ChefName = m.Chef.Name,
                         MealImgUrl = m.MealImgUrl,
-                        Price = m.Price
+                        Price = m.Price,
+                        OldPrice = m.OldPrice==0.00m?null:m.OldPrice,
+                        Rate=decimal.Round(m.MealReviews.Sum(r=>r.Rate)/m.MealReviews.Where(r=>r.Rate>0).DefaultIfEmpty().Count(),1),
+                        NumOfRate=m.MealReviews.Count(r => r.Rate > 0),
                     }
                     ).ToList();
             return MealsView;

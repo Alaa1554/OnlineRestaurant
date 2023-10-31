@@ -10,5 +10,8 @@ namespace OnlineRestaurant.Interfaces
         Task<AuthModelDto> UpdateAccount(string token,UpdateAccountDto dto);
         Task<string> DeleteAccountAsync(string token);
         Task<string> UpdatePassword(string token, UpdatePasswordDto dto);
+        string GetUserId(string token);
+        Task<string> DeleteUserImage(string token);
+        Task<AuthModelDto> GmailRegisterAsync(GmailRegisterDto registermodel);
     }
 }

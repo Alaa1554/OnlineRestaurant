@@ -1,23 +1,23 @@
 ﻿using AutoMapper;
 
 using Microsoft.AspNetCore.Identity;
-using Microsoft.CodeAnalysis.Scripting;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using NuGet.Common;
+
 using OnlineRestaurant.Data;
 using OnlineRestaurant.Dtos;
 using OnlineRestaurant.Helpers;
 using OnlineRestaurant.Interfaces;
 using OnlineRestaurant.Models;
-using System;
-using System.Data;
+
+
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using System.Text.RegularExpressions;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+
+
 
 
 namespace OnlineRestaurant.Services
@@ -46,13 +46,17 @@ namespace OnlineRestaurant.Services
 
         public async Task<AuthModelDto> RegisterAsync(RegisterModelDto registermodel)
         {
+            if (registermodel.Password.Length < 6)
+            {
+                return new AuthModelDto { Message = "الباسورد يجب ان يحتوي علي 6 حروف او ارقام علي الاقل" };
+            }
             if (await _userManager.FindByEmailAsync(registermodel.Email) is not null)
             {
-                return new AuthModelDto { Message = "Email Is Already Exist!" };
+                return new AuthModelDto { Message = "البريد الالكتروني موجود بالفعل" };
             }
             if (await _userManager.FindByNameAsync(registermodel.UserName) is not null)
             {
-                return new AuthModelDto { Message = "UserName Is Already Exist!" };
+                return new AuthModelDto { Message = "اسم المستخدم موجود بالفعل" };
             }
             var user = _mapper.Map<ApplicationUser>(registermodel);
             var result = await _userManager.CreateAsync(user, registermodel.Password);
@@ -93,11 +97,15 @@ namespace OnlineRestaurant.Services
         }
         public async Task<AuthModelDto> GetTokenAsync(TokenRequestDto tokenrequest)
         {
+            if (tokenrequest.Password.Length < 6)
+            {
+                return new AuthModelDto { Message = "الباسورد يجب ان يحتوي علي 6 حروف او ارقام علي الاقل" };
+            }
             var authModel = new AuthModelDto();
             var user = await _userManager.FindByEmailAsync(tokenrequest.Email);
             if (user == null || !await _userManager.CheckPasswordAsync(user, tokenrequest.Password))
             {
-                authModel.Message = "Email or Password is incorrect!";
+                authModel.Message = "البريد الالكتروني او كلمه السر غير صحيحه";
                 return authModel;
             }
             var jwtSecurityToken = await CreateJwtToken(user);
@@ -110,6 +118,8 @@ namespace OnlineRestaurant.Services
             authModel.UserName = user.UserName;
             authModel.UserImgUrl = user.UserImgUrl;
             authModel.VerificationCode = null;
+            authModel.FirstName = user.FirstName;
+            authModel.LastName = user.LastName;
 
 
             return authModel;
@@ -163,24 +173,21 @@ namespace OnlineRestaurant.Services
         }
         public async Task<AuthModelDto> UpdateAccount(string token, UpdateAccountDto dto)
         {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var jwtToken = tokenHandler.ReadJwtToken(token) as JwtSecurityToken;
 
-            var userId = jwtToken.Claims.FirstOrDefault(c => c.Type == "uid")?.Value;
+            var userId = GetUserId(token);
             var user = await _userManager.FindByIdAsync(userId);
             if (!await _userManager.Users.AnyAsync(c => c.Id == userId))
             {
                 return new AuthModelDto { Message = "No User is Found!" };
             }
-            if (dto.UserImg != null)
-            {
-                _imgService.UpdateImg(user, dto.UserImg);
+            
+              _imgService.UpdateImg(user, dto.UserImg);
                 if (!string.IsNullOrEmpty(user.Message))
                 {
                     return new AuthModelDto { Message = user.Message };
                 }
-            }
-            user.FirstName=dto.FristName??user.FirstName;
+            
+            user.FirstName=dto.FirstName??user.FirstName;
             user.LastName=dto.LastName??user.LastName;
             user.UserName = dto.UserName ?? user.UserName;
             var result= await _userManager.UpdateAsync(user);
@@ -204,24 +211,21 @@ namespace OnlineRestaurant.Services
             authModel.UserName = user.UserName;
             authModel.UserImgUrl = user.UserImgUrl;
             authModel.VerificationCode = null;
+            authModel.FirstName = user.FirstName;
+            authModel.LastName=user.LastName;
             return authModel;
 
         }
 
         public async Task<string> DeleteAccountAsync (string token)
         {
-            var tokenhandler=new JwtSecurityTokenHandler();
-            var jwttoken=tokenhandler.ReadJwtToken(token) as JwtSecurityToken;
-            var userid = jwttoken.Claims.FirstOrDefault(c => c.Type == "uid")?.Value;
-            if(string.IsNullOrEmpty(userid) )
+
+            var userid = GetUserId(token);
+            if (string.IsNullOrEmpty(userid) || !await _userManager.Users.AnyAsync(c => c.Id == userid))
             {
-                return  "No User is Found!" ;
+                return "No User is Found!";
             }
             var user= await _userManager.FindByIdAsync(userid);
-             if(user == null)
-            {
-                return  "No User is Found!" ;
-            }
             _imgService.DeleteImg(user);
             var result= await _userManager.DeleteAsync(user);
             if (!result.Succeeded)
@@ -237,11 +241,14 @@ namespace OnlineRestaurant.Services
         }
         public async Task<string> UpdatePassword(string token,UpdatePasswordDto dto)
         {
-            var tokenhandler = new JwtSecurityTokenHandler();
-            var jwttoken=tokenhandler.ReadJwtToken(token) as JwtSecurityToken;
-            var userid=jwttoken.Claims.FirstOrDefault(c=>c.Type == "uid")?.Value;
-            var user=await _userManager.FindByIdAsync(userid);
             
+            var userid=GetUserId(token);
+            
+            if (string.IsNullOrEmpty(userid)||!await _userManager.Users.AnyAsync(c => c.Id == userid))
+            {
+                return  "No User is Found!" ;
+            }
+            var user = await _userManager.FindByIdAsync(userid);
             if (!await _userManager.CheckPasswordAsync(user, dto.OldPassword)) 
             { 
                 return  "كلمه السر غير صحيحه" ;
@@ -259,6 +266,101 @@ namespace OnlineRestaurant.Services
             await _signInManager.RefreshSignInAsync(user);
             return string.Empty;
             
+        }
+        public async Task<string> DeleteUserImage(string token)
+        {
+           var userid= GetUserId(token);
+            if(string.IsNullOrEmpty(userid) || !await _userManager.Users.AnyAsync(c => c.Id == userid))
+            {
+                return "No User is Found";
+            }
+            var user=await _userManager.FindByIdAsync(userid);
+            _imgService.DeleteImg(user);
+            user.UserImgUrl = null;
+            var result = await _userManager.UpdateAsync(user);
+            if (!result.Succeeded)
+            {
+                var errors = "";
+                foreach (var error in result.Errors)
+                {
+                    errors += $"{error.Description}\t";
+                }
+                return $"{errors}" ;
+            }
+            return string.Empty;
+        }
+        public async Task<AuthModelDto> GmailRegisterAsync(GmailRegisterDto registermodel)
+        {
+            var user = await _userManager.FindByEmailAsync(registermodel.Email);
+            if (user is not null)
+            {
+                var authModel = new AuthModelDto();
+                var jwtSecurityToken = await CreateJwtToken(user);
+                var rolelist = await _userManager.GetRolesAsync(user);
+                authModel.Email = user.Email;
+                authModel.ExpiresOn = jwtSecurityToken.ValidTo;
+                authModel.IsAuthenticated = true;
+                authModel.Roles = rolelist.ToList();
+                authModel.Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
+                authModel.UserName = user.UserName;
+                authModel.UserImgUrl = user.UserImgUrl;
+                authModel.VerificationCode = null;
+                authModel.FirstName = user.FirstName;
+                authModel.LastName = user.LastName;
+
+
+                return authModel;
+            }
+            else 
+            {
+                user = _mapper.Map<ApplicationUser>(registermodel);
+                var result = await _userManager.CreateAsync(user);
+                if (!result.Succeeded)
+                {
+                    var errors = "";
+                    foreach (var error in result.Errors)
+                    {
+                        errors += $"{error.Description}\t";
+                    }
+                    return new AuthModelDto { Message = errors };
+                }
+                var ImgErrors = _imgService.SetImage(user, registermodel.UserImg);
+                if (!string.IsNullOrEmpty(ImgErrors))
+                {
+                    return new AuthModelDto { Message = ImgErrors };
+                }
+                await _userManager.AddToRoleAsync(user, "User");
+                var jwtSecurityToken = await CreateJwtToken(user);
+                var UserWishList = new WishList
+                {
+                    UserId = user.Id
+                };
+                await _context.wishLists.AddAsync(UserWishList);
+                _context.SaveChanges();
+                var authmodel = new AuthModelDto
+                {
+                    Email = user.Email,
+                    ExpiresOn = jwtSecurityToken.ValidTo,
+                    IsAuthenticated = true,
+                    Roles = new List<string> { "User" },
+                    Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken),
+                    UserName = user.UserName,
+                    UserImgUrl = user.UserImgUrl,
+                    VerificationCode = GenerateRandomCode(),
+                };
+
+                return authmodel;
+            }
+            
+            
+        }
+
+        public string GetUserId(string token)
+        {
+            var tokenhandler = new JwtSecurityTokenHandler();
+            var jwttoken = tokenhandler.ReadJwtToken(token) as JwtSecurityToken;
+            var userid = jwttoken.Claims.FirstOrDefault(c => c.Type == "uid")?.Value;
+            return userid;
         }
         private string GenerateRandomCode()
         {

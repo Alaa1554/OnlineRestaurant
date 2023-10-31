@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using NuGet.Common;
 using OnlineRestaurant.Data;
 using OnlineRestaurant.Interfaces;
 using OnlineRestaurant.Models;
@@ -10,14 +12,19 @@ namespace OnlineRestaurant.Services
     {
         private readonly ApplicationDbContext _context;
         private readonly IMealService _mealService;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IAuthService _authService;
 
-        public MealFilterService(ApplicationDbContext context, IMealService mealService)
+
+        public MealFilterService(ApplicationDbContext context, IMealService mealService, UserManager<ApplicationUser> userManager, IAuthService authService)
         {
             _context = context;
             _mealService = mealService;
+            _userManager = userManager;
+            _authService = authService;
         }
 
-        public async Task<IEnumerable<MealView>> Filter(MealFilter filter)
+        public async Task<IEnumerable<MealView>> Filter(string? token,MealFilter filter)
         {
             var filterFactory = new FilterStrategyFactory(_context);
             var filterStrategies = filterFactory.GetFilterStrategy(filter);
@@ -54,6 +61,27 @@ namespace OnlineRestaurant.Services
             
             var mealPaginate = Paginate(meals, filter.Page, filter.Size);
             var orderedMeals = Mealsorder(mealPaginate, filter.OrderMeal);
+            if (token != null) 
+            {
+                foreach (var meal in orderedMeals)
+                {
+                    string isfavourite;
+
+                    var userid = _authService.GetUserId(token);
+
+                    var wishlistid = _context.wishLists.SingleOrDefault(v => v.UserId == userid);
+                    if (_context.WishListMeals.Any(w => w.MealId == meal.Id && w.WishListId == wishlistid.Id))
+                    {
+                        isfavourite = "true";
+                    }
+                    else
+                    {
+                        isfavourite = "false";
+                    }
+
+                    meal.IsFavourite = isfavourite;
+                }
+            }
             
             return orderedMeals;
         }

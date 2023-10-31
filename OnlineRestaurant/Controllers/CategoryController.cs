@@ -1,9 +1,9 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿
 using Microsoft.AspNetCore.Mvc;
 using OnlineRestaurant.Dtos;
 using OnlineRestaurant.Interfaces;
 using OnlineRestaurant.Models;
-using OnlineRestaurant.Services;
+
 
 namespace OnlineRestaurant.Controllers
 {
@@ -18,7 +18,7 @@ namespace OnlineRestaurant.Controllers
             _categoryService = categoryService;
         }
         [HttpGet]
-        public async Task<IActionResult> GetAllAsync()
+        public async Task<IActionResult> GetAllCategoriesAsync()
         {
 
             var categories = await _categoryService.GetCategoryAsync();
@@ -53,11 +53,12 @@ namespace OnlineRestaurant.Controllers
             {
                 return BadRequest(UpdatedData.Message);
             }
-            return Ok(UpdatedData);
+            var Message = "تم تعديل التصنيف بنجاح";
+            return Ok(new { UpdatedData, Message });
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteChefAsync(int id)
+        public async Task<IActionResult> DeleteCategoryAsync(int id)
         {
 
             var category = await _categoryService.GetCategoryByIdAsync(id);
@@ -67,7 +68,8 @@ namespace OnlineRestaurant.Controllers
                 return NotFound(category.Message);
             }
             var DeletedData = _categoryService.DeleteCategoryAsync(category);
-            return Ok(DeletedData);
+            var Message = "تم حذف التصنيف بنجاح";
+            return Ok(new { DeletedData, Message });
         }
     }
 }

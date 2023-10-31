@@ -1,15 +1,16 @@
 ﻿using AutoMapper;
-using Humanizer;
-using Microsoft.DotNet.Scaffolding.Shared.Messaging;
+
+using Microsoft.AspNetCore.Identity;
+
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
+
 using OnlineRestaurant.Data;
 using OnlineRestaurant.Dtos;
 using OnlineRestaurant.Helpers;
 using OnlineRestaurant.Interfaces;
 using OnlineRestaurant.Models;
 using OnlineRestaurant.Views;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+
 
 namespace OnlineRestaurant.Services
 {
@@ -18,15 +19,18 @@ namespace OnlineRestaurant.Services
         private readonly ApplicationDbContext _context;
         
         private readonly IImgService<Meal> _imgService;
-        private readonly IWishListService _wishlist;
+        private readonly IAuthService _authservice;
         private readonly IMapper _mapper;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public MealService(ApplicationDbContext context, IImgService<Meal> imgService, IWishListService wishlist, IMapper mapper)
+        public MealService(ApplicationDbContext context, IImgService<Meal> imgService, IMapper mapper, UserManager<ApplicationUser> userManager, IAuthService authservice)
         {
             _context = context;
             _imgService = imgService;
-            _wishlist = wishlist;
+            
             _mapper = mapper;
+            _userManager = userManager;
+            _authservice = authservice;
         }
         public async Task<Meal> CreateMeal(Meal mealDto)
         {
@@ -39,7 +43,7 @@ namespace OnlineRestaurant.Services
                 return new Meal { Message = $"There is no Chef with Id : {mealDto.ChefId}!"};
             if (!await _context.Categories.AnyAsync(b=>b.Id==mealDto.CategoryId))
                 return new Meal { Message = $"There is no Category with Id : {mealDto.CategoryId}!" };
-
+            
             var meal = new Meal 
             { 
                 Name =mealDto.Name,
@@ -81,6 +85,8 @@ namespace OnlineRestaurant.Services
         public MealByNameView GetMealByNameAsync(string name,string?token)
         {
             var meal = _context.Meals.SingleOrDefault(c=>c.Name==name);
+            if (meal == null)
+                return new MealByNameView { Message = "لا توجد نتائج بهذا الاسم" };
             string isfavourite;
             if (string.IsNullOrEmpty(token))
             {
@@ -88,7 +94,11 @@ namespace OnlineRestaurant.Services
             }
             else
             {
-                var userid = _wishlist.GetUserId(token);
+                var userid = _authservice.GetUserId(token);
+                if (!_userManager.Users.Any(c => c.Id == userid))
+                {
+                    return new MealByNameView { Message = "No User is Found!" };
+                }
                 var wishlistid=_context.wishLists.SingleOrDefault(v=>v.UserId == userid);
                 if( _context.WishListMeals.Any(w => w.MealId == meal.Id && w.WishListId == wishlistid.Id))
                 {
@@ -101,7 +111,7 @@ namespace OnlineRestaurant.Services
             }
              
             
-            var getmeal = _context.Meals.Include(meal => meal.Chef).Include(b => b.Category).Include(m => m.MealReviews).Include(m => m.WishListMeals).Include(m => m.Additions).ThenInclude(c=>c.Choices).Include(c=>c.MealReviews).SingleOrDefault(c=>c.Name==name);
+            var getmeal = _context.Meals.Include(meal => meal.Chef).Include(b => b.Category).Include(m => m.MealReviews).Include(m => m.WishListMeal).Include(m => m.Additions).ThenInclude(c=>c.Choices).Include(c=>c.MealReviews).SingleOrDefault(c=>c.Name==name);
             var getbyname = new MealByNameView
             {
                 Id = getmeal.Id,
@@ -136,25 +146,27 @@ namespace OnlineRestaurant.Services
             {
                 return new MealView { Message = errormessages };
             }
+           
             if (meal.CategoryId != null)
             {
-                if (await _context.Categories.AnyAsync(b => b.Id == meal.CategoryId))
+                if (!await _context.Categories.AnyAsync(b => b.Id == meal.CategoryId))
                     return new MealView { Message = $"There is no Category with Id : {meal.CategoryId}!" };
-
+                selectedmeal.CategoryId = meal.CategoryId??selectedmeal.CategoryId;
             }
            
             if (meal.ChefId != null)
             {
                 if (!await _context.Chefs.AnyAsync(c => c.Id == meal.ChefId))
                     return new MealView { Message = $"There is no Chef With Id:{meal.ChefId}" };
-                selectedmeal.ChefId =(int) meal.ChefId;
+                selectedmeal.ChefId = meal.ChefId??selectedmeal.ChefId;
             }
+
               _imgService. UpdateImg(selectedmeal, meal.MealImg);
             if(!string.IsNullOrEmpty(selectedmeal.Message))
                 return new MealView { Message =selectedmeal.Message };
             selectedmeal.Price = meal.Price?? selectedmeal.Price;
             selectedmeal.Name = meal.Name??selectedmeal.Name;
-            selectedmeal.CategoryId=meal.CategoryId?? selectedmeal.CategoryId;
+            
             selectedmeal.OldPrice = meal.OldPrice ?? selectedmeal.OldPrice;
             selectedmeal.Description = meal.Description ?? selectedmeal.Description;
 
@@ -173,6 +185,7 @@ namespace OnlineRestaurant.Services
                 Categoryid = selectedmeal.CategoryId,
                 CategoryName= selectedmeal.Category.Name,
                 OldPrice= selectedmeal.OldPrice,
+                Description = selectedmeal.Description,
 
             };
 

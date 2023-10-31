@@ -1,6 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿
 using Microsoft.AspNetCore.Mvc;
-using OnlineRestaurant.Data;
+
 using OnlineRestaurant.Dtos;
 using OnlineRestaurant.Interfaces;
 using OnlineRestaurant.Models;
@@ -35,13 +35,13 @@ namespace OnlineRestaurant.Controllers
         [HttpPost]
         public async Task<IActionResult> AddAddressAsync([FromHeader] string token,[FromBody] Address dto)
         {
-            var address = await _addressService.CreateAddressAsync(token, dto);
-            if (!string.IsNullOrEmpty(dto.Message))
+            var Address = await _addressService.CreateAddressAsync(token, dto);
+            if (!string.IsNullOrEmpty(Address.Message))
             {
-                return BadRequest(dto.Message);
+                return BadRequest(Address.Message);
             }
             var Message = "تم اضافه العنوان بنجاح";
-            return Ok(new { address, Message });
+            return Ok(new { Address, Message });
 
 
         }
@@ -60,7 +60,8 @@ namespace OnlineRestaurant.Controllers
             {
                 return BadRequest(UpdatedData.Message);
             }
-            return Ok(UpdatedData);
+            var Message = "تم تعديل العنوان بنجاح";
+            return Ok(new { UpdatedData, Message });
         }
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAddress(int id)
@@ -71,7 +72,8 @@ namespace OnlineRestaurant.Controllers
                 return NotFound(address.Message);
             }
             var DeletedData = _addressService.DeleteAddress(address);
-            return Ok(DeletedData);
+            var Message = "تم حذف العنوان بنجاح";
+            return Ok(new { DeletedData, Message });
         }
     }
 }

@@ -1,10 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿
 using System.Text.Json.Serialization;
 
 namespace OnlineRestaurant.Dtos
 {
     public class AuthModelDto
     {
+        [JsonIgnore(Condition =JsonIgnoreCondition.WhenWritingNull)]
         public string Message { get ; set; }
         public bool IsAuthenticated { get; set; }
         public string UserName { get; set; }
@@ -15,6 +16,10 @@ namespace OnlineRestaurant.Dtos
         public string? UserImgUrl { get; set; }
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? VerificationCode { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public string? FirstName { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public string? LastName { get; set; }
         
 
 

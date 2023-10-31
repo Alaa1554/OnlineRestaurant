@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿
 using Microsoft.AspNetCore.Mvc;
 using OnlineRestaurant.Dtos;
 using OnlineRestaurant.Interfaces;
@@ -48,7 +48,8 @@ namespace OnlineRestaurant.Controllers
             {
                 return BadRequest(UpdatedData.Message);
             }
-            return Ok(UpdatedData);
+            var Message = "تم تعديل الاضافه بنجاح";
+            return Ok(new { UpdatedData, Message });
         }
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAddition(int id)
@@ -60,7 +61,8 @@ namespace OnlineRestaurant.Controllers
                 return NotFound(getaddition.Message);
             }
             var DeletedData = _additionService.DeleteMealAddition(getaddition);
-            return Ok(DeletedData);
+            var Message = "تم حذف الاضافه بنجاح";
+            return Ok(new { DeletedData, Message });
         }
 
     }

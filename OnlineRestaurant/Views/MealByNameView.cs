@@ -22,5 +22,7 @@ namespace OnlineRestaurant.Views
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public decimal? OldPrice { get; set; }
         public List<MealReviewView> Reviews { get; set; }
+        [JsonIgnore]
+        public string Message { get; set; }
     }
 }

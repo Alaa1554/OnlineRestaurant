@@ -1,49 +1,55 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using NuGet.Common;
-using NuGet.Protocol;
+
 using OnlineRestaurant.Data;
 using OnlineRestaurant.Interfaces;
 using OnlineRestaurant.Views;
-using System.IdentityModel.Tokens.Jwt;
-using System.Text.Json.Serialization;
-using System.Text.Json;
+
+using OnlineRestaurant.Models;
+using Microsoft.AspNetCore.Identity;
 
 namespace OnlineRestaurant.Services
 {
     public class WishListService : IWishListService
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IAuthService _authService;
 
-        public WishListService(ApplicationDbContext context)
+        public WishListService(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IAuthService authService)
         {
             _context = context;
+            _userManager = userManager;
+            _authService = authService;
         }
 
         public async Task<string> AddToWishList(string token, int mealid)
         {
-            var userid = GetUserId(token);
+            var userid =_authService.GetUserId(token);
+            if (!await _userManager.Users.AnyAsync(c => c.Id == userid))
+            {
+                return "No User is Found!";
+            }
             var wishlist= await  _context.wishLists.FirstOrDefaultAsync(c=>c.UserId == userid);
-            var WishListMeal=new WishListMeals { MealId = mealid,WishListId=wishlist.Id };
+            if(await _context.WishListMeals.AnyAsync(c=>c.WishListId==wishlist.Id&&c.MealId==mealid))
+            {
+                return "تمت اضافه الوجبه الي المفضله بالفعل";
+            }
+            var WishListMeal=new WishListMeal { MealId = mealid,WishListId=wishlist.Id };
             await _context.WishListMeals.AddAsync(WishListMeal);
             _context.SaveChanges();
-            return "تم اضافه الوجبه بنجاح الي المفضله";
+            return string.Empty;
              
         }
 
-        public string GetUserId(string token)
-        {
-            var tokenhandler = new JwtSecurityTokenHandler();
-            var jwttoken = tokenhandler.ReadJwtToken(token) as JwtSecurityToken;
-            var userid = jwttoken.Claims.FirstOrDefault(c => c.Type == "uid")?.Value;
-            return userid;
-        }
+       
 
-        public async Task<IEnumerable< WishListMealView>> GetWishlistAsync(string token)
+        public async Task<IEnumerable< WishListMealView>> GetWishlistAsync(string userid)
         {
-            var userid= GetUserId(token);
+           
+            
             var WishList= await _context.wishLists.SingleOrDefaultAsync(c=>c.UserId == userid);
             
-            var WishListMeals=await _context.WishListMeals.Where(c => c.WishListId == WishList.Id).Include(c => c.Meals).ThenInclude(c=>c.Additions).Include(c=>c.Meals).ThenInclude(c=>c.Category).Include(c=>c.Meals).ThenInclude(c=>c.Chef).Include(c=>c.Meals).ThenInclude(c=>c.MealReviews).GroupBy(c => c.WishListId).Select(c => new WishListMealView {WishListId=c.Key,Meals=c.Select(x=>x.Meals).Select(c=>new MealView { 
+            var WishListMeals= _context.WishListMeals.Where(c => c.WishListId == WishList.Id).Include(c => c.Meals).ThenInclude(c=>c.Additions).Include(c=>c.Meals).ThenInclude(c=>c.Category).Include(c=>c.Meals).ThenInclude(c=>c.Chef).Include(c=>c.Meals).ThenInclude(c=>c.MealReviews).GroupBy(c => c.WishListId).Select(c => new WishListMealView {WishListId=c.Key,Meals=c.Select(x=>x.Meals).Select(c=>new MealView { 
                 Id=c.Id,
                 Categoryid=c.CategoryId,
                 Name=c.Name,
@@ -57,18 +63,30 @@ namespace OnlineRestaurant.Services
                 Rate= decimal.Round((c.MealReviews.Sum(b => b.Rate) /
                 c.MealReviews.Where(b => b.Rate > 0).DefaultIfEmpty().Count()), 1),
                 NumOfRate= c.MealReviews.Count(c => c.Rate > 0)
-            }).ToList()}).ToListAsync();
+            }).ToList()});
             return WishListMeals;
         }
 
         public async Task<string> RemoveFromWishList(string token, int mealid)
         {
-            var userid = GetUserId(token);
+            var userid =_authService.GetUserId(token);
+            if (!await _userManager.Users.AnyAsync(c => c.Id == userid))
+            {
+                return  "No User is Found!" ;
+            }
+            if(!await _context.Meals.AnyAsync(m=>m.Id == mealid))
+            {
+                return $"No Meal is Found With Id:{mealid}";
+            }
             var WishList = await _context.wishLists.SingleOrDefaultAsync(c => c.UserId == userid);
             var WishListMeal = await _context.WishListMeals.SingleOrDefaultAsync(c => c.WishListId == WishList.Id&&c.MealId==mealid);
+            if(WishListMeal == null)
+            {
+                return $"No Meal Is Found With Id:{mealid}! in This Wishlist";
+            }
             _context.WishListMeals.Remove(WishListMeal);
             _context.SaveChanges();
-            return "تم حذف الوجبه بنجاح من المفضله";
+            return string.Empty;
         }
     }
 }

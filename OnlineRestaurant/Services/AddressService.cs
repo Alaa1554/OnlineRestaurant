@@ -5,7 +5,7 @@ using OnlineRestaurant.Dtos;
 using OnlineRestaurant.Helpers;
 using OnlineRestaurant.Interfaces;
 using OnlineRestaurant.Models;
-using OnlineRestaurant.Views;
+
 using System.IdentityModel.Tokens.Jwt;
 
 namespace OnlineRestaurant.Services
@@ -32,7 +32,7 @@ namespace OnlineRestaurant.Services
             var jwtToken = tokenHandler.ReadJwtToken(token) as JwtSecurityToken;
 
             var userId = jwtToken.Claims.FirstOrDefault(c => c.Type == "uid")?.Value;
-            var username = await _userManager.FindByIdAsync(userId);
+            
             if (!await _userManager.Users.AnyAsync(c => c.Id == userId))
             {
                 return new Address { Message = "No User is Found!" };
@@ -75,7 +75,7 @@ namespace OnlineRestaurant.Services
             var jwtToken = tokenHandler.ReadJwtToken(token) as JwtSecurityToken;
 
             var userId = jwtToken.Claims.FirstOrDefault(c => c.Type == "uid")?.Value;
-            var username = await _userManager.FindByIdAsync(userId);
+            
             if (!await _userManager.Users.AnyAsync(c => c.Id == userId))
             {
                 return null;

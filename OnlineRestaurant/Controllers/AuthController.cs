@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿
 using Microsoft.AspNetCore.Mvc;
 using OnlineRestaurant.Dtos;
 using OnlineRestaurant.Interfaces;
@@ -22,13 +22,13 @@ namespace OnlineRestaurant.Controllers
             {
                 return BadRequest(ModelState);
             }
-            var user = await _authService.RegisterAsync(model);
-            if (!user.IsAuthenticated)
+            var User = await _authService.RegisterAsync(model);
+            if (!User.IsAuthenticated)
             {
-                return BadRequest(user.Message);
+                return BadRequest(User.Message);
             }
-            var message = "تم التسجيل بنجاح";
-            return Ok(new { user, message });
+            var Message = "تم التسجيل بنجاح";
+            return Ok(new { User, Message });
         }
         [HttpPost("token")]
         public async Task<IActionResult> GetTokenAsync ([FromBody] TokenRequestDto model)
@@ -78,8 +78,8 @@ namespace OnlineRestaurant.Controllers
             {
                 return BadRequest(errormessages);
             }
-            var message = "تم حذف الحساب بنجاح";
-            return Ok(message);
+            var Message = "تم حذف الحساب بنجاح";
+            return Ok(Message);
         }
         [HttpPut("UpdatePassword")]
         public async Task<IActionResult> UpdatePasswordAsync([FromHeader]string token, [FromBody] UpdatePasswordDto dto)
@@ -89,8 +89,26 @@ namespace OnlineRestaurant.Controllers
             {
                 return BadRequest(errormessage);
             }
-            var message = "تم تغير كلمه السر بنجاح";
-            return Ok(message);
+            var Message = "تم تغير كلمه السر بنجاح";
+            return Ok(Message);
+        }
+        [HttpDelete("DeleteImage")]
+        public async Task<IActionResult> DeleteImageAsync([FromHeader]string token)
+        {
+            var message = await _authService.DeleteUserImage(token);
+            if (!string.IsNullOrEmpty(message))
+            {
+                return BadRequest(message);
+            }
+            return Ok("تم حذف الصوره بنجاح");
+        }
+        [HttpPost("Gmail")]
+        public async Task<IActionResult> GmailLogIn([FromForm] GmailRegisterDto dto)
+        {
+            var AuthModel=await _authService.GmailRegisterAsync(dto);
+            if(!string.IsNullOrEmpty(AuthModel.Message))
+                return BadRequest(AuthModel.Message);
+            return Ok(AuthModel);
         }
     }
 }

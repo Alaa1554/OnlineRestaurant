@@ -47,7 +47,7 @@ namespace OnlineRestaurant.Services
 
         public async Task<IEnumerable<CategoryView>> GetCategoryAsync()
         {
-            var meals =await _context.Categories.Select(c=>new CategoryView 
+            var meals =await _context.Categories.Include(c=>c.Chefs).Include(c=>c.Meals).Select(c=>new CategoryView 
             { 
                 Id=c.Id,
                 Name=c.Name,

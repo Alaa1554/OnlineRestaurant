@@ -86,15 +86,23 @@ namespace OnlineRestaurant.Services
             {
                 return new Chef { Message = errormessages };
             }
-            if (!_context.Categories.Any(b => b.Id == chefDto.CategoryId))
+            if (chefDto.CategoryId.HasValue)
             {
-                return new Chef { Message = $"No Category with id :{chef.CategoryId} is found" };
+                if (!_context.Categories.Any(b => b.Id == chefDto.CategoryId))
+                {
+                    return new Chef { Message = $"No Category with id :{chef.CategoryId} is found" };
+                }
+                chef.CategoryId = chefDto.CategoryId??chef.CategoryId;
             }
-            _imgService.UpdateImg(chef, chefDto.ChefImg);
-            if (!string.IsNullOrEmpty(chef.Message))
-                return new Chef { Message = chef.Message };
+           
+            
+                _imgService.UpdateImg(chef, chefDto.ChefImg);
+                if (!string.IsNullOrEmpty(chef.Message))
+                    return new Chef { Message = chef.Message };
+            
+           
                 chef.Name = chefDto.Name?? chef.Name ;
-            chef.CategoryId = chefDto.CategoryId?? chef.CategoryId;
+            
             _context.Update(chef);
             _context.SaveChanges();
             return chef;

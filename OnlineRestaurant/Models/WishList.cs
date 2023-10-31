@@ -8,7 +8,7 @@ namespace OnlineRestaurant.Models
         public string UserId { get; set; }
         public List<Meal> Meals { get; set; }
         public ApplicationUser User { get; set; }
-        public IEnumerable<WishListMeals> wishListMeals { get; set; }
+        public IEnumerable<WishListMeal> WishListMeal { get; set; }
         
     }
 }

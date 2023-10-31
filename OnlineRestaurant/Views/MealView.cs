@@ -1,10 +1,5 @@
-﻿using OnlineRestaurant.Models;
-using System.ComponentModel.DataAnnotations;
+﻿
 using System.ComponentModel;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
-using System.ComponentModel.DataAnnotations.Schema;
-
-
 using System.Text.Json.Serialization;
 
 namespace OnlineRestaurant.Views
@@ -22,6 +17,8 @@ namespace OnlineRestaurant.Views
         public string ChefName { get; set; }
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public decimal? OldPrice { get; set; }
+        [JsonIgnore(Condition =JsonIgnoreCondition.WhenWritingNull)]
+        public string? IsFavourite { get; set; }
         public int ChefId { get; set; }
         [JsonIgnore]
         public string Message { get; set; }

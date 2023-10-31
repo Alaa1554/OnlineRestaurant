@@ -38,7 +38,11 @@ namespace OnlineRestaurant.Services
              var jwtToken = tokenHandler.ReadJwtToken(token) as JwtSecurityToken;
 
              var userId = jwtToken.Claims.FirstOrDefault(c => c.Type == "uid")?.Value;
-             var user = await _userManager.FindByIdAsync(userId);
+            if (!await _userManager.Users.AnyAsync(c => c.Id == userId))
+            {
+                return new ChefReviewView { Message = "No User is Found!" };
+            }
+            var user = await _userManager.FindByIdAsync(userId);
             if (await _context.ChefReviews.AnyAsync(m => m.UserId == userId) && await _context.ChefReviews.AnyAsync(m => m.ChefId == review.ChefId))
             {
                 return new ChefReviewView { Message = "You Already Have a Review" };

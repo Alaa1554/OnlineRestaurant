@@ -1,6 +1,4 @@
-﻿using OnlineRestaurant.Models;
-using OnlineRestaurant.Services;
-
+﻿
 namespace OnlineRestaurant.Views
 {
     public class WishListMealView

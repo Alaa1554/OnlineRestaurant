@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
-using System.Text.Json.Serialization;
+
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-
+using System.Text.Json.Serialization;
 
 namespace OnlineRestaurant.Models
 {
@@ -11,7 +11,7 @@ namespace OnlineRestaurant.Models
     {
         public int Id { get; set; }
         [MaxLength(100)]
-        [Required(ErrorMessage = "This Field is Required")]
+        
         public string Name { get; set; }
         [DisplayName("Image")]
         [ValidateNever]
