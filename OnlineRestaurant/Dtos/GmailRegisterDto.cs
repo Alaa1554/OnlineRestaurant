@@ -13,6 +13,7 @@ namespace OnlineRestaurant.Dtos
         [Required, StringLength(100)]
         public string Email { get; set; }
        
-        public IFormFile? UserImg { get; set; }
+        public string? UserImgUrl { get; set; }
+       
     }
 }

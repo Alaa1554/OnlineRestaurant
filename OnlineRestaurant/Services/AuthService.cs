@@ -91,6 +91,8 @@ namespace OnlineRestaurant.Services
                 UserName = user.UserName,
                 UserImgUrl = user.UserImgUrl,
                 VerificationCode = GenerateRandomCode(),
+                FirstName = user.FirstName,
+                LastName= user.LastName,
             };
 
             return authmodel;
@@ -294,6 +296,20 @@ namespace OnlineRestaurant.Services
             var user = await _userManager.FindByEmailAsync(registermodel.Email);
             if (user is not null)
             {
+                
+                if(registermodel.FirstName != user.FirstName||
+                   registermodel.LastName != user.LastName  ||
+                    registermodel.UserName != user.UserName ||
+                    registermodel.UserImgUrl != user.UserImgUrl)
+                {
+                    user.FirstName = registermodel.FirstName != user.FirstName ? registermodel.FirstName : user.FirstName;
+                    user.LastName = registermodel.LastName != user.LastName ? registermodel.LastName : user.LastName;
+                    user.UserName = registermodel.UserName != user.UserName ? registermodel.UserName : user.UserName;
+                    user.UserImgUrl = registermodel.UserImgUrl != user.UserImgUrl ? registermodel.UserImgUrl : user.UserImgUrl;
+                   await _userManager.UpdateAsync(user);
+                    
+                }
+                
                 var authModel = new AuthModelDto();
                 var jwtSecurityToken = await CreateJwtToken(user);
                 var rolelist = await _userManager.GetRolesAsync(user);
@@ -314,21 +330,10 @@ namespace OnlineRestaurant.Services
             else 
             {
                 user = _mapper.Map<ApplicationUser>(registermodel);
-                var result = await _userManager.CreateAsync(user);
-                if (!result.Succeeded)
-                {
-                    var errors = "";
-                    foreach (var error in result.Errors)
-                    {
-                        errors += $"{error.Description}\t";
-                    }
-                    return new AuthModelDto { Message = errors };
-                }
-                var ImgErrors = _imgService.SetImage(user, registermodel.UserImg);
-                if (!string.IsNullOrEmpty(ImgErrors))
-                {
-                    return new AuthModelDto { Message = ImgErrors };
-                }
+                
+                await _userManager.CreateAsync(user);
+               
+            
                 await _userManager.AddToRoleAsync(user, "User");
                 var jwtSecurityToken = await CreateJwtToken(user);
                 var UserWishList = new WishList
@@ -346,7 +351,10 @@ namespace OnlineRestaurant.Services
                     Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken),
                     UserName = user.UserName,
                     UserImgUrl = user.UserImgUrl,
-                    VerificationCode = GenerateRandomCode(),
+                    VerificationCode = null,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    
                 };
 
                 return authmodel;
