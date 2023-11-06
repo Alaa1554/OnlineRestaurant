@@ -297,18 +297,20 @@ namespace OnlineRestaurant.Services
             if (user is not null)
             {
                 
-                if(registermodel.FirstName != user.FirstName||
-                   registermodel.LastName != user.LastName  ||
+                    if (registermodel.FirstName != user.FirstName ||
+                   registermodel.LastName != user.LastName ||
                     registermodel.UserName != user.UserName ||
                     registermodel.UserImgUrl != user.UserImgUrl)
-                {
-                    user.FirstName = registermodel.FirstName != user.FirstName ? registermodel.FirstName : user.FirstName;
-                    user.LastName = registermodel.LastName != user.LastName ? registermodel.LastName : user.LastName;
-                    user.UserName = registermodel.UserName != user.UserName ? registermodel.UserName : user.UserName;
-                    user.UserImgUrl = registermodel.UserImgUrl != user.UserImgUrl ? registermodel.UserImgUrl : user.UserImgUrl;
-                   await _userManager.UpdateAsync(user);
-                    
-                }
+                    {
+                        user.FirstName = registermodel.FirstName != user.FirstName ? registermodel.FirstName??user.FirstName : user.FirstName;
+                        user.LastName = registermodel.LastName != user.LastName ? registermodel.LastName??user.LastName : user.LastName;
+                        user.UserName = registermodel.UserName != user.UserName ? registermodel.UserName??user.UserName : user.UserName;
+                        user.UserImgUrl = registermodel.UserImgUrl != user.UserImgUrl ? registermodel.UserImgUrl??user.UserImgUrl : user.UserImgUrl;
+                        await _userManager.UpdateAsync(user);
+
+                    }
+                
+                
                 
                 var authModel = new AuthModelDto();
                 var jwtSecurityToken = await CreateJwtToken(user);
