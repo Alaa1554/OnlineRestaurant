@@ -1,6 +1,6 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿
 using Microsoft.EntityFrameworkCore;
-using NuGet.Common;
+
 using OnlineRestaurant.Data;
 using OnlineRestaurant.Interfaces;
 using OnlineRestaurant.Models;
@@ -11,16 +11,13 @@ namespace OnlineRestaurant.Services
     public class MealFilterService : IMealFilterService
     {
         private readonly ApplicationDbContext _context;
-        private readonly IMealService _mealService;
-        private readonly UserManager<ApplicationUser> _userManager;
+       
         private readonly IAuthService _authService;
 
 
-        public MealFilterService(ApplicationDbContext context, IMealService mealService, UserManager<ApplicationUser> userManager, IAuthService authService)
+        public MealFilterService(ApplicationDbContext context, IAuthService authService)
         {
             _context = context;
-            _mealService = mealService;
-            _userManager = userManager;
             _authService = authService;
         }
 
@@ -39,7 +36,7 @@ namespace OnlineRestaurant.Services
             }
             else
             {
-                 meals = await _context.Meals.Include(meal => meal.Chef).Include(b => b.Category).Include(m => m.MealReviews).Select(b => new MealView
+                 meals = await _context.Meals.Include(meal => meal.Chef).Include(b => b.Category).Select(b => new MealView
                 {
                     Id = b.Id,
                     ChefId = b.ChefId,
@@ -49,10 +46,9 @@ namespace OnlineRestaurant.Services
                     Price = b.Price,
                     Categoryid = b.CategoryId,
                     CategoryName = b.Category.Name,
-                    Rate = decimal.Round((b.MealReviews.Sum(b => b.Rate) /
-               b.MealReviews.Where(b => b.Rate > 0).DefaultIfEmpty().Count()), 1),
-                    NumOfRate = b.MealReviews.Count(c => c.Rate > 0),
-                    OldPrice = b.OldPrice == 0.00m ? null : b.OldPrice,
+                    Rate = b.Rate,
+                    NumOfRate = b.NumOfRate,
+                    OldPrice=b.OldPrice,
 
 
                 }).ToListAsync();
@@ -65,18 +61,18 @@ namespace OnlineRestaurant.Services
             {
                 foreach (var meal in orderedMeals)
                 {
-                    string isfavourite;
+                    bool isfavourite=false;
 
                     var userid = _authService.GetUserId(token);
 
-                    var wishlistid = _context.wishLists.SingleOrDefault(v => v.UserId == userid);
-                    if (_context.WishListMeals.Any(w => w.MealId == meal.Id && w.WishListId == wishlistid.Id))
+                    var wishlistid = await _context.wishLists.SingleOrDefaultAsync(v => v.UserId == userid);
+                    if (await _context.WishListMeals.AnyAsync(w => w.MealId == meal.Id && w.WishListId == wishlistid.Id))
                     {
-                        isfavourite = "true";
+                        isfavourite = true;
                     }
                     else
                     {
-                        isfavourite = "false";
+                        isfavourite = false;
                     }
 
                     meal.IsFavourite = isfavourite;

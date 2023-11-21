@@ -80,7 +80,7 @@ namespace OnlineRestaurant.Services
                 UserId=user.Id
             };
            await  _context.wishLists.AddAsync(UserWishList);
-            _context.SaveChanges();
+           await _context.SaveChangesAsync();
             var authmodel = new AuthModelDto
             {
                 Email = user.Email,
@@ -180,7 +180,7 @@ namespace OnlineRestaurant.Services
             var user = await _userManager.FindByIdAsync(userId);
             if (!await _userManager.Users.AnyAsync(c => c.Id == userId))
             {
-                return new AuthModelDto { Message = "No User is Found!" };
+                return new AuthModelDto { Message = "لم يتم العثور علي اي مستخدم" };
             }
             
               _imgService.UpdateImg(user, dto.UserImg);
@@ -225,7 +225,7 @@ namespace OnlineRestaurant.Services
             var userid = GetUserId(token);
             if (string.IsNullOrEmpty(userid) || !await _userManager.Users.AnyAsync(c => c.Id == userid))
             {
-                return "No User is Found!";
+                return "لم يتم العثور علي اي مستخدم";
             }
             var user= await _userManager.FindByIdAsync(userid);
             _imgService.DeleteImg(user);
@@ -248,7 +248,7 @@ namespace OnlineRestaurant.Services
             
             if (string.IsNullOrEmpty(userid)||!await _userManager.Users.AnyAsync(c => c.Id == userid))
             {
-                return  "No User is Found!" ;
+                return  "لم يتم العثور علي اي مستخدم" ;
             }
             var user = await _userManager.FindByIdAsync(userid);
             if (!await _userManager.CheckPasswordAsync(user, dto.OldPassword)) 
@@ -274,7 +274,7 @@ namespace OnlineRestaurant.Services
            var userid= GetUserId(token);
             if(string.IsNullOrEmpty(userid) || !await _userManager.Users.AnyAsync(c => c.Id == userid))
             {
-                return "No User is Found";
+                return "لم يتم العثور علي اي مستخدم";
             }
             var user=await _userManager.FindByIdAsync(userid);
             _imgService.DeleteImg(user);
@@ -343,7 +343,7 @@ namespace OnlineRestaurant.Services
                     UserId = user.Id
                 };
                 await _context.wishLists.AddAsync(UserWishList);
-                _context.SaveChanges();
+               await _context.SaveChangesAsync();
                 var authmodel = new AuthModelDto
                 {
                     Email = user.Email,

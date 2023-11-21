@@ -36,15 +36,15 @@ namespace OnlineRestaurant.Services
              if (!string.IsNullOrEmpty(mealAddition.Message))
                 return new StaticMealAddition { Message = mealAddition.Message };
             await _context.StaticAdditions.AddAsync(mealAddition);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             return mealAddition;
         }
 
-        public StaticMealAddition DeleteMealAddition(StaticMealAddition mealAddition)
+        public async Task<StaticMealAddition> DeleteMealAddition(StaticMealAddition mealAddition)
         {
             _imgService.DeleteImg(mealAddition);
             _context.Remove(mealAddition);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             return mealAddition;
         }
 
@@ -56,7 +56,7 @@ namespace OnlineRestaurant.Services
             return mealaddition;
         }
 
-        public  StaticMealAddition UpdateMealAdditionAsync(StaticMealAddition mealAddition, UpdateStaticMealAdditionDto dto)
+        public  async Task<StaticMealAddition> UpdateMealAdditionAsync(StaticMealAddition mealAddition, UpdateStaticMealAdditionDto dto)
         {
             var errormessages = ValidateHelper<UpdateStaticMealAdditionDto>.Validate(dto);
             if (!string.IsNullOrEmpty(errormessages))
@@ -70,7 +70,7 @@ namespace OnlineRestaurant.Services
             mealAddition.Name = dto.Name ?? mealAddition.Name;
             mealAddition.Price = dto.Price ?? mealAddition.Price;
             _context.Update(mealAddition);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             return mealAddition;
         }
     }

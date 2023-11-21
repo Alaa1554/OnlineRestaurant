@@ -36,8 +36,8 @@ namespace OnlineRestaurant.Filters
                         MealImgUrl = m.MealImgUrl,
                         Price = m.Price,
                         OldPrice = m.OldPrice==0.00m?null:m.OldPrice,
-                        Rate=decimal.Round(m.MealReviews.Sum(c=>c.Rate)/m.MealReviews.Where(c=>c.Rate>0).DefaultIfEmpty().Count(),1),
-                        NumOfRate = m.MealReviews.Count(r => r.Rate > 0)
+                        Rate=m.Rate,
+                        NumOfRate = m.NumOfRate
                     }
                     ).ToList();
             return MealsView;

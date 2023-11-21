@@ -33,15 +33,15 @@ namespace OnlineRestaurant.Services
             if (!string.IsNullOrEmpty(addcategory.Message) )
                 return new Category { Message = addcategory.Message };
             await _context.Categories.AddAsync(addcategory);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             return addcategory;
         }
 
-        public Category DeleteCategoryAsync(Category category)
+        public async Task<Category> DeleteCategoryAsync(Category category)
         {
             _imgService.DeleteImg(category);
             _context.Categories.Remove(category);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             return category;
         }
 
@@ -66,7 +66,7 @@ namespace OnlineRestaurant.Services
             return category;
         }
 
-        public Category UpdateCategoryAsync(Category category, UpdateCategoryDto dto)
+        public async Task<Category> UpdateCategoryAsync(Category category, UpdateCategoryDto dto)
         {
             var errormessages = ValidateHelper<UpdateCategoryDto>.Validate(dto);
             if (!string.IsNullOrEmpty(errormessages))
@@ -79,7 +79,7 @@ namespace OnlineRestaurant.Services
                 return new Category { Message = category.Message };
             category.Name = dto.Name ?? category.Name;
             _context.Update(category);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             return category;
         }
     }

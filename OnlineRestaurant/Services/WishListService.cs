@@ -27,7 +27,7 @@ namespace OnlineRestaurant.Services
             var userid =_authService.GetUserId(token);
             if (!await _userManager.Users.AnyAsync(c => c.Id == userid))
             {
-                return "No User is Found!";
+                return "لم يتم العثور علي اي مستخدم";
             }
             var wishlist= await  _context.wishLists.FirstOrDefaultAsync(c=>c.UserId == userid);
             if(await _context.WishListMeals.AnyAsync(c=>c.WishListId==wishlist.Id&&c.MealId==mealid))
@@ -36,7 +36,7 @@ namespace OnlineRestaurant.Services
             }
             var WishListMeal=new WishListMeal { MealId = mealid,WishListId=wishlist.Id };
             await _context.WishListMeals.AddAsync(WishListMeal);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             return string.Empty;
              
         }
@@ -49,7 +49,7 @@ namespace OnlineRestaurant.Services
             
             var WishList= await _context.wishLists.SingleOrDefaultAsync(c=>c.UserId == userid);
             
-            var WishListMeals= _context.WishListMeals.Where(c => c.WishListId == WishList.Id).Include(c => c.Meals).ThenInclude(c=>c.Additions).Include(c=>c.Meals).ThenInclude(c=>c.Category).Include(c=>c.Meals).ThenInclude(c=>c.Chef).Include(c=>c.Meals).ThenInclude(c=>c.MealReviews).GroupBy(c => c.WishListId).Select(c => new WishListMealView {WishListId=c.Key,Meals=c.Select(x=>x.Meals).Select(c=>new MealView { 
+            var WishListMeals= _context.WishListMeals.Where(c => c.WishListId == WishList.Id).Include(c => c.Meals).ThenInclude(c=>c.Additions).Include(c=>c.Meals).ThenInclude(c=>c.Category).Include(c=>c.Meals).ThenInclude(c=>c.Chef).GroupBy(c => c.WishListId).Select(c => new WishListMealView {WishListId=c.Key,Meals=c.Select(x=>x.Meals).Select(c=>new MealView { 
                 Id=c.Id,
                 Categoryid=c.CategoryId,
                 Name=c.Name,
@@ -60,9 +60,8 @@ namespace OnlineRestaurant.Services
                 MealImgUrl=c.MealImgUrl,
                 Price=c.Price,
                 OldPrice=c.OldPrice,
-                Rate= decimal.Round((c.MealReviews.Sum(b => b.Rate) /
-                c.MealReviews.Where(b => b.Rate > 0).DefaultIfEmpty().Count()), 1),
-                NumOfRate= c.MealReviews.Count(c => c.Rate > 0)
+                Rate= c.Rate,
+                NumOfRate= c.NumOfRate
             }).ToList()});
             return WishListMeals;
         }
@@ -72,7 +71,7 @@ namespace OnlineRestaurant.Services
             var userid =_authService.GetUserId(token);
             if (!await _userManager.Users.AnyAsync(c => c.Id == userid))
             {
-                return  "No User is Found!" ;
+                return "لم يتم العثور علي اي مستخدم";
             }
             if(!await _context.Meals.AnyAsync(m=>m.Id == mealid))
             {
@@ -85,7 +84,7 @@ namespace OnlineRestaurant.Services
                 return $"No Meal Is Found With Id:{mealid}! in This Wishlist";
             }
             _context.WishListMeals.Remove(WishListMeal);
-            _context.SaveChanges();
+           await _context.SaveChangesAsync();
             return string.Empty;
         }
     }

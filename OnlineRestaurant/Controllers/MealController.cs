@@ -23,11 +23,11 @@ namespace OnlineRestaurant.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetMealByNameAsync([FromQuery]string name, [FromHeader] string? token)
+        public async Task<IActionResult> GetMealByNameAsync([FromQuery]string name, [FromHeader] string? token)
         {
-            var meals = _mealService.GetMealByNameAsync(name,token);
+            var meal =await _mealService.GetMealByNameAsync(name,token);
             
-            return Ok( meals);
+            return Ok( meal);
         }
         
         [HttpPost]

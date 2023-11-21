@@ -19,6 +19,9 @@ namespace OnlineRestaurant.Data
         {
             base.OnModelCreating(builder);
             builder.Entity<WishList>().HasMany(c => c.Meals).WithMany(c => c.WishLists).UsingEntity<WishListMeal>();
+            builder.Entity<Meal>()
+            .HasIndex(e => e.Name)
+            .IsUnique();
         }
         public DbSet<Chef> Chefs { get; set; }
         

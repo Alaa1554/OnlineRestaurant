@@ -9,7 +9,7 @@ namespace OnlineRestaurant.Interfaces
      Task<IEnumerable<CategoryView>> GetCategoryAsync();
         Task<Category> GetCategoryByIdAsync(int id);
         Task<Category> CreateCategory(Category category);
-        Category UpdateCategoryAsync(Category category, UpdateCategoryDto dto);
-        Category DeleteCategoryAsync(Category category);
+       Task<Category> UpdateCategoryAsync(Category category, UpdateCategoryDto dto);
+        Task<Category> DeleteCategoryAsync(Category category);
     }
 }

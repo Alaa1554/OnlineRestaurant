@@ -94,7 +94,7 @@ namespace OnlineRestaurant.Services
              review.Text = dto.Text ?? review.Text;
             review.Rate = dto.Rate ?? review.Rate;
              _context.Update(review);
-             _context.SaveChanges();
+                _context.SaveChanges();
             var view=_mapper.Map<ChefReviewView>(review);
             
              return view;

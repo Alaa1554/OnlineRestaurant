@@ -35,14 +35,14 @@ namespace OnlineRestaurant.Services
             };
            
             await _context.AddAsync(mealAddition);
-            _context.SaveChanges();
+           await _context.SaveChangesAsync();
             return mealAddition;
         }
 
-        public MealAddition DeleteMealAddition(MealAddition mealAddition)
+        public async Task<MealAddition> DeleteMealAddition(MealAddition mealAddition)
         {
             _context.Remove(mealAddition);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             return mealAddition;
         }
 
@@ -92,7 +92,7 @@ namespace OnlineRestaurant.Services
             }
             _context.Update(mealAddition);
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             return mealAddition;
         }

@@ -43,6 +43,8 @@ namespace OnlineRestaurant.Services
                 return new Meal { Message = $"There is no Chef with Id : {mealDto.ChefId}!"};
             if (!await _context.Categories.AnyAsync(b=>b.Id==mealDto.CategoryId))
                 return new Meal { Message = $"There is no Category with Id : {mealDto.CategoryId}!" };
+            if (await _context.Meals.AnyAsync(m => m.Name == mealDto.Name.Trim()))
+                return new Meal { Message = "يوجد وجبه اخري مسجله بهذا الاسم" };
             
             var meal = new Meal 
             { 
@@ -52,25 +54,26 @@ namespace OnlineRestaurant.Services
                 CategoryId = mealDto.CategoryId,
                 OldPrice = mealDto.OldPrice,
                 Description = mealDto.Description??null,
-               
+                Rate=0.00m,
+                NumOfRate=0,
                 
-        };
+            };
             _imgService.SetImage(meal, mealDto.MealImg);
             if (!string.IsNullOrEmpty(meal.Message))
                 return new Meal { Message = meal.Message };
             
             await _context.AddAsync(meal);
-            _context.SaveChanges();
+           await _context.SaveChangesAsync();
             return meal;
 
 
         }
 
-        public Meal DeleteMeal(Meal meal)
+        public async Task<Meal> DeleteMeal(Meal meal)
         {
             _imgService.DeleteImg(meal);
             _context.Remove(meal);
-            _context.SaveChanges();
+           await _context.SaveChangesAsync();
             return meal;
         }
 
@@ -82,60 +85,62 @@ namespace OnlineRestaurant.Services
             return meal;
         }
 
-        public MealByNameView GetMealByNameAsync(string name,string?token)
+        public async Task<MealByNameView> GetMealByNameAsync(string name,string?token)
         {
-            var meal = _context.Meals.SingleOrDefault(c=>c.Name==name);
+            var meal = await _context.Meals.SingleOrDefaultAsync(c=>c.Name==name.Trim());
             if (meal == null)
                 return new MealByNameView { Message = "لا توجد نتائج بهذا الاسم" };
-            string isfavourite;
+            bool isfavourite=false;
             if (string.IsNullOrEmpty(token))
             {
-                isfavourite = null;
+                isfavourite = false;
             }
             else
             {
                 var userid = _authservice.GetUserId(token);
-                if (!_userManager.Users.Any(c => c.Id == userid))
+                if (!await _userManager.Users.AnyAsync(c => c.Id == userid))
                 {
                     return new MealByNameView { Message = "No User is Found!" };
                 }
-                var wishlistid=_context.wishLists.SingleOrDefault(v=>v.UserId == userid);
-                if( _context.WishListMeals.Any(w => w.MealId == meal.Id && w.WishListId == wishlistid.Id))
+                var wishlistid=await _context.wishLists.SingleOrDefaultAsync(v=>v.UserId == userid);
+                if(await _context.WishListMeals.AnyAsync(w => w.MealId == meal.Id && w.WishListId == wishlistid.Id))
                 {
-                    isfavourite = "true";
+                    isfavourite = true;
                 }
                 else
                 {
-                    isfavourite= "false";
+                    isfavourite= false;
                 }
             }
              
-            
-            var getmeal = _context.Meals.Include(meal => meal.Chef).Include(b => b.Category).Include(m => m.MealReviews).Include(m => m.WishListMeal).Include(m => m.Additions).ThenInclude(c=>c.Choices).Include(c=>c.MealReviews).SingleOrDefault(c=>c.Name==name);
-            var getbyname = new MealByNameView
+            var chef=await _context.Chefs.SingleOrDefaultAsync(c=>c.Id==meal.ChefId);
+            var category = await _context.Categories.SingleOrDefaultAsync(c => c.Id == meal.CategoryId);
+            var reviews=_context.MealReviews.Where(r=>r.MealId==meal.Id);
+            var additions = _context.MealAdditions.Include(c=>c.Choices).Where(m=>m.MealId==meal.Id);
+          
+            var mealview = new MealByNameView
             {
-                Id = getmeal.Id,
-                Description = getmeal.Description ?? null,
-                ChefName = getmeal.Chef.Name,
-                Image = getmeal.MealImgUrl,
-                Name = getmeal.Name,
-                Price = getmeal.Price,
+                Id = meal.Id,
+                Description = meal.Description ?? null,
+                ChefName = chef.Name,
+                Image = meal.MealImgUrl,
+                Name = meal.Name,
+                Price = meal.Price,
                 IsFavourite = isfavourite,
-                CategoryName = getmeal.Category.Name,
-                Rate = decimal.Round((getmeal.MealReviews.Sum(b => b.Rate) /
-                getmeal.MealReviews.Where(b => b.Rate > 0).DefaultIfEmpty().Count()), 1),
-                NumOfRates = getmeal.MealReviews.Count(c => c.Rate > 0),
-                OldPrice = getmeal.OldPrice == 0.00m ? null : getmeal.OldPrice,
+                CategoryName = category.Name,
+                Rate = meal.Rate,
+                NumOfRates = meal.NumOfRate,
+                OldPrice = meal.OldPrice,
                 StaticMealAdditions = _context.StaticAdditions.ToList(),
-                MealAdditions = getmeal.Additions.Select(x=>new AdditionView { Id=x.Id,Choices=x.Choices,Name=x.Name}).ToList(),
-                Reviews = _mapper.Map<List<MealReviewView>>(getmeal.MealReviews),
+                MealAdditions = additions.Select(x=>new AdditionView { Id=x.Id,Choices=x.Choices,Name=x.Name}).ToList(),
+                Reviews = _mapper.Map<List<MealReviewView>>(reviews),
 
 
 
             };
 
 
-           return getbyname;
+           return mealview;
 
         }
 
@@ -172,7 +177,7 @@ namespace OnlineRestaurant.Services
 
 
             _context.Update(selectedmeal);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             return new MealView
             {
@@ -186,6 +191,8 @@ namespace OnlineRestaurant.Services
                 CategoryName= selectedmeal.Category.Name,
                 OldPrice= selectedmeal.OldPrice,
                 Description = selectedmeal.Description,
+                Rate= selectedmeal.Rate,
+                NumOfRate= selectedmeal.NumOfRate,
 
             };
 

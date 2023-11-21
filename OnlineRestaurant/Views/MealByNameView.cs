@@ -14,12 +14,12 @@ namespace OnlineRestaurant.Views
         public string CategoryName { get; set; }
         public decimal Rate { get; set; }
         public int NumOfRates { get; set; }
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public string? IsFavourite { get; set; }
+      
+        public bool IsFavourite { get; set; }
         public List<StaticMealAddition> StaticMealAdditions { get; set; }
         public List<AdditionView> MealAdditions { get; set; }
         public decimal Price { get; set; }
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public decimal? OldPrice { get; set; }
         public List<MealReviewView> Reviews { get; set; }
         [JsonIgnore]

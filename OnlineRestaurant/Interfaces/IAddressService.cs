@@ -8,7 +8,7 @@ namespace OnlineRestaurant.Interfaces
         Task<IEnumerable<Address>> GetAddressesAsync(string token);
         Task<Address> GetAddressByIdAsync (int id);
         Task<Address> CreateAddressAsync(string token,Address address);
-        Address UpdateAddressAsync(Address address,UpdateAddressDto updateAddressDto);
-        Address DeleteAddress(Address address);  
+        Task<Address> UpdateAddressAsync(Address address,UpdateAddressDto updateAddressDto);
+        Task<Address> DeleteAddress(Address address);  
     }
 }

@@ -9,6 +9,7 @@ using OnlineRestaurant.Models;
 using OnlineRestaurant.Views;
 using System.IdentityModel.Tokens.Jwt;
 
+
 namespace OnlineRestaurant.Services
 {
     public class MealReviewService : IMealReviewService
@@ -59,18 +60,39 @@ namespace OnlineRestaurant.Services
 
                 
             };
+            
+
+              
             var view = _mapper.Map<MealReviewView>(Review);
             
             await _context.MealReviews.AddAsync(Review);
-            _context.SaveChanges();
+            var meal = await _context.Meals.Include(m => m.MealReviews).SingleOrDefaultAsync(m => m.Id == review.MealId);
+            if (!meal.MealReviews.Any() || meal.Rate == 0.00m)
+
+                meal.Rate = review.Rate;
+            else
+                meal.Rate = decimal.Round(meal.MealReviews.Sum(r => r.Rate) / meal.MealReviews.Where(r => r.Rate > 0).DefaultIfEmpty().Count(), 1);
+
+            meal.NumOfRate++;
+           await _context.SaveChangesAsync();
             view.Id = Review.Id;
+            
             return view;
         }
 
-        public MealReviewView DeleteReviewAsync(MealReview review)
+        public async Task<MealReviewView> DeleteReviewAsync(MealReview review)
         {
-            _context.MealReviews.Remove(review);  
-            _context.SaveChanges();
+            _context.MealReviews.Remove(review);
+            var meal = await _context.Meals.Include(m => m.MealReviews).SingleOrDefaultAsync(m => m.Id == review.MealId);
+
+            if (!meal.MealReviews.Any())
+
+                meal.Rate = 0.00m;
+            else
+                meal.Rate = decimal.Round(meal.MealReviews.Sum(r => r.Rate) / meal.MealReviews.Where(r => r.Rate > 0).DefaultIfEmpty().Count(), 1);
+
+            meal.NumOfRate--;
+            await _context.SaveChangesAsync();
             var view = _mapper.Map<MealReviewView>(review);
             
             return view;
@@ -92,15 +114,28 @@ namespace OnlineRestaurant.Services
             return views;
         }
 
-        public MealReviewView UpdateReviewAsync(MealReview review, UpdateReviewDto dto)
+        public async Task<MealReviewView> UpdateReviewAsync(MealReview review, UpdateReviewDto dto)
         {
             review.Text = dto.Text?? review.Text;
-            review.Rate=dto.Rate??review.Rate;
+            if (dto.Rate.HasValue)
+            {
+                review.Rate =(decimal) dto.Rate;
+                var meal = await _context.Meals.Include(m => m.MealReviews).SingleOrDefaultAsync(m => m.Id == review.MealId);
+                if (meal.Rate == 0.00m)
+
+                    meal.Rate =(decimal) dto.Rate;
+                else
+                    meal.Rate = decimal.Round(meal.MealReviews.Sum(r => r.Rate) / meal.MealReviews.Where(r => r.Rate > 0).DefaultIfEmpty().Count(), 1); 
+
+            }
             _context.Update(review);
-            _context.SaveChanges();
+           await _context.SaveChangesAsync();
+
             var view=_mapper.Map<MealReviewView>(review);
             
             return view;
         }
+        
+        
     }
 }

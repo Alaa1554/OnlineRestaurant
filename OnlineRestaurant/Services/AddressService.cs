@@ -49,15 +49,15 @@ namespace OnlineRestaurant.Services
             };
             
             await _context.AddAsync(Address);
-            _context.SaveChanges();
+           await _context.SaveChangesAsync();
             return Address;
 
         }
 
-        public Address DeleteAddress(Address address)
+        public async Task<Address> DeleteAddress(Address address)
         {
             _context.Remove(address);
-            _context.SaveChanges();
+           await _context.SaveChangesAsync();
             return address;
         }
 
@@ -85,7 +85,7 @@ namespace OnlineRestaurant.Services
             return addresses;
         }
 
-        public Address UpdateAddressAsync(Address address,UpdateAddressDto updateAddressDto)
+        public async Task<Address> UpdateAddressAsync(Address address,UpdateAddressDto updateAddressDto)
         {
             var errormessages = ValidateHelper<UpdateAddressDto>.Validate(updateAddressDto);
             if (!string.IsNullOrEmpty(errormessages))
@@ -100,7 +100,7 @@ namespace OnlineRestaurant.Services
             
 
             _context.Update(address);
-            _context.SaveChanges();
+           await _context.SaveChangesAsync();
 
             return address;
         }

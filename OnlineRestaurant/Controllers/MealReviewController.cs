@@ -49,10 +49,7 @@ namespace OnlineRestaurant.Controllers
             }
 
             var UpdatedData = _mealReviewService.UpdateReviewAsync(GetReview, dto);
-            if (!string.IsNullOrEmpty(UpdatedData.Message))
-            {
-                return BadRequest(UpdatedData.Message);
-            }
+            
             var Message = "تم تعديل تعليقك بنجاح";
             return Ok(new { UpdatedData, Message });
         }

@@ -9,7 +9,7 @@ namespace OnlineRestaurant.Interfaces
         Task<IEnumerable<MealReviewView>> GetReviewsAsync(int id);
         Task<MealReview> GetReviewByIdAsync(int id);
         Task<MealReviewView> CreateReview(string token,MealReview comment);
-        MealReviewView UpdateReviewAsync(MealReview comment, UpdateReviewDto dto);
-        MealReviewView DeleteReviewAsync(MealReview comment);
+        Task<MealReviewView> UpdateReviewAsync(MealReview comment, UpdateReviewDto dto);
+        Task<MealReviewView> DeleteReviewAsync(MealReview comment);
     }
 }

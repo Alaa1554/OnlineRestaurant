@@ -39,17 +39,17 @@ namespace OnlineRestaurant.Services
             if (!string.IsNullOrEmpty(Chef.Message)) 
                 return new Chef { Message = Chef.Message };
             await _context.Chefs.AddAsync(Chef);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             return Chef;
 
            
         }
 
-        public Chef DeleteChefAsync(Chef chef)
+        public async Task<Chef> DeleteChefAsync(Chef chef)
         {
             _imgService.DeleteImg(chef);
             _context.Chefs.Remove(chef);
-            _context.SaveChanges();
+           await _context.SaveChangesAsync();
             return chef;
          
         }
@@ -79,7 +79,7 @@ namespace OnlineRestaurant.Services
             return chefs;
         }
 
-        public  Chef UpdateChefAsync(Chef chef,UpdateChefDto chefDto)
+        public async Task<Chef> UpdateChefAsync(Chef chef,UpdateChefDto chefDto)
         {
             var errormessages = ValidateHelper<UpdateChefDto>.Validate(chefDto);
             if (!string.IsNullOrEmpty(errormessages))
@@ -88,7 +88,7 @@ namespace OnlineRestaurant.Services
             }
             if (chefDto.CategoryId.HasValue)
             {
-                if (!_context.Categories.Any(b => b.Id == chefDto.CategoryId))
+                if (!await _context.Categories.AnyAsync(b => b.Id == chefDto.CategoryId))
                 {
                     return new Chef { Message = $"No Category with id :{chef.CategoryId} is found" };
                 }
@@ -104,7 +104,7 @@ namespace OnlineRestaurant.Services
                 chef.Name = chefDto.Name?? chef.Name ;
             
             _context.Update(chef);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             return chef;
         }
         

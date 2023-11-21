@@ -6,10 +6,10 @@ namespace OnlineRestaurant.Interfaces
 {
     public interface IMealService
     {
-        MealByNameView GetMealByNameAsync(string name,string?token);
+        Task<MealByNameView> GetMealByNameAsync(string name,string?token);
         Task<Meal> GetMealByIdAsync(int id);
         Task<Meal> CreateMeal(Meal mealDto);
         Task<MealView> UpdateMealAsync(Meal meal,UpdateMealDto dto);
-        Meal DeleteMeal(Meal meal);
+        Task<Meal> DeleteMeal(Meal meal);
     }
 }

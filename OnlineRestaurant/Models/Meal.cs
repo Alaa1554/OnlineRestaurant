@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using Microsoft.EntityFrameworkCore;
 using OnlineRestaurant.Services;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
@@ -13,6 +14,7 @@ namespace OnlineRestaurant.Models
         public int Id { get; set; }
         [MaxLength(100)]
         [Required(ErrorMessage ="This Field is Required")]
+       
         public string Name { get; set; }
         [Required(ErrorMessage = "This Field is Required")]
         public decimal Price { get; set; }
@@ -29,17 +31,17 @@ namespace OnlineRestaurant.Models
         [ValidateNever,JsonIgnore]
         public Category Category { get; set; }
         public int CategoryId { get; set; }
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public decimal? OldPrice { get; set; }
         [NotMapped, ValidateNever, JsonIgnore]
         public string Message { get; set; }
         [NotMapped,Required(ErrorMessage = "This Field is Required"), JsonIgnore]
         public IFormFile MealImg { get; set; }
-        [ValidateNever,NotMapped]
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [ValidateNever]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public decimal Rate { get; set; }
-        [ValidateNever,NotMapped]
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [ValidateNever]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public int NumOfRate { get; set; }
         
         [ValidateNever,JsonIgnore]

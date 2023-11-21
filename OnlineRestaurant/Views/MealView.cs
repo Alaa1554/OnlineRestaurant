@@ -15,10 +15,10 @@ namespace OnlineRestaurant.Views
         [DisplayName("Image")]
         public string MealImgUrl { get; set; }
         public string ChefName { get; set; }
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public decimal? OldPrice { get; set; }
-        [JsonIgnore(Condition =JsonIgnoreCondition.WhenWritingNull)]
-        public string? IsFavourite { get; set; }
+       
+        public bool IsFavourite { get; set; }
         public int ChefId { get; set; }
         [JsonIgnore]
         public string Message { get; set; }
