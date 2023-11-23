@@ -51,7 +51,7 @@ namespace OnlineRestaurant.Controllers
                 return NotFound(getchef.Message);
             }
 
-            var UpdatedData = _chefService.UpdateChefAsync(getchef, chef);
+            var UpdatedData = await _chefService.UpdateChefAsync(getchef, chef);
             if (!string.IsNullOrEmpty(UpdatedData.Message))
             {
                 return BadRequest(UpdatedData.Message);
@@ -70,7 +70,7 @@ namespace OnlineRestaurant.Controllers
             {
                 return NotFound(chef.Message);
             }
-            var DeletedData =_chefService.DeleteChefAsync(chef);
+            var DeletedData =await _chefService.DeleteChefAsync(chef);
             var Message = "تم حذف الشيف بنجاح";
             return Ok(new { DeletedData, Message });
         }

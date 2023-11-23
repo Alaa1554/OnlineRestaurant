@@ -48,7 +48,7 @@ namespace OnlineRestaurant.Controllers
                 return NotFound(GetReview.Message);
             }
 
-            var UpdatedData = _mealReviewService.UpdateReviewAsync(GetReview, dto);
+            var UpdatedData = await _mealReviewService.UpdateReviewAsync(GetReview, dto);
             
             var Message = "تم تعديل تعليقك بنجاح";
             return Ok(new { UpdatedData, Message });
@@ -64,7 +64,7 @@ namespace OnlineRestaurant.Controllers
             {
                 return NotFound(GetReview.Message);
             }
-            var DeletedData = _mealReviewService.DeleteReviewAsync(GetReview);
+            var DeletedData = await _mealReviewService.DeleteReviewAsync(GetReview);
             var Message = "تم حذف تعليقك بنجاح";
             return Ok(new { DeletedData, Message });
         }

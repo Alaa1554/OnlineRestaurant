@@ -43,7 +43,7 @@ namespace OnlineRestaurant.Controllers
                 return NotFound(getaddition.Message);
             }
 
-            var UpdatedData = _additionService.UpdateMealAdditionAsync(getaddition, dto);
+            var UpdatedData = await _additionService.UpdateMealAdditionAsync(getaddition, dto);
             if (!string.IsNullOrEmpty(UpdatedData.Message))
             {
                 return BadRequest(UpdatedData.Message);
@@ -60,7 +60,7 @@ namespace OnlineRestaurant.Controllers
             {
                 return NotFound(getaddition.Message);
             }
-            var DeletedData = _additionService.DeleteMealAddition(getaddition);
+            var DeletedData = await _additionService.DeleteMealAddition(getaddition);
             var Message = "تم حذف الاضافه بنجاح";
             return Ok(new { DeletedData, Message });
         }

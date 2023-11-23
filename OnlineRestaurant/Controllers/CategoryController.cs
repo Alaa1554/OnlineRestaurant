@@ -48,7 +48,7 @@ namespace OnlineRestaurant.Controllers
                 return NotFound(getcategory.Message);
             }
 
-            var UpdatedData = _categoryService.UpdateCategoryAsync(getcategory, dto);
+            var UpdatedData = await _categoryService.UpdateCategoryAsync(getcategory, dto);
             if (!string.IsNullOrEmpty(UpdatedData.Message))
             {
                 return BadRequest(UpdatedData.Message);
@@ -67,7 +67,7 @@ namespace OnlineRestaurant.Controllers
             {
                 return NotFound(category.Message);
             }
-            var DeletedData = _categoryService.DeleteCategoryAsync(category);
+            var DeletedData = await _categoryService.DeleteCategoryAsync(category);
             var Message = "تم حذف التصنيف بنجاح";
             return Ok(new { DeletedData, Message });
         }

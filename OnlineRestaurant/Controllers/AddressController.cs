@@ -55,7 +55,7 @@ namespace OnlineRestaurant.Controllers
                 return NotFound(getaddress.Message);
             }
 
-            var UpdatedData =  _addressService.UpdateAddressAsync(getaddress, dto);
+            var UpdatedData = await _addressService.UpdateAddressAsync(getaddress, dto);
             if (!string.IsNullOrEmpty(UpdatedData.Message))
             {
                 return BadRequest(UpdatedData.Message);
@@ -71,7 +71,7 @@ namespace OnlineRestaurant.Controllers
             {
                 return NotFound(address.Message);
             }
-            var DeletedData = _addressService.DeleteAddress(address);
+            var DeletedData =await _addressService.DeleteAddress(address);
             var Message = "تم حذف العنوان بنجاح";
             return Ok(new { DeletedData, Message });
         }

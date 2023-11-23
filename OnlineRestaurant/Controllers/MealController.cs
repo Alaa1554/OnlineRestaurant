@@ -69,7 +69,7 @@ namespace OnlineRestaurant.Controllers
             {
                return NotFound(meal.Message);
             }
-            var DeletedData = _mealService.DeleteMeal(meal);
+            var DeletedData =await _mealService.DeleteMeal(meal);
             var Message = "تم حذف الوجبه بنجاح";
             return Ok(new { DeletedData, Message });
         }
