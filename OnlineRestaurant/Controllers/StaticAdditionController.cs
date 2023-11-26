@@ -11,7 +11,7 @@ namespace OnlineRestaurant.Controllers
     public class StaticAdditionController : ControllerBase
     {
 
-        private IStaticMealAdditionService _additionService;
+        private readonly IStaticMealAdditionService _additionService;
         
 
         public StaticAdditionController(IStaticMealAdditionService additionService)

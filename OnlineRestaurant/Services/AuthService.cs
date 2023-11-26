@@ -69,10 +69,10 @@ namespace OnlineRestaurant.Services
                 }
                 return new AuthModelDto { Message = errors };
             }
-            var ImgErrors = _imgService.SetImage(user, registermodel.UserImg);
-            if (!string.IsNullOrEmpty(ImgErrors))
+            _imgService.SetImage(user, registermodel.UserImg);
+            if (!string.IsNullOrEmpty(user.Message))
             {
-                return new AuthModelDto { Message = ImgErrors };
+                return new AuthModelDto { Message = user.Message };
             }
             await _userManager.AddToRoleAsync(user, "User");
             var jwtSecurityToken = await CreateJwtToken(user);

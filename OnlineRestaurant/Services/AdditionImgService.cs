@@ -26,30 +26,29 @@ namespace OnlineRestaurant.Services
             }
         }
 
-        public string SetImage(StaticMealAddition Addition, IFormFile? file)
+        public void SetImage(StaticMealAddition Addition, IFormFile? file)
         {
             if (file == null)
             {
                 Addition.AdditionUrl = "\\Images\\Noimg.jpg";
-                return string.Empty;
+               
             }
             else
             {
 
                 if (!AllowedExtention.Contains(Path.GetExtension(file.FileName).ToLower()))
-                    return "This Extention is Not Allowed";
+                    Addition.Message= "This Extention is Not Allowed";
                 if (file.Length > AllowedSize)
-                    return "The FileSize is Not Allowed";
+                    Addition.Message= "The FileSize is Not Allowed";
 
                 var imgextention = Path.GetExtension(file.FileName).ToLower();
                 Guid guid = Guid.NewGuid();
                 var createpath = guid.ToString() + imgextention;
                 var imgUrl = "\\Images\\" + createpath;
-                Addition.AdditionUrl = imgUrl;
+                Addition.AdditionUrl = "https://localhost:7166" + imgUrl;
                 var imgpath = _webHostEnvironment.WebRootPath + imgUrl;
                 using var datafile = new FileStream(imgpath, FileMode.Create);
                 file.CopyTo(datafile);
-                return string.Empty;
             }
         }
         public void UpdateImg(StaticMealAddition addition, IFormFile? file)
@@ -57,11 +56,8 @@ namespace OnlineRestaurant.Services
             if (file != null)
             {
                 DeleteImg(addition);
-                var message = SetImage(addition, file);
-                if (message != null)
-                {
-                    addition.Message = message;
-                }
+                SetImage(addition, file);
+               
             }
 
         }

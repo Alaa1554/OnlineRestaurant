@@ -1,5 +1,7 @@
 ﻿
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using OnlineRestaurant.Data;
 using OnlineRestaurant.Dtos;
 using OnlineRestaurant.Interfaces;
 using OnlineRestaurant.Models;
@@ -10,22 +12,26 @@ namespace OnlineRestaurant.Controllers
     [ApiController]
     public class AdditionController : ControllerBase
     {
-            private IMealAdditionService _additionService;
-            
+            private readonly  IMealAdditionService _additionService;
+            private readonly ApplicationDbContext _context;
 
-        public AdditionController(IMealAdditionService additionService)
+        public AdditionController(IMealAdditionService additionService,ApplicationDbContext context)
         {
             _additionService = additionService;
+            _context = context;
             
         }
 
         [HttpGet("{id}")]
             public async Task<IActionResult> GetAllAdditionAsync(int id)
             {
-               
+               if(!await _context.Meals.AnyAsync(m => m.Id == id))
+            {
+                return NotFound("لم يتم العثور علي اي وجبه");
+            }
                var Additions = await _additionService.GetMealAdditionsAsync(id);
               
-            return Ok(Additions);
+                return Ok(Additions);
             }
             [HttpPost]
             public async Task<IActionResult> CreateAdditionAsync([FromBody] MealAddition Dto)
@@ -66,8 +72,8 @@ namespace OnlineRestaurant.Controllers
                 {
                     return NotFound(getaddition.Message);
                 }
-                var DeletedData = _additionService.DeleteMealAddition(getaddition);
-            var Message = "تم حذف الاضافه بنجاح";
+                var DeletedData =await _additionService.DeleteMealAddition(getaddition);
+                var Message = "تم حذف الاضافه بنجاح";
                 return Ok(new { DeletedData, Message });
             }
         

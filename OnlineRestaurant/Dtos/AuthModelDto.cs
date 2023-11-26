@@ -13,7 +13,7 @@ namespace OnlineRestaurant.Dtos
         public List<string> Roles { get; set;}
         public string Token { get; set; }
         public DateTime ExpiresOn { get; set; }
-        public string? UserImgUrl { get; set; }
+        public string UserImgUrl { get; set; }
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? VerificationCode { get; set; }
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]

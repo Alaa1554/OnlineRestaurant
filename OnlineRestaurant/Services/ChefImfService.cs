@@ -27,29 +27,27 @@ namespace OnlineRestaurant.Services
             }
         }
 
-        public string SetImage(Chef chef, IFormFile? file)
+        public void SetImage(Chef chef, IFormFile? file)
         {
             if (file == null)
             {
                 chef.ChefImgUrl = "\\Images\\Noimg.jpg";
-                return string.Empty;
             }
             else
             {
 
                 if (!AllowedExtention.Contains(Path.GetExtension(file.FileName).ToLower()))
-                    return "This Extention is Not Allowed";
+                    chef.Message= "This Extention is Not Allowed";
                 if (file.Length > AllowedSize)
-                    return "The FileSize is Not Allowed";
+                    chef.Message= "The FileSize is Not Allowed";
                 var Imgextention = Path.GetExtension(file.FileName).ToLower();
                 Guid Imgguid = Guid.NewGuid();
                 var createpath = Imgguid.ToString() + Imgextention;
                 var ImgUrl = "\\Images\\" + createpath;
-                chef.ChefImgUrl = ImgUrl;
+                chef.ChefImgUrl = "https://localhost:7166" + ImgUrl;
                 var imgpath = _webHostEnvironment.WebRootPath + ImgUrl;
                 using var datafile = new FileStream(imgpath, FileMode.Create);
                 file.CopyTo(datafile);
-                return string.Empty;
             }
            
 
@@ -59,11 +57,8 @@ namespace OnlineRestaurant.Services
             if (file != null)
             {
                 DeleteImg(chef);
-                var message =  SetImage(chef, file);
-                if (message != null)
-                {
-                    chef.Message = message;
-                }
+                SetImage(chef, file);
+               
             }
         }
     }

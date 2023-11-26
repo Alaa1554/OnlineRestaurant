@@ -13,19 +13,23 @@ namespace OnlineRestaurant.Controllers
     [ApiController]
     public class MealController : ControllerBase
     {
-        private IMealService _mealService;
-        private ApplicationDbContext _context;
+        private readonly IMealService _mealService;
+       
 
-        public MealController(IMealService mealService, ApplicationDbContext context)
+        public MealController(IMealService mealService)
         {
             _mealService = mealService;
-            _context = context;
+            
         }
 
         [HttpGet]
         public async Task<IActionResult> GetMealByNameAsync([FromQuery]string name, [FromHeader] string? token)
         {
             var meal =await _mealService.GetMealByNameAsync(name,token);
+            if (!string.IsNullOrEmpty(meal.Message))
+            {
+                return NotFound(meal.Message);
+            }
             
             return Ok( meal);
         }
