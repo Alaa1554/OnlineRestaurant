@@ -42,6 +42,7 @@ namespace OnlineRestaurant.Services
         public async Task<MealAddition> DeleteMealAddition(MealAddition mealAddition)
         {
             _context.Remove(mealAddition);
+            
             await _context.SaveChangesAsync();
             return mealAddition;
         }
