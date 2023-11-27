@@ -64,6 +64,22 @@ namespace OnlineRestaurant.Controllers
             var Message = "تم حذف الاضافه بنجاح";
             return Ok(new { DeletedData, Message });
         }
+        [HttpGet]
+        public async Task<IActionResult> GetAllAsync()
+        {
+            var Additions = await _additionService.GetAllAdditions();
+            return Ok(Additions);
+        }
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetByIdAsync(int id)
+        {
+            var Addition = await _additionService.GetMealAdditionByIdAsync(id);
+            if (!string.IsNullOrEmpty(Addition.Message))
+            {
+                return NotFound(Addition.Message);
+            }
+            return Ok(Addition);
+        }
 
     }
 }

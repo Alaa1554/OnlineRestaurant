@@ -55,6 +55,7 @@ namespace OnlineRestaurant.Services
                 return new StaticMealAddition { Message = $"There is no Addition with Id :{id}" };
             return mealaddition;
         }
+       
 
         public  async Task<StaticMealAddition> UpdateMealAdditionAsync(StaticMealAddition mealAddition, UpdateStaticMealAdditionDto dto)
         {
@@ -72,6 +73,12 @@ namespace OnlineRestaurant.Services
             _context.Update(mealAddition);
             await _context.SaveChangesAsync();
             return mealAddition;
+        }
+
+        public async Task<IEnumerable<StaticMealAddition>> GetAllAdditions()
+        {
+            var Additions = await _context.StaticAdditions.ToListAsync();
+            return Additions;
         }
     }
 }

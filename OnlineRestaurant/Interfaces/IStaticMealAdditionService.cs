@@ -9,5 +9,7 @@ namespace OnlineRestaurant.Interfaces
         Task<StaticMealAddition> CreateMealAddition(StaticMealAddition Dto);
         Task<StaticMealAddition> UpdateMealAdditionAsync(StaticMealAddition mealAddition, UpdateStaticMealAdditionDto dto);
         Task<StaticMealAddition> DeleteMealAddition(StaticMealAddition mealAddition);
+        Task<IEnumerable<StaticMealAddition>> GetAllAdditions();
+        
     }
 }
