@@ -26,6 +26,14 @@ namespace OnlineRestaurant.Controllers
             var chefs = await _chefService.GetChefsAsync();
              return Ok(chefs);
         }
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetChefByIdAsync(int id)
+        {
+            var chef = await _chefService.GetChefByIdAsync(id);
+            if(!string.IsNullOrEmpty(chef.Message))
+                return NotFound(chef.Message);
+            return Ok(chef);
+        }
         [HttpPost]
        
         public async Task<IActionResult> CreateChefAsync([FromForm] Chef dto)

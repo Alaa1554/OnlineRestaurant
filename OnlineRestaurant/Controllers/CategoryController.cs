@@ -24,6 +24,14 @@ namespace OnlineRestaurant.Controllers
             var categories = await _categoryService.GetCategoryAsync();
             return Ok(categories);
         }
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetCategoryByIdAsync(int id)
+        {
+            var category=await _categoryService.GetCategoryByIdAsync(id);
+            if(!string.IsNullOrEmpty(category.Message))
+              return NotFound(category.Message);
+            return Ok(category);
+        }
         [HttpPost]
 
         public async Task<IActionResult> CreateCategoryAsync([FromForm] Category dto)
