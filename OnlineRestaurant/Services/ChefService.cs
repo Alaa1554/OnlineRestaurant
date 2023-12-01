@@ -47,6 +47,10 @@ namespace OnlineRestaurant.Services
 
         public async Task<Chef> DeleteChefAsync(Chef chef)
         {
+            if(await _context.Meals.AnyAsync(c => c.ChefId == chef.Id))
+            {
+                return new Chef { Message = "لا يمكن حذف الشيف الا بعد حذف كل وجباته" };
+            }
             _imgService.DeleteImg(chef);
             _context.Chefs.Remove(chef);
            await _context.SaveChangesAsync();
@@ -56,10 +60,10 @@ namespace OnlineRestaurant.Services
 
         public async Task<Chef> GetChefByIdAsync(int id)
         {
-           var chef = await _context.Chefs.SingleOrDefaultAsync(chef => chef.Id==id);
+           var chef = await _context.Chefs.Include(c=>c.Category).SingleOrDefaultAsync(chef => chef.Id==id);
             if (chef == null)
                 return new Chef { Message = $"There is no Chef with Id :{id}" };
-
+            chef.CategoryName = chef.Category.Name;
             return chef;
         }
 

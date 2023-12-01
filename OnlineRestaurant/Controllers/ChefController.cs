@@ -79,6 +79,10 @@ namespace OnlineRestaurant.Controllers
                 return NotFound(chef.Message);
             }
             var DeletedData =await _chefService.DeleteChefAsync(chef);
+            if (!string.IsNullOrEmpty(DeletedData.Message))
+            {
+                return BadRequest(DeletedData.Message);
+            }
             var Message = "تم حذف الشيف بنجاح";
             return Ok(new { DeletedData, Message });
         }

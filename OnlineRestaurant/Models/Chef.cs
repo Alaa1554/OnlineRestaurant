@@ -21,6 +21,9 @@ namespace OnlineRestaurant.Models
         [ValidateNever,JsonIgnore]
         public List<Meal> Meals { get; set; }
         public int CategoryId {get; set; }
+        [NotMapped,ValidateNever]
+        [JsonIgnore(Condition =JsonIgnoreCondition.WhenWritingDefault)]
+        public string CategoryName { get; set; }
        
         [NotMapped, ValidateNever, JsonIgnore]
         public string Message { get; set; }
