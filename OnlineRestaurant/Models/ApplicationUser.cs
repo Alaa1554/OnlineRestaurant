@@ -21,6 +21,8 @@ namespace OnlineRestaurant.Models
         public List<Address> Addresses { get; set; }
         [ValidateNever, JsonIgnore]
         public  WishList WishList { get; set; }
+        [ValidateNever, JsonIgnore]
+        public List<Order> Orders { get; set; }
 
     }
 }

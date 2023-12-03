@@ -54,6 +54,10 @@ namespace OnlineRestaurant.Models
         [ValidateNever, JsonIgnore]
 
         public IEnumerable<WishListMeal> WishListMeal { get; set; }
+        [ValidateNever, JsonIgnore]
+        public List<Order> Orders { get; set; }
+        [ValidateNever, JsonIgnore]
+        public List<OrderMeal> OrderMeals { get; set; }
        
         
 

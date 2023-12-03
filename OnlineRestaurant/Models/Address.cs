@@ -20,6 +20,7 @@ namespace OnlineRestaurant.Models
         public ApplicationUser User { get; set; }
         [ValidateNever,JsonIgnore]
         public string UserId { get; set; }
+       
         [NotMapped,ValidateNever,JsonIgnore]
         public string Message { get; set; }
     }

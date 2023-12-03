@@ -22,6 +22,8 @@ namespace OnlineRestaurant.Data
             builder.Entity<Meal>()
             .HasIndex(e => e.Name)
             .IsUnique();
+            builder.Entity<Order>().HasMany(o=>o.StaticMealAdditions).WithMany(s=>s.Orders).UsingEntity<OrderStaticAddition>();
+            builder.Entity<Order>().HasMany(o=>o.Meals).WithMany(m=>m.Orders).UsingEntity<OrderMeal>();
         }
         public DbSet<Chef> Chefs { get; set; }
         
@@ -34,5 +36,8 @@ namespace OnlineRestaurant.Data
         public DbSet<Address> Addresses { get; set; }
         public DbSet<WishListMeal> WishListMeals { get;set; }
         public DbSet<WishList> wishLists { get; set; }
+        public DbSet<Order> Orders { get; set; }
+        public DbSet<OrderStaticAddition> OrdersStaticAdditions { get;set; }
+        public DbSet<OrderMeal> OrderMeals { get; set; }
     }
 }

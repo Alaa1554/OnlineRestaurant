@@ -144,6 +144,14 @@ namespace OnlineRestaurant.Services
 
         }
 
+        public async Task<Meal> GetMealByNameAsync(string name)
+        {
+            var meal = await _context.Meals.Include(meal => meal.Chef).Include(b => b.Category).SingleOrDefaultAsync(meal => meal.Name == name.Trim());
+            if (meal == null)
+                return new Meal { Message = $"There is no Meal with Name :{name}" };
+            return meal;
+        }
+
         public async Task<MealView> UpdateMealAsync(Meal selectedmeal,UpdateMealDto meal)
         {
             var errormessages = ValidateHelper<UpdateMealDto>.Validate(meal);

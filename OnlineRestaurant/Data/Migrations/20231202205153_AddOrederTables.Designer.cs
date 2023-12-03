@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OnlineRestaurant.Data;
 
@@ -11,9 +12,11 @@ using OnlineRestaurant.Data;
 namespace OnlineRestaurant.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231202205153_AddOrederTables")]
+    partial class AddOrederTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -528,9 +531,6 @@ namespace OnlineRestaurant.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("StatusDate")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("Street")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -561,9 +561,6 @@ namespace OnlineRestaurant.Migrations
                     b.Property<string>("Addition")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Amount")
-                        .HasColumnType("int");
 
                     b.HasKey("MealId", "OrderId");
 

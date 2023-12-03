@@ -47,10 +47,10 @@ namespace OnlineRestaurant.Controllers
             
 
         }
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateMealAsync(int id, [FromForm] UpdateMealDto meal)
+        [HttpPut("{name}")]
+        public async Task<IActionResult> UpdateMealAsync(string name, [FromForm] UpdateMealDto meal)
         {
-            var getmeal = await _mealService.GetMealByIdAsync(id);
+            var getmeal = await _mealService.GetMealByNameAsync(name);
 
             if (!string.IsNullOrEmpty(getmeal.Message))
             {
@@ -65,10 +65,10 @@ namespace OnlineRestaurant.Controllers
             var Message = "تم تعديل الوجبه بنجاح";
             return Ok(new { UpdatedData, Message });
         }
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteMeal(int id)
+        [HttpDelete("{name}")]
+        public async Task<IActionResult> DeleteMeal(string name)
         {
-            var meal =await _mealService.GetMealByIdAsync(id);
+            var meal =await _mealService.GetMealByNameAsync(name);
             if (!string.IsNullOrEmpty(meal.Message))
             {
                return NotFound(meal.Message);

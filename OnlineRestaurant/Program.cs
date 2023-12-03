@@ -43,6 +43,7 @@ builder.Services.AddScoped<IMealReviewService, MealReviewService>();
 builder.Services.AddScoped<IChefReviewService, ChefReviewService>();
 builder.Services.AddScoped<IMealFilterService, MealFilterService>();
 builder.Services.AddScoped<IAddressService, AddressService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IMealAdditionService, MealAdditionService>();
 builder.Services.AddScoped<IStaticMealAdditionService, StaticMealAdditionService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
