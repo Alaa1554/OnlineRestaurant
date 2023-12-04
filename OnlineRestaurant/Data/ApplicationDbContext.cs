@@ -24,6 +24,8 @@ namespace OnlineRestaurant.Data
             .IsUnique();
             builder.Entity<Order>().HasMany(o=>o.StaticMealAdditions).WithMany(s=>s.Orders).UsingEntity<OrderStaticAddition>();
             builder.Entity<Order>().HasMany(o=>o.Meals).WithMany(m=>m.Orders).UsingEntity<OrderMeal>();
+            builder.Entity<OrderMeal>()
+                .HasKey(c => new { c.OrderId, c.MealId, c.Addition });
         }
         public DbSet<Chef> Chefs { get; set; }
         
