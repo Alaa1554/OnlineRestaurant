@@ -134,6 +134,8 @@ namespace OnlineRestaurant.Services
                 StaticMealAdditions = _context.StaticAdditions.ToList(),
                 MealAdditions = additions.Select(x=>new AdditionView { Id=x.Id,Choices=x.Choices,Name=x.Name}).ToList(),
                 Reviews = _mapper.Map<List<MealReviewView>>(reviews),
+                CategoryId= meal.CategoryId,
+                ChefId= meal.ChefId,
 
 
 

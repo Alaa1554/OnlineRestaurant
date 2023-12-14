@@ -14,7 +14,8 @@ namespace OnlineRestaurant.Views
         public string CategoryName { get; set; }
         public decimal Rate { get; set; }
         public int NumOfRates { get; set; }
-      
+        public int CategoryId { get; set; }
+        public int ChefId { get; set; }
         public bool IsFavourite { get; set; }
         public List<StaticMealAddition> StaticMealAdditions { get; set; }
         public List<AdditionView> MealAdditions { get; set; }
