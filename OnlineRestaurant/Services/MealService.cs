@@ -136,9 +136,6 @@ namespace OnlineRestaurant.Services
                 Reviews = _mapper.Map<List<MealReviewView>>(reviews),
                 CategoryId= meal.CategoryId,
                 ChefId= meal.ChefId,
-
-
-
             };
 
 
