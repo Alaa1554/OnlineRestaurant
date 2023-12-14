@@ -11,6 +11,7 @@ namespace OnlineRestaurant.Interfaces
         Task<Chef> CreateChef(Chef chef);
         Task<Chef> UpdateChefAsync(Chef chef,UpdateChefDto dto);
         Task<Chef> DeleteChefAsync(Chef chef);
+        Task<IEnumerable<Chef>> GetChefsByCategoryIdAsync(int id);
         
 
     }

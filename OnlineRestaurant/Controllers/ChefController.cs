@@ -19,12 +19,18 @@ namespace OnlineRestaurant.Controllers
         }
 
         
-        [HttpGet]
+        [HttpGet("GetAllChefs")]
         public async Task<IActionResult> GetAllChefsAsync()
         {
 
             var chefs = await _chefService.GetChefsAsync();
              return Ok(chefs);
+        }
+        [HttpGet("GetChefsByCategoryId/{id}")]
+        public async Task<IActionResult> GetChefsByCategoryIdAsync(int id) 
+        {
+            var chefs = await _chefService.GetChefsByCategoryIdAsync(id);
+            return Ok(chefs);
         }
         [HttpGet("{id}")]
         public async Task<IActionResult> GetChefByIdAsync(int id)

@@ -83,6 +83,11 @@ namespace OnlineRestaurant.Services
             return chefs;
         }
 
+        public async Task<IEnumerable<Chef>> GetChefsByCategoryIdAsync(int id)
+        {
+            var chefs = await _context.Chefs.Where(c=>c.CategoryId==id).ToListAsync();
+            return chefs;
+        }
         public async Task<Chef> UpdateChefAsync(Chef chef,UpdateChefDto chefDto)
         {
             var errormessages = ValidateHelper<UpdateChefDto>.Validate(chefDto);
