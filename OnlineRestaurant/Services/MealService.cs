@@ -153,6 +153,7 @@ namespace OnlineRestaurant.Services
 
         public async Task<MealView> UpdateMealAsync(Meal selectedmeal,UpdateMealDto meal)
         {
+            var mealview = new MealView();
             var errormessages = ValidateHelper<UpdateMealDto>.Validate(meal);
             if (!string.IsNullOrEmpty(errormessages))
             {
@@ -163,15 +164,24 @@ namespace OnlineRestaurant.Services
             {
                 if (!await _context.Categories.AnyAsync(b => b.Id == meal.CategoryId))
                     return new MealView { Message = $"There is no Category with Id : {meal.CategoryId}!" };
-                selectedmeal.CategoryId = meal.CategoryId??selectedmeal.CategoryId;
+                selectedmeal.CategoryId = (int)meal.CategoryId;
+                var category = await _context.Categories.FirstOrDefaultAsync(c => c.Id == meal.CategoryId);
+                mealview.CategoryName = category.Name;
             }
+            else
+                mealview.CategoryName=selectedmeal.Category.Name;
+            
            
             if (meal.ChefId != null)
             {
                 if (!await _context.Chefs.AnyAsync(c => c.Id == meal.ChefId))
                     return new MealView { Message = $"There is no Chef With Id:{meal.ChefId}" };
-                selectedmeal.ChefId = meal.ChefId??selectedmeal.ChefId;
+                selectedmeal.ChefId =(int) meal.ChefId;
+                var chef = await _context.Chefs.FirstOrDefaultAsync(c=>c.Id== meal.ChefId);
+                mealview.ChefName = chef.Name;
             }
+            else
+                mealview.ChefName=selectedmeal.Chef.Name;
 
               _imgService. UpdateImg(selectedmeal, meal.MealImg);
             if(!string.IsNullOrEmpty(selectedmeal.Message))
@@ -186,22 +196,18 @@ namespace OnlineRestaurant.Services
             _context.Update(selectedmeal);
             await _context.SaveChangesAsync();
 
-            return new MealView
-            {
-                Id =selectedmeal .Id,
-                ChefId = selectedmeal.ChefId,
-                ChefName = selectedmeal.Chef.Name,
-                MealImgUrl = selectedmeal.MealImgUrl,
-                Name = selectedmeal.Name,
-                Price = selectedmeal.Price,
-                Categoryid = selectedmeal.CategoryId,
-                CategoryName= selectedmeal.Category.Name,
-                OldPrice= selectedmeal.OldPrice,
-                Description = selectedmeal.Description,
-                Rate= selectedmeal.Rate,
-                NumOfRate= selectedmeal.NumOfRate,
+            mealview.Id = selectedmeal.Id;
+            mealview.ChefId =selectedmeal.ChefId;
+            mealview.MealImgUrl = selectedmeal.MealImgUrl;
+            mealview.Name = selectedmeal.Name;
+            mealview.Price = selectedmeal.Price;
+            mealview.Categoryid = selectedmeal.CategoryId;
+            mealview.OldPrice = selectedmeal.OldPrice;
+            mealview.Description = selectedmeal.Description;
+            mealview.Rate = selectedmeal.Rate;
+            mealview.NumOfRate = selectedmeal.NumOfRate;
 
-            };
+            return mealview;
 
         }
         
