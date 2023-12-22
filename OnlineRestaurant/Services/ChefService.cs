@@ -102,6 +102,12 @@ namespace OnlineRestaurant.Services
                     return new Chef { Message = $"No Category with id :{chef.CategoryId} is found" };
                 }
                 chef.CategoryId = chefDto.CategoryId??chef.CategoryId;
+                if(await _context.Meals.AnyAsync(m => m.ChefId == chef.Id))
+                {
+                    var meal = await _context.Meals.SingleOrDefaultAsync(m => m.ChefId == chef.Id);
+                    meal.CategoryId = (int) chefDto.CategoryId;
+                }
+                chef.CategoryName = null;
             }
            
             
@@ -111,7 +117,7 @@ namespace OnlineRestaurant.Services
             
            
                 chef.Name = chefDto.Name?? chef.Name ;
-            
+               
             _context.Update(chef);
             await _context.SaveChangesAsync();
             return chef;

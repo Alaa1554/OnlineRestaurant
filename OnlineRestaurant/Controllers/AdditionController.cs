@@ -45,8 +45,8 @@ namespace OnlineRestaurant.Controllers
                 return Ok(new {Addition,Message});
 
             }
-            [HttpPut("{id}/{choiceid?}")]
-            public async Task<IActionResult> UpdateAdditionAsync(int id, [FromBody] UpdateMealAdditionDto dto,int? choiceid)
+        [HttpPut("{id}/{choiceid?}")]
+        public async Task<IActionResult> UpdateAdditionAsync(int id, [FromBody] UpdateMealAdditionDto dto,int? choiceid)
             {
                 var getaddition = await _additionService.GetMealAdditionByIdAsync(id);
 
@@ -76,6 +76,16 @@ namespace OnlineRestaurant.Controllers
                 var Message = "تم حذف الاضافه بنجاح";
                 return Ok(new { DeletedData, Message });
             }
+        [HttpDelete("{additionid}/{choiceid}")]
+        public async Task<IActionResult> DeleteChoiceAsync(int additionid,int choiceid)
+        {
+            var Message = await _additionService.DeleteChoiceAsync(additionid, choiceid);
+            if (!string.IsNullOrEmpty(Message)) 
+            {
+                return NotFound(Message);
+            }
+            return Ok("تم حذف الاختيار بنجاح");
+        }
         
     }
 }

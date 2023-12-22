@@ -182,17 +182,19 @@ namespace OnlineRestaurant.Services
             }
             else
                 mealview.ChefName=selectedmeal.Chef.Name;
+            if (meal.Description != null && meal.Description.ToLower().Trim() == "undefined")
+                selectedmeal.Description = null;
+            else
+                selectedmeal.Description = meal.Description ?? selectedmeal.Description;
 
-              _imgService. UpdateImg(selectedmeal, meal.MealImg);
+            _imgService. UpdateImg(selectedmeal, meal.MealImg);
             if(!string.IsNullOrEmpty(selectedmeal.Message))
                 return new MealView { Message =selectedmeal.Message };
             selectedmeal.Price = meal.Price?? selectedmeal.Price;
             selectedmeal.Name = meal.Name??selectedmeal.Name;
             
             selectedmeal.OldPrice = meal.OldPrice ?? selectedmeal.OldPrice;
-            selectedmeal.Description = meal.Description ?? selectedmeal.Description;
-
-
+            
             _context.Update(selectedmeal);
             await _context.SaveChangesAsync();
 

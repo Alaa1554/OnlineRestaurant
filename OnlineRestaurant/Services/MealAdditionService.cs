@@ -83,7 +83,7 @@ namespace OnlineRestaurant.Services
             mealAddition.Name = dto.Name ?? mealAddition.Name;
             if (id != null)
             {
-                var choice=  mealAddition.Choices.FirstOrDefault(c=>c.Id==id);
+                var choice= mealAddition.Choices.FirstOrDefault(c=>c.Id==id);
                 if (choice == null)
                 {
                     return new MealAddition { Message = $"There is no Choice with Id : {id}!" };
@@ -96,6 +96,21 @@ namespace OnlineRestaurant.Services
             await _context.SaveChangesAsync();
 
             return mealAddition;
+        }
+        public async Task<string> DeleteChoiceAsync(int AdditionId,int ChoiceId)
+        {
+            var Addition =await _context.MealAdditions.Include(c=>c.Choices).SingleOrDefaultAsync(m=>m.Id==AdditionId);
+            if(Addition == null)
+                return "لم يتم العثور علي اضافات";
+            var Choice = Addition.Choices.FirstOrDefault(c=>c.Id==ChoiceId);
+            if (Choice == null)
+                return "لم يتم العثور علي اختيارات";
+
+            Addition.Choices.Remove(Choice);
+
+            _context.Update(Addition);
+            await _context.SaveChangesAsync();
+            return string.Empty;
         }
        
     }
