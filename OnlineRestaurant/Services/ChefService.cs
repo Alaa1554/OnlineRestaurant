@@ -104,8 +104,12 @@ namespace OnlineRestaurant.Services
                 chef.CategoryId = chefDto.CategoryId??chef.CategoryId;
                 if(await _context.Meals.AnyAsync(m => m.ChefId == chef.Id))
                 {
-                    var meal = await _context.Meals.SingleOrDefaultAsync(m => m.ChefId == chef.Id);
-                    meal.CategoryId = (int) chefDto.CategoryId;
+                    var meals = _context.Meals.Where(m => m.ChefId == chef.Id);
+                    foreach(var meal in meals)
+                    {
+                        meal.CategoryId = (int)chefDto.CategoryId;
+                    }
+                    
                 }
                 chef.CategoryName = null;
             }
