@@ -12,5 +12,6 @@ namespace OnlineRestaurant.Interfaces
         Task<MealAddition> UpdateMealAdditionAsync(MealAddition mealAddition, UpdateMealAdditionDto dto,int? id);
         Task<MealAddition> DeleteMealAddition(MealAddition mealAddition);
         Task<string> DeleteChoiceAsync(int AdditionId, int ChoiceId);
+        Task<string> AddChoiceAsync(int AdditionId, Choice choice);
     }
 }

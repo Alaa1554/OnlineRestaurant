@@ -112,6 +112,16 @@ namespace OnlineRestaurant.Services
             await _context.SaveChangesAsync();
             return string.Empty;
         }
+        public async Task<string> AddChoiceAsync(int AdditionId,Choice choice)
+        {
+            var Addition = await _context.MealAdditions.Include(c => c.Choices).SingleOrDefaultAsync(m => m.Id == AdditionId);
+            if (Addition == null)
+                return "لم يتم العثور علي اضافات";
+            Addition.Choices.Add(choice);
+            _context.Update(Addition);
+            await _context.SaveChangesAsync();
+            return string.Empty;
+        }
        
     }
 
