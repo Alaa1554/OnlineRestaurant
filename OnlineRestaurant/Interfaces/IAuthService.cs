@@ -1,4 +1,5 @@
 ﻿using OnlineRestaurant.Dtos;
+using OnlineRestaurant.Views;
 
 namespace OnlineRestaurant.Interfaces
 {
@@ -13,5 +14,6 @@ namespace OnlineRestaurant.Interfaces
         string GetUserId(string token);
         Task<string> DeleteUserImage(string token);
         Task<AuthModelDto> GmailRegisterAsync(GmailRegisterDto registermodel);
+        IEnumerable<UserView> GetAllUsersAsync();
     }
 }

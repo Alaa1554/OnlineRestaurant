@@ -110,5 +110,11 @@ namespace OnlineRestaurant.Controllers
                 return BadRequest(AuthModel.Message);
             return Ok(AuthModel);
         }
+        [HttpGet("GetAllUsers")]
+        public IActionResult GetAllUsersAsync()
+        {
+            var users = _authService.GetAllUsersAsync();
+            return Ok(users);
+        }
     }
 }

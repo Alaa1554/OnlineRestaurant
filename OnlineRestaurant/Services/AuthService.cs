@@ -11,8 +11,7 @@ using OnlineRestaurant.Dtos;
 using OnlineRestaurant.Helpers;
 using OnlineRestaurant.Interfaces;
 using OnlineRestaurant.Models;
-
-
+using OnlineRestaurant.Views;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -372,6 +371,38 @@ namespace OnlineRestaurant.Services
             var userid = jwttoken.Claims.FirstOrDefault(c => c.Type == "uid")?.Value;
             return userid;
         }
+        public   IEnumerable<UserView> GetAllUsersAsync()
+        {
+            var rolesviews = _context.UserRoles.GroupBy(c=>c.UserId).Select(r => new RolesView { UserId=r.Key, Roles =r.Select(c=>c.RoleId).ToList(),RoleName=null}).ToList();
+            for (int i =0; i<rolesviews.Count;i++ )
+            {
+                if (rolesviews[i].Roles.Count == 1)
+                {
+                    rolesviews[i].RoleName = "User";
+                }
+                else
+                {
+                    rolesviews[i].RoleName = "Admin";
+                }
+                    
+                
+            }
+            var users = _userManager.Users.Select(u=>new UserView
+            {
+                UserId=u.Id,
+                UserImgUrl =u.UserImgUrl,
+                UserName=u.UserName
+                
+            }).ToList();
+            foreach (var user in users)
+            {
+                var userroles =rolesviews.SingleOrDefault(r => r.UserId == user.UserId);
+                if (userroles != null)
+                    user.Role= userroles.RoleName;
+            }
+            return users;
+        }
+
         private string GenerateRandomCode()
         {
             const string characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
