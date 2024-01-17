@@ -42,6 +42,7 @@ namespace OnlineRestaurant.Models
         public decimal Rate { get; set; }
         [ValidateNever]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        [Range(0,int.MaxValue,ErrorMessage = "NumOfRate can't be less than zero")]
         public int NumOfRate { get; set; }
         
         [ValidateNever,JsonIgnore]
