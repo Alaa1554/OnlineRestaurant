@@ -15,5 +15,6 @@ namespace OnlineRestaurant.Interfaces
         Task<string> DeleteUserImage(string token);
         Task<AuthModelDto> GmailRegisterAsync(GmailRegisterDto registermodel);
         IEnumerable<UserView> GetAllUsersAsync();
+        Task<string> RemoveRoleAsync(string userid);
     }
 }

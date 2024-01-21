@@ -1,4 +1,5 @@
 ﻿
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OnlineRestaurant.Dtos;
 using OnlineRestaurant.Interfaces;
@@ -115,6 +116,21 @@ namespace OnlineRestaurant.Controllers
         {
             var users = _authService.GetAllUsersAsync();
             return Ok(users);
+        }
+        [HttpDelete("RemoveRole/{userid}")]
+        [Authorize(Roles ="SuperAdmin")]
+        public async Task<IActionResult> RemoveRoleAsync(string userid)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            var result = await _authService.RemoveRoleAsync(userid);
+            if (!string.IsNullOrEmpty(result))
+            {
+                return BadRequest(result);
+            }
+            return Ok();
         }
     }
 }

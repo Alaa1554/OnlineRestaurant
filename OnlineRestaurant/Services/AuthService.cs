@@ -129,7 +129,7 @@ namespace OnlineRestaurant.Services
         public async Task<string> AddRoleAsync(AddRoleDto role)
         {
             var user = await _userManager.FindByIdAsync(role.UserId);
-            if (user == null || await _roleManager.FindByNameAsync(role.Role) == null)
+            if (user == null || await _roleManager.FindByNameAsync(role.Role) == null|| role.Role == "SuperAdmin")
             {
                 return "Role or UserId is Invaild";
 
@@ -139,6 +139,17 @@ namespace OnlineRestaurant.Services
                 return "User Already Assigned to this Role";
             }
             var result = await _userManager.AddToRoleAsync(user, role.Role);
+            return result.Succeeded ? string.Empty : "Something Went Wrong";
+        }
+        public async Task<string> RemoveRoleAsync(string userid)
+        {
+            var user =await _userManager.FindByIdAsync(userid);
+            if (user == null)
+                return "No User is Found";
+            var userroles = await _userManager.GetRolesAsync(user);
+            if (!userroles.Contains("Admin"))
+                return "Role Already Removed";
+            var result = await _userManager.RemoveFromRoleAsync(user, "Admin");
             return result.Succeeded ? string.Empty : "Something Went Wrong";
         }
 

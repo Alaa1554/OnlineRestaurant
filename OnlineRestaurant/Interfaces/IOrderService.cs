@@ -9,4 +9,5 @@ public interface IOrderService
 {
     Task<OrderView> AddOrderAsync (string token,OrderDto orderDto);
     Task<OrderView> GetOrderByIdAsync(string id);
+    Task<IEnumerable<UserOrderView>> GetAllUserOrders(string token);
 }

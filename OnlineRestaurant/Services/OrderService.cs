@@ -111,14 +111,18 @@ namespace OnlineRestaurant.Services
                     Addition = c.Addition,
                     MealName = c.Meal.Name,
                     Amount = c.Amount,
-                    MealImgUrl=c.Meal.MealImgUrl
+                    MealImgUrl=c.Meal.MealImgUrl,
+                    MealPrice=c.Meal.Price
+                    
                 })).ToList(),
                 StaticAdditions = OrderStaticAdditions.Include(c => c.StaticMealAddition).GroupBy(c => c.OrderId).AsEnumerable().SelectMany(o => o.Select(c => new OrderStaticAdditionView
                 {
                     Id = c.StaticMealAdditionId,
                     Amount = c.Amount,
                     StaticAdditionName = c.StaticMealAddition.Name,
-                    StaticAdditionImgUrl=c.StaticMealAddition.AdditionUrl
+                    StaticAdditionImgUrl=c.StaticMealAddition.AdditionUrl,
+                    StaticAdditionPrice=c.StaticMealAddition.Price
+
                 })).ToList()
             };
             
@@ -162,6 +166,34 @@ namespace OnlineRestaurant.Services
                     StaticAdditionImgUrl = c.StaticMealAddition.AdditionUrl
                 })).ToList()
             };
+        }
+        public async Task<IEnumerable<UserOrderView>> GetAllUserOrders(string token)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var jwtToken = tokenHandler.ReadJwtToken(token) as JwtSecurityToken;
+
+            var userId = jwtToken.Claims.FirstOrDefault(c => c.Type == "uid")?.Value;
+            var user = await _userManger.FindByIdAsync(userId);
+            if (!await _userManger.Users.AnyAsync(c => c.Id == userId))
+            {
+                return Enumerable.Empty<UserOrderView>();
+            }
+            var orders = await _context.Orders.Where(o=>o.UserId == userId).Select(o=>new UserOrderView
+            {
+                Id=o.Id,
+                Date=o.Date,
+                DepartmentNum = o.DepartmentNum,
+                City = o.City,
+                IsPaid = o.IsPaid,
+                PaymentMethod = o.PaymentMethod,
+                PhoneNumber = o.PhoneNumber,
+                Status = o.Status,
+                Street = o.Street,
+                TotalCost = o.TotalCost,
+                NumOfMeals=_context.OrderMeals.Where(m=>m.OrderId==o.Id).Count(),
+                NumOfStaticMealAdditions=_context.OrdersStaticAdditions.Where(s=>s.OrderId==o.Id).Count()
+            }).ToListAsync();
+            return orders;
         }
     }
 }

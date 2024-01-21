@@ -7,5 +7,6 @@
         public string Addition { get; set;}
         public int Amount { get; set; }
         public string MealImgUrl { get; set; }
+        public decimal MealPrice { get; set; }
     }
 }

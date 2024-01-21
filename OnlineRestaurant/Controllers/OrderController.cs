@@ -32,6 +32,14 @@ namespace OnlineRestaurant.Controllers
             return Ok(order);
 
         }
+        [HttpGet("GetAllUserOrders")]
+        public async Task<IActionResult> GetAllUserOrdersAsync([FromHeader] string token)
+        {
+            var orders = await _orderService.GetAllUserOrders(token);
+            if (!orders.Any())
+                return NotFound("No User is Found!");
+            return Ok(orders);
+        }
 
     }
 }
