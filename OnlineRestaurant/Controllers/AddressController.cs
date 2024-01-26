@@ -21,9 +21,9 @@ namespace OnlineRestaurant.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllAddressesAsync([FromHeader] string token)
+        public async Task<IActionResult> GetAllAddressesAsync([FromHeader] string token, [FromQuery] PaginateDto paginate)
         {
-            var addresses = await _addressService.GetAddressesAsync(token);
+            var addresses = await _addressService.GetAddressesAsync(token,paginate);
             if(addresses==null)
             {
                 return BadRequest("No User is Found");

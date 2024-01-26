@@ -65,9 +65,9 @@ namespace OnlineRestaurant.Controllers
             return Ok(new { DeletedData, Message });
         }
         [HttpGet]
-        public async Task<IActionResult> GetAllAsync()
+        public async Task<IActionResult> GetAllAsync([FromQuery] PaginateDto paginate)
         {
-            var Additions = await _additionService.GetAllAdditions();
+            var Additions = await _additionService.GetAllAdditions(paginate);
             return Ok(Additions);
         }
         [HttpGet("{id}")]

@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 
 using OnlineRestaurant.Data;
+using OnlineRestaurant.Helpers;
 using OnlineRestaurant.Interfaces;
 using OnlineRestaurant.Models;
 using OnlineRestaurant.Views;
@@ -55,7 +56,7 @@ namespace OnlineRestaurant.Services
             }
             
             
-            var mealPaginate = Paginate(meals, filter.Page, filter.Size);
+            var mealPaginate =meals.Paginate( filter.Page, filter.Size);
             var orderedMeals = Mealsorder(mealPaginate, filter.OrderMeal);
             if (token != null) 
             {
@@ -81,22 +82,7 @@ namespace OnlineRestaurant.Services
             
             return orderedMeals;
         }
-        private IEnumerable<MealView> Paginate(IEnumerable<MealView> source, int page, int size) 
-        {
-            if (page <= 0)
-            {
-                page = 1;
-            }
-
-            if (size <= 0)
-            {
-                size = 10;
-            }
-
-            var result = source.Skip((page - 1) * size).Take(size).ToList();
-
-            return result;
-        }
+      
         private IEnumerable<MealView> Mealsorder(IEnumerable<MealView> source,string? result)
         { 
             if(result == null)

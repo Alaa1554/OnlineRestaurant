@@ -33,13 +33,34 @@ namespace OnlineRestaurant.Controllers
 
         }
         [HttpGet("GetAllUserOrders")]
-        public async Task<IActionResult> GetAllUserOrdersAsync([FromHeader] string token)
+        public async Task<IActionResult> GetAllUserOrdersAsync([FromHeader] string token,[FromQuery] PaginateDto paginate)
         {
-            var orders = await _orderService.GetAllUserOrders(token);
+            var orders = await _orderService.GetAllUserOrders(token,paginate);
             if (!orders.Any())
                 return NotFound("No User is Found!");
             return Ok(orders);
         }
-
+        [HttpGet("GetAllOrders")]
+        public async Task<IActionResult> GetAllOrdersAsync([FromQuery]PaginateDto paginate)
+        {
+            var orders = await _orderService.GetAllOrders(paginate);
+            return Ok(orders);
+        }
+        [HttpPut("ChangeOrderStatus")]
+        public async Task<IActionResult> ChangeOrderStatusAsync([FromBody] OrderStatusDto orderStatus)
+        {
+            var Message = await _orderService.ChangeOrderStatus(orderStatus);
+            if (!string.IsNullOrEmpty(Message))
+                return NotFound(Message);
+            return Ok("تم تغيير حاله الاوردر بنجاح");
+        }
+        [HttpPost("ConfirmPayment")]
+        public async Task<IActionResult> ConfirmPaymentAsync(ConfirmPaymentDto confirmPayment)
+        {
+            var Message = await _orderService.ConfirmPayment(confirmPayment);
+            if(!string.IsNullOrEmpty(Message))
+                return NotFound(Message);
+            return Ok("تم تاكيد الدفع");
+        }
     }
 }

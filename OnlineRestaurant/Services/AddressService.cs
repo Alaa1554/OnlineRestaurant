@@ -69,7 +69,7 @@ namespace OnlineRestaurant.Services
             return address;
         }
 
-        public async Task<IEnumerable<Address>> GetAddressesAsync(string token)
+        public async Task<IEnumerable<Address>> GetAddressesAsync(string token,PaginateDto dto)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var jwtToken = tokenHandler.ReadJwtToken(token) as JwtSecurityToken;
@@ -81,8 +81,9 @@ namespace OnlineRestaurant.Services
                 return null;
             }
             var addresses =await _context.Addresses.Where(a=>a.UserId== userId).ToListAsync();
-           
-            return addresses;
+            var result = addresses.Paginate(dto.Page, dto.Size);
+             
+            return result;
         }
 
         public async Task<Address> UpdateAddressAsync(Address address,UpdateAddressDto updateAddressDto)

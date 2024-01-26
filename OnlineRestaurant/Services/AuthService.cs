@@ -3,6 +3,7 @@
 using Microsoft.AspNetCore.Identity;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
@@ -30,9 +31,11 @@ namespace OnlineRestaurant.Services
         private readonly IImgService<ApplicationUser> _imgService;
         private readonly ApplicationDbContext _context;
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly IEmailSender _emailSender;
+        private readonly IMemoryCache _memorycashe;
+        private readonly TimeSpan _codeExpiration=TimeSpan.FromMinutes(15);
 
-
-        public AuthService(UserManager<ApplicationUser> userManager, IMapper mapper, IOptions<JWT> jwt, RoleManager<IdentityRole> roleManager, IImgService<ApplicationUser> imgService, ApplicationDbContext context, SignInManager<ApplicationUser> signInManager)
+        public AuthService(UserManager<ApplicationUser> userManager, IEmailSender emailsender, IMemoryCache memoryCache, IMapper mapper, IOptions<JWT> jwt, RoleManager<IdentityRole> roleManager, IImgService<ApplicationUser> imgService, ApplicationDbContext context, SignInManager<ApplicationUser> signInManager)
         {
             _userManager = userManager;
             _mapper = mapper;
@@ -41,23 +44,30 @@ namespace OnlineRestaurant.Services
             _imgService = imgService;
             _context = context;
             _signInManager = signInManager;
+            _emailSender = emailsender;
+            _memorycashe = memoryCache;
         }
 
-        public async Task<AuthModelDto> RegisterAsync(RegisterModelDto registermodel)
+        public async Task<string> RegisterAsync(RegisterModelDto registermodel)
         {
             if (registermodel.Password.Length < 6)
             {
-                return new AuthModelDto { Message = "الباسورد يجب ان يحتوي علي 6 حروف او ارقام علي الاقل" };
+                return  "الباسورد يجب ان يحتوي علي 6 حروف او ارقام علي الاقل" ;
             }
             if (await _userManager.FindByEmailAsync(registermodel.Email) is not null)
             {
-                return new AuthModelDto { Message = "البريد الالكتروني موجود بالفعل" };
+                return "البريد الالكتروني موجود بالفعل" ;
             }
             if (await _userManager.FindByNameAsync(registermodel.UserName) is not null)
             {
-                return new AuthModelDto { Message = "اسم المستخدم موجود بالفعل" };
+                return  "اسم المستخدم موجود بالفعل" ;
             }
             var user = _mapper.Map<ApplicationUser>(registermodel);
+            _imgService.SetImage(user, registermodel.UserImg);
+            if (!string.IsNullOrEmpty(user.Message))
+            {
+                return  user.Message ;
+            }
             var result = await _userManager.CreateAsync(user, registermodel.Password);
             if (!result.Succeeded)
             {
@@ -66,20 +76,32 @@ namespace OnlineRestaurant.Services
                 {
                     errors += $"{error.Description}\t";
                 }
-                return new AuthModelDto { Message = errors };
+                return errors;
             }
-            _imgService.SetImage(user, registermodel.UserImg);
-            if (!string.IsNullOrEmpty(user.Message))
-            {
-                return new AuthModelDto { Message = user.Message };
-            }
+            
             await _userManager.AddToRoleAsync(user, "User");
+            var verificationcode = GenerateRandomCode();
+            _emailSender.SendEmail(user.Email, "Verification Code", $"Your verification code is {verificationcode}");
+            _memorycashe.Set($"{user.Id} verification", verificationcode, _codeExpiration);
+            return string.Empty;
+        }
+        public async Task<AuthModelDto> VerifyAccountAsync(VerifyAccountDto verifyaccount)
+        {
+            var user=await _userManager.FindByEmailAsync(verifyaccount.Email);
+            if(user==null)
+                return new AuthModelDto { Message= "لم يتم العثور علي اي مستخدم" };
+            if (!_memorycashe.TryGetValue($"{user.Id} verification", out string cashedcode))
+                return new AuthModelDto { Message = "لم يتم العثور علي رمز التحقق او تم انتهاء صلاحيته " };
+            if (verifyaccount.VerificationCode != cashedcode)
+                return new AuthModelDto { Message = "رمز التحقق الذي ادخلته غير صحيح" };
+            user.EmailConfirmed = true;
             var jwtSecurityToken = await CreateJwtToken(user);
-            var UserWishList=new WishList { 
-                UserId=user.Id
+            var UserWishList = new WishList
+            {
+                UserId = user.Id
             };
-           await  _context.wishLists.AddAsync(UserWishList);
-           await _context.SaveChangesAsync();
+            await _context.wishLists.AddAsync(UserWishList);
+            await _context.SaveChangesAsync();
             var authmodel = new AuthModelDto
             {
                 Email = user.Email,
@@ -89,13 +111,23 @@ namespace OnlineRestaurant.Services
                 Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken),
                 UserName = user.UserName,
                 UserImgUrl = user.UserImgUrl,
-                VerificationCode = GenerateRandomCode(),
                 FirstName = user.FirstName,
-                LastName= user.LastName,
+                LastName = user.LastName,
             };
 
             return authmodel;
+
         }
+        public async Task<string> ResendVerificationCode(string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+                return "لم يتم العثور علي اي مستخدم";
+            var verificationCode = GenerateRandomCode();
+            _emailSender.SendEmail(user.Email, "Verification Code", $"Your verification code is {verificationCode}");
+            _memorycashe.Set($"{user.Id} verification", verificationCode, _codeExpiration);
+            return string.Empty;
+        } 
         public async Task<AuthModelDto> GetTokenAsync(TokenRequestDto tokenrequest)
         {
             if (tokenrequest.Password.Length < 6)
@@ -104,7 +136,7 @@ namespace OnlineRestaurant.Services
             }
             var authModel = new AuthModelDto();
             var user = await _userManager.FindByEmailAsync(tokenrequest.Email);
-            if (user == null || !await _userManager.CheckPasswordAsync(user, tokenrequest.Password))
+            if (user == null || !await _userManager.CheckPasswordAsync(user, tokenrequest.Password)||!user.EmailConfirmed)
             {
                 authModel.Message = "البريد الالكتروني او كلمه السر غير صحيحه";
                 return authModel;
@@ -118,7 +150,6 @@ namespace OnlineRestaurant.Services
             authModel.Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
             authModel.UserName = user.UserName;
             authModel.UserImgUrl = user.UserImgUrl;
-            authModel.VerificationCode = null;
             authModel.FirstName = user.FirstName;
             authModel.LastName = user.LastName;
 
@@ -222,7 +253,6 @@ namespace OnlineRestaurant.Services
             authModel.Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
             authModel.UserName = user.UserName;
             authModel.UserImgUrl = user.UserImgUrl;
-            authModel.VerificationCode = null;
             authModel.FirstName = user.FirstName;
             authModel.LastName=user.LastName;
             return authModel;
@@ -332,7 +362,6 @@ namespace OnlineRestaurant.Services
                 authModel.Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
                 authModel.UserName = user.UserName;
                 authModel.UserImgUrl = user.UserImgUrl;
-                authModel.VerificationCode = null;
                 authModel.FirstName = user.FirstName;
                 authModel.LastName = user.LastName;
 
@@ -363,7 +392,6 @@ namespace OnlineRestaurant.Services
                     Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken),
                     UserName = user.UserName,
                     UserImgUrl = user.UserImgUrl,
-                    VerificationCode = null,
                     FirstName = user.FirstName,
                     LastName = user.LastName,
                     
@@ -382,7 +410,7 @@ namespace OnlineRestaurant.Services
             var userid = jwttoken.Claims.FirstOrDefault(c => c.Type == "uid")?.Value;
             return userid;
         }
-        public   IEnumerable<UserView> GetAllUsersAsync()
+        public   IEnumerable<UserView> GetAllUsersAsync(PaginateDto dto)
         {
             var rolesviews = _context.UserRoles.GroupBy(c=>c.UserId).Select(r => new RolesView { UserId=r.Key, Roles =r.Select(c=>c.RoleId).ToList(),RoleName=null}).ToList();
             for (int i =0; i<rolesviews.Count;i++ )
@@ -411,7 +439,8 @@ namespace OnlineRestaurant.Services
                 if (userroles != null)
                     user.Role= userroles.RoleName;
             }
-            return users;
+            var result = users.Paginate(dto.Page, dto.Size);
+            return result;
         }
 
         private string GenerateRandomCode()

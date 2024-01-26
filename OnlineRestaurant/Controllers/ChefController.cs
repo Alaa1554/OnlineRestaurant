@@ -20,16 +20,16 @@ namespace OnlineRestaurant.Controllers
 
         
         [HttpGet("GetAllChefs")]
-        public async Task<IActionResult> GetAllChefsAsync()
+        public async Task<IActionResult> GetAllChefsAsync([FromQuery]PaginateDto paginate)
         {
 
-            var chefs = await _chefService.GetChefsAsync();
+            var chefs = await _chefService.GetChefsAsync(paginate);
              return Ok(chefs);
         }
         [HttpGet("GetChefsByCategoryId/{id}")]
-        public async Task<IActionResult> GetChefsByCategoryIdAsync(int id) 
+        public async Task<IActionResult> GetChefsByCategoryIdAsync(int id,[FromQuery] PaginateDto paginate) 
         {
-            var chefs = await _chefService.GetChefsByCategoryIdAsync(id);
+            var chefs = await _chefService.GetChefsByCategoryIdAsync(id,paginate);
             return Ok(chefs);
         }
         [HttpGet("{id}")]

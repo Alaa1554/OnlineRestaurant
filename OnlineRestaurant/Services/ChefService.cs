@@ -67,7 +67,7 @@ namespace OnlineRestaurant.Services
             return chef;
         }
 
-        public async Task<IEnumerable<ChefView>> GetChefsAsync()
+        public async Task<IEnumerable<ChefView>> GetChefsAsync(PaginateDto dto)
         {
             var chefs =await _context.Chefs.Include(c=>c.ChefReviews).Include(c=>c.Meals).Include(c=>c.Category).Select(c=>new ChefView { 
                 Id=c.Id,
@@ -80,13 +80,15 @@ namespace OnlineRestaurant.Services
                 NumOfMeals=c.Meals.Count()
             })
                 .ToListAsync();
-            return chefs;
+            var result = chefs.Paginate(dto.Page, dto.Size);
+            return result;
         }
 
-        public async Task<IEnumerable<Chef>> GetChefsByCategoryIdAsync(int id)
+        public async Task<IEnumerable<Chef>> GetChefsByCategoryIdAsync(int id, PaginateDto dto)
         {
             var chefs = await _context.Chefs.Where(c=>c.CategoryId==id).ToListAsync();
-            return chefs;
+            var result = chefs.Paginate(dto.Page, dto.Size);
+            return result;
         }
         public async Task<Chef> UpdateChefAsync(Chef chef,UpdateChefDto chefDto)
         {

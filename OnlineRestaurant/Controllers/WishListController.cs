@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using OnlineRestaurant.Dtos;
 using OnlineRestaurant.Interfaces;
 using OnlineRestaurant.Models;
 
@@ -23,14 +24,14 @@ namespace OnlineRestaurant.Controllers
         }
 
         [HttpGet]
-       public async Task<IActionResult> GetWishListAsync([FromHeader] string token ) 
+       public async Task<IActionResult> GetWishListAsync([FromHeader] string token, [FromQuery] PaginateDto paginate) 
         {
             var userid=_authService.GetUserId(token);
             if (!await _userManager.Users.AnyAsync(c => c.Id == userid))
             {
                 return BadRequest( "No User is Found!" );
             }
-            var WishListMeals=await _wishListService.GetWishlistAsync(userid);
+            var WishListMeals=await _wishListService.GetWishlistAsync(userid,paginate);
             return Ok(WishListMeals);
         }
         [HttpPost("{mealid}")]

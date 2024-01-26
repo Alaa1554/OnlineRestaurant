@@ -18,10 +18,10 @@ namespace OnlineRestaurant.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetAllAsync(int id)
+        public async Task<IActionResult> GetAllAsync(int id,[FromQuery] PaginateDto paginate)
         {
 
-            var Reviews = await _mealReviewService.GetReviewsAsync(id);
+            var Reviews = await _mealReviewService.GetReviewsAsync(id, paginate);
             return Ok(Reviews);
         }
         [HttpPost]

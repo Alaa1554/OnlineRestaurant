@@ -45,7 +45,7 @@ namespace OnlineRestaurant.Services
             return category;
         }
 
-        public async Task<IEnumerable<CategoryView>> GetCategoryAsync()
+        public async Task<IEnumerable<CategoryView>> GetCategoryAsync(PaginateDto dto)
         {
             var meals =await _context.Categories.Include(c=>c.Chefs).Include(c=>c.Meals).Select(c=>new CategoryView 
             { 
@@ -55,7 +55,8 @@ namespace OnlineRestaurant.Services
                 NumOfChefs=c.Chefs.Count(),
                 NumOfMeals = c.Meals.Count()
             }).ToListAsync();
-            return meals;
+            var result = meals.Paginate(dto.Page, dto.Size);
+            return result;
         }
 
         public async Task<Category> GetCategoryByIdAsync(int id)

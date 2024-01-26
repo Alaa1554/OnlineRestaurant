@@ -6,7 +6,7 @@ namespace OnlineRestaurant.Interfaces
 {
     public interface ICategoryService
     {
-     Task<IEnumerable<CategoryView>> GetCategoryAsync();
+     Task<IEnumerable<CategoryView>> GetCategoryAsync(PaginateDto dto);
         Task<Category> GetCategoryByIdAsync(int id);
         Task<Category> CreateCategory(Category category);
        Task<Category> UpdateCategoryAsync(Category category, UpdateCategoryDto dto);

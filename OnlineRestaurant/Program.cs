@@ -5,11 +5,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 using OnlineRestaurant.Data;
+using OnlineRestaurant.Dtos;
 using OnlineRestaurant.Helpers;
 using OnlineRestaurant.Interfaces;
 using OnlineRestaurant.Models;
 using OnlineRestaurant.Services;
-
+using System.Configuration;
 using System.Text;
 
 
@@ -36,6 +37,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options=>options.UseSqlServe
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IEmailSender, EmailSender>();
 builder.Services.AddScoped<IWishListService, WishListService>();
 builder.Services.AddScoped<IChefService, ChefService>();
 builder.Services.AddScoped<IMealService, MealService>();
@@ -47,12 +49,14 @@ builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IMealAdditionService, MealAdditionService>();
 builder.Services.AddScoped<IStaticMealAdditionService, StaticMealAdditionService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
-builder.Services.AddScoped<IImgService<Chef>, ChefImfService>();
+builder.Services.AddScoped<IImgService<Chef>, ChefImgService>();
 builder.Services.AddScoped<IImgService<ApplicationUser>, UserImgService>();
 builder.Services.AddScoped<IImgService<Meal>, MealImgService>();
 builder.Services.AddScoped<IImgService<Category>, CategoryimgService>();
 builder.Services.AddScoped<IImgService<StaticMealAddition>, AdditionImgService>();
 builder.Services.AddCors();
+builder.Services.AddMemoryCache();
+builder.Services.Configure<MessageSender>(builder.Configuration.GetSection("MessageSender"));
 
 
 

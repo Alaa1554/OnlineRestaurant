@@ -17,6 +17,7 @@ namespace OnlineRestaurant.Models
        
         public string Name { get; set; }
         [Required(ErrorMessage = "This Field is Required")]
+        [Range(0, int.MaxValue,ErrorMessage ="Price must be more than -1")]
         public decimal Price { get; set; }
         [DisplayName("Image")]
         [ValidateNever]
@@ -32,6 +33,7 @@ namespace OnlineRestaurant.Models
         public Category Category { get; set; }
         public int CategoryId { get; set; }
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        [Range(0, int.MaxValue, ErrorMessage = "OldPrice must be more than -1")]
         public decimal? OldPrice { get; set; }
         [NotMapped, ValidateNever, JsonIgnore]
         public string Message { get; set; }

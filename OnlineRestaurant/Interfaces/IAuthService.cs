@@ -5,7 +5,7 @@ namespace OnlineRestaurant.Interfaces
 {
     public interface IAuthService
     {
-        Task<AuthModelDto> RegisterAsync(RegisterModelDto registermodel);
+        Task<string> RegisterAsync(RegisterModelDto registermodel);
         Task<AuthModelDto> GetTokenAsync(TokenRequestDto tokenRequest);
         Task<string> AddRoleAsync(AddRoleDto role);
         Task<AuthModelDto> UpdateAccount(string token,UpdateAccountDto dto);
@@ -14,7 +14,9 @@ namespace OnlineRestaurant.Interfaces
         string GetUserId(string token);
         Task<string> DeleteUserImage(string token);
         Task<AuthModelDto> GmailRegisterAsync(GmailRegisterDto registermodel);
-        IEnumerable<UserView> GetAllUsersAsync();
+        IEnumerable<UserView> GetAllUsersAsync(PaginateDto dto);
         Task<string> RemoveRoleAsync(string userid);
+        Task<AuthModelDto> VerifyAccountAsync(VerifyAccountDto verifyaccount);
+        Task<string> ResendVerificationCode(string email);
     }
 }

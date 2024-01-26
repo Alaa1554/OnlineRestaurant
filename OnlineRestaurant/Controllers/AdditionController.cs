@@ -23,13 +23,13 @@ namespace OnlineRestaurant.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetAllAdditionAsync(int id)
+        public async Task<IActionResult> GetAllAdditionAsync(int id, [FromQuery] PaginateDto paginate)
         {
             if (!await _context.Meals.AnyAsync(m => m.Id == id))
             {
                 return NotFound("لم يتم العثور علي اي وجبه");
             }
-            var Additions = await _additionService.GetMealAdditionsAsync(id);
+            var Additions = await _additionService.GetMealAdditionsAsync(id, paginate);
 
             return Ok(Additions);
         }

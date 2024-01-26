@@ -75,10 +75,11 @@ namespace OnlineRestaurant.Services
             return mealAddition;
         }
 
-        public async Task<IEnumerable<StaticMealAddition>> GetAllAdditions()
+        public async Task<IEnumerable<StaticMealAddition>> GetAllAdditions(PaginateDto dto)
         {
             var Additions = await _context.StaticAdditions.ToListAsync();
-            return Additions;
+            var result = Additions.Paginate(dto.Page, dto.Size);
+            return result;
         }
     }
 }

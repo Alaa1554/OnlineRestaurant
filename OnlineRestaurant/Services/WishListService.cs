@@ -6,6 +6,8 @@ using OnlineRestaurant.Views;
 
 using OnlineRestaurant.Models;
 using Microsoft.AspNetCore.Identity;
+using OnlineRestaurant.Dtos;
+using OnlineRestaurant.Helpers;
 
 namespace OnlineRestaurant.Services
 {
@@ -43,7 +45,7 @@ namespace OnlineRestaurant.Services
 
        
 
-        public async Task<IEnumerable< WishListMealView>> GetWishlistAsync(string userid)
+        public async Task<IEnumerable< WishListMealView>> GetWishlistAsync(string userid, PaginateDto dto)
         {
            
             
@@ -63,7 +65,8 @@ namespace OnlineRestaurant.Services
                 Rate= c.Rate,
                 NumOfRate= c.NumOfRate
             }).ToList()});
-            return WishListMeals;
+            var result = WishListMeals.Paginate(dto.Page, dto.Size);
+            return result;
         }
 
         public async Task<string> RemoveFromWishList(string token, int mealid)

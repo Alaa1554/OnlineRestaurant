@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OnlineRestaurant.Dtos;
 using OnlineRestaurant.Interfaces;
+using OnlineRestaurant.Services;
 
 namespace OnlineRestaurant.Controllers
 {
@@ -23,15 +24,32 @@ namespace OnlineRestaurant.Controllers
             {
                 return BadRequest(ModelState);
             }
-            var User = await _authService.RegisterAsync(model);
-            if (!User.IsAuthenticated)
+            var Message = await _authService.RegisterAsync(model);
+            if (!string.IsNullOrEmpty(Message))
             {
-                return BadRequest(User.Message);
+                return BadRequest(Message);
             }
-            var Message = "تم التسجيل بنجاح";
-            return Ok(new { User, Message });
+            
+            return Ok("تم ارسال رمز التحقق الي بريدك الالكتروني");
         }
-        [HttpPost("token")]
+        [HttpPost("verifyAccount")]
+        public async Task<IActionResult> VerifyAccountAsync([FromBody] VerifyAccountDto verifyAccount)
+        {
+            var User = await _authService.VerifyAccountAsync(verifyAccount);
+            if(!string.IsNullOrEmpty(User.Message))
+                return BadRequest(User.Message);
+            return Ok(User);
+        }
+    
+    [HttpPost("ResendVerificationCode")]
+    public async Task<IActionResult> ResendVerificationCode([FromBody] EmailDto emailDto)
+    {
+        var result = await _authService.ResendVerificationCode(emailDto.Email);
+        if (!string.IsNullOrEmpty(result))
+            return BadRequest(result);
+        return Ok("تم ارسال رمز التحقق مره اخري");
+    }
+    [HttpPost("token")]
         public async Task<IActionResult> GetTokenAsync ([FromBody] TokenRequestDto model)
         {
             if (!ModelState.IsValid)
@@ -112,9 +130,9 @@ namespace OnlineRestaurant.Controllers
             return Ok(AuthModel);
         }
         [HttpGet("GetAllUsers")]
-        public IActionResult GetAllUsersAsync()
+        public IActionResult GetAllUsersAsync([FromQuery]PaginateDto paginate)
         {
-            var users = _authService.GetAllUsersAsync();
+            var users = _authService.GetAllUsersAsync(paginate);
             return Ok(users);
         }
         [HttpDelete("RemoveRole/{userid}")]

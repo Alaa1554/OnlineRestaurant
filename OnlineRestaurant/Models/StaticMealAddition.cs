@@ -10,7 +10,7 @@ namespace OnlineRestaurant.Models
         public int Id { get; set; }
         [MaxLength(100)]
         public string Name { get; set; }
-
+        [Range(0, int.MaxValue, ErrorMessage = "Price must be more than -1")]
         public decimal Price { get; set; }
         [ValidateNever]
         public string AdditionUrl { get; set; }

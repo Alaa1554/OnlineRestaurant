@@ -1,9 +1,8 @@
-﻿using Microsoft.Extensions.Hosting;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace OnlineRestaurant.Views
 {
-    public class UserOrderView
+    public class AdminOrderView
     {
         public string Id { get; set; }
         public DateTime Date { get; set; }
@@ -23,6 +22,8 @@ namespace OnlineRestaurant.Views
         public string PhoneNumber { get; set; }
         public int NumOfMeals { get; set; }
         public int NumOfStaticMealAdditions { get; set; }
-        
+        public string UserImg { get; set; }
+        public string UserName { get; set; }
+
     }
 }

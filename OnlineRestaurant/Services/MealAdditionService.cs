@@ -56,11 +56,11 @@ namespace OnlineRestaurant.Services
 
         }
 
-        public async Task<IEnumerable<MealAddition>> GetMealAdditionsAsync(int id)
+        public async Task<IEnumerable<MealAddition>> GetMealAdditionsAsync(int id, PaginateDto dto)
         {
             var mealAdditions = await _context.MealAdditions.Include(c=>c.Choices).Where(c=>c.MealId==id).ToListAsync();
-
-            return mealAdditions;
+            var result = mealAdditions.Paginate(dto.Page, dto.Size);
+            return result;
 
         }
 

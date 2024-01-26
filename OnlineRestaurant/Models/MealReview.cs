@@ -23,6 +23,7 @@ namespace OnlineRestaurant.Models
         public Meal Meal { get; set; }
         public int MealId { get; set; }
         [Required]
+        [Range(0, 5, ErrorMessage = "Rate must be more than -1")]
         public decimal Rate { get; set; }
         
         [NotMapped,ValidateNever,JsonIgnore]

@@ -18,10 +18,10 @@ namespace OnlineRestaurant.Controllers
             _categoryService = categoryService;
         }
         [HttpGet]
-        public async Task<IActionResult> GetAllCategoriesAsync()
+        public async Task<IActionResult> GetAllCategoriesAsync([FromQuery] PaginateDto paginate)
         {
 
-            var categories = await _categoryService.GetCategoryAsync();
+            var categories = await _categoryService.GetCategoryAsync(paginate);
             return Ok(categories);
         }
         [HttpGet("{id}")]

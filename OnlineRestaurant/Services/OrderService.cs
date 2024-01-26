@@ -1,8 +1,10 @@
 ﻿
+using Humanizer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using OnlineRestaurant.Data;
 using OnlineRestaurant.Dtos;
+using OnlineRestaurant.Helpers;
 using OnlineRestaurant.Interfaces;
 using OnlineRestaurant.Models;
 using OnlineRestaurant.Views;
@@ -156,18 +158,21 @@ namespace OnlineRestaurant.Services
                     Addition = c.Addition,
                     MealName = c.Meal.Name,
                     Amount = c.Amount,
-                    MealImgUrl = c.Meal.MealImgUrl
+                    MealImgUrl = c.Meal.MealImgUrl,
+                    MealPrice=c.Meal.Price
+                    
                 })).ToList(),
                 StaticAdditions = OrderStaticAdditions.Include(c => c.StaticMealAddition).GroupBy(c => c.OrderId).AsEnumerable().SelectMany(o => o.Select(c => new OrderStaticAdditionView
                 {
                     Id = c.StaticMealAdditionId,
                     Amount = c.Amount,
                     StaticAdditionName = c.StaticMealAddition.Name,
-                    StaticAdditionImgUrl = c.StaticMealAddition.AdditionUrl
+                    StaticAdditionImgUrl = c.StaticMealAddition.AdditionUrl,
+                    StaticAdditionPrice = c.StaticMealAddition.Price
                 })).ToList()
             };
         }
-        public async Task<IEnumerable<UserOrderView>> GetAllUserOrders(string token)
+        public async Task<IEnumerable<UserOrderView>> GetAllUserOrders(string token,PaginateDto dto)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var jwtToken = tokenHandler.ReadJwtToken(token) as JwtSecurityToken;
@@ -178,7 +183,7 @@ namespace OnlineRestaurant.Services
             {
                 return Enumerable.Empty<UserOrderView>();
             }
-            var orders = await _context.Orders.Where(o=>o.UserId == userId).Select(o=>new UserOrderView
+            var orders = await _context.Orders.Include(o => o.OrderMeals).Include(o => o.OrderStaticAdditions).Where(o=>o.UserId == userId).Select(o=>new UserOrderView
             {
                 Id=o.Id,
                 Date=o.Date,
@@ -190,10 +195,57 @@ namespace OnlineRestaurant.Services
                 Status = o.Status,
                 Street = o.Street,
                 TotalCost = o.TotalCost,
-                NumOfMeals=_context.OrderMeals.Where(m=>m.OrderId==o.Id).Count(),
-                NumOfStaticMealAdditions=_context.OrdersStaticAdditions.Where(s=>s.OrderId==o.Id).Count()
-            }).ToListAsync();
-            return orders;
+                NumOfMeals=o.OrderMeals.Count(),
+                NumOfStaticMealAdditions=o.OrderStaticAdditions.Count(),
+            }).OrderByDescending(o=>o.Date).ToListAsync();
+            var result = orders.Paginate(dto.Page, dto.Size);
+            return result;
+        }
+        public async Task<IEnumerable<AdminOrderView>> GetAllOrders(PaginateDto dto)
+        {
+            var orders = await _context.Orders.Include(o => o.User).Include(o => o.OrderMeals).Include(o => o.OrderStaticAdditions).Select(o => new AdminOrderView
+            {
+                Id = o.Id,
+                Date = o.Date,
+                DepartmentNum = o.DepartmentNum,
+                City = o.City,
+                IsPaid = o.IsPaid,
+                PaymentMethod = o.PaymentMethod,
+                TotalCost = o.TotalCost,
+                PhoneNumber = o.PhoneNumber,
+                Status = o.Status,
+                Street = o.Street,
+                UserImg = o.User.UserImgUrl,
+                UserName = o.User.UserName,
+                NumOfMeals = o.OrderMeals.Count(),
+                NumOfStaticMealAdditions = o.OrderStaticAdditions.Count(),
+            }).OrderByDescending(o => o.Date).ToListAsync();
+            var result =orders.Paginate(dto.Page, dto.Size);
+            return result;
+        }
+        public async Task<string> ChangeOrderStatus(OrderStatusDto dto)
+        {
+            var order = await _context.Orders.SingleOrDefaultAsync(o => o.Id == dto.OrderId);
+            if (order == null)
+                return "لم يتم العثور علي اي طلب" ;
+            order.Status = dto.Status;
+            await _context.SaveChangesAsync();
+            return string.Empty;
+            
+        }
+        public async Task<string> ConfirmPayment(ConfirmPaymentDto dto)
+        {
+            
+            var order = await _context.Orders.SingleOrDefaultAsync(o => o.Id == dto.OrderId);
+            if (order == null)
+                return "لم يتم العثور علي اي طلب";
+            if (order.PaymentMethod.ToLower().Trim() == "credit")
+                return "تم تاكيد الدفع مسبقا";
+            if (order.Status.Trim() != "تم التوصيل")
+                return "يجب ان يتم توصيل الاوردر قبل تاكيد الدفع";
+            order.IsPaid=true;
+            await _context.SaveChangesAsync();
+            return string.Empty;
         }
     }
 }

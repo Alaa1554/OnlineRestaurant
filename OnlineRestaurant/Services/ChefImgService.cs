@@ -3,14 +3,14 @@ using OnlineRestaurant.Models;
 
 namespace OnlineRestaurant.Services
 {
-    public class ChefImfService : IImgService<Chef>
+    public class ChefImgService : IImgService<Chef>
     {
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly List<string> AllowedExtention = new List<string> { ".jpg", ".png" };
         private readonly long AllowedSize = 1048576;
 
 
-        public ChefImfService(IWebHostEnvironment webHostEnvironment)
+        public ChefImgService(IWebHostEnvironment webHostEnvironment)
         {
             _webHostEnvironment = webHostEnvironment;
         }
