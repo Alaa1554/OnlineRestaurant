@@ -59,7 +59,7 @@ namespace OnlineRestaurant.Services
                 ChefId=c.ChefId,
                 ChefName=c.Chef.Name,
                 Description=c.Description,
-                MealImgUrl=c.MealImgUrl,
+                MealImgUrl= Path.Combine("https://localhost:7166", "images", c.MealImgUrl),
                 Price=c.Price,
                 OldPrice=c.OldPrice,
                 Rate= c.Rate,
