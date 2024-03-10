@@ -56,7 +56,7 @@ namespace OnlineRestaurant.Services
                 Text=review.Text,
                 UserId=userId,
                 Rate=review.Rate,
-                UserImg=user.UserImgUrl
+                UserImg =user.UserImgUrl==null?null:Path.Combine("https://localhost:7166", "images", user.UserImgUrl) 
 
                 
             };

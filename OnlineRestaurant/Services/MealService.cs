@@ -118,7 +118,7 @@ namespace OnlineRestaurant.Services
             var category = await _context.Categories.SingleOrDefaultAsync(c => c.Id == meal.CategoryId);
             var reviews=_context.MealReviews.Where(r=>r.MealId==meal.Id);
             var additions = _context.MealAdditions.Include(c=>c.Choices).Where(m=>m.MealId==meal.Id);
-          
+            var staticAdditions = await _context.StaticAdditions.ToListAsync();
             var mealview = new MealByNameView
             {
                 Id = meal.Id,
@@ -132,7 +132,7 @@ namespace OnlineRestaurant.Services
                 Rate = meal.Rate,
                 NumOfRates = meal.NumOfRate,
                 OldPrice = meal.OldPrice,
-                StaticMealAdditions = _context.StaticAdditions.ToList(),
+                StaticMealAdditions = _mapper.Map<List<StaticMealAdditionView>>(staticAdditions),
                 MealAdditions = additions.Select(x=>new AdditionView { Id=x.Id,Choices=x.Choices,Name=x.Name}).ToList(),
                 Reviews = _mapper.Map<List<MealReviewView>>(reviews),
                 CategoryId= meal.CategoryId,

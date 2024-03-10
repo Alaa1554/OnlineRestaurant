@@ -55,8 +55,8 @@ namespace OnlineRestaurant.Services
                  Text = review.Text,
                  UserId= userId,
                  Rate = review.Rate,
-                 UserImg=user.UserImgUrl
-             };
+                 UserImg= user.UserImgUrl == null ? null : Path.Combine("https://localhost:7166", "images", user.UserImgUrl)
+            };
             var view = _mapper.Map<ChefReviewView>(Review);
              await _context.ChefReviews.AddAsync(Review);
              _context.SaveChanges();

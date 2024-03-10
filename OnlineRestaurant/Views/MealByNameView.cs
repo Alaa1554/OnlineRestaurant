@@ -17,7 +17,7 @@ namespace OnlineRestaurant.Views
         public int CategoryId { get; set; }
         public int ChefId { get; set; }
         public bool IsFavourite { get; set; }
-        public List<StaticMealAddition> StaticMealAdditions { get; set; }
+        public List<StaticMealAdditionView> StaticMealAdditions { get; set; }
         public List<AdditionView> MealAdditions { get; set; }
         public decimal Price { get; set; }
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
