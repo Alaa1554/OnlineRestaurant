@@ -1,6 +1,7 @@
 ﻿
 using Microsoft.AspNetCore.Mvc;
-
+using Microsoft.EntityFrameworkCore;
+using OnlineRestaurant.Data;
 using OnlineRestaurant.Dtos;
 using OnlineRestaurant.Interfaces;
 using OnlineRestaurant.Models;
@@ -12,12 +13,13 @@ namespace OnlineRestaurant.Controllers
     public class AddressController : ControllerBase
     {
         private readonly IAddressService _addressService;
-        
+        private readonly ApplicationDbContext _context;
 
-        public AddressController(IAddressService addressService)
+
+        public AddressController(IAddressService addressService, ApplicationDbContext context)
         {
             _addressService = addressService;
-          
+            _context = context;
         }
 
         [HttpGet]
@@ -28,8 +30,16 @@ namespace OnlineRestaurant.Controllers
             {
                 return BadRequest("No User is Found");
             }
-            
-            return Ok(addresses);
+
+            bool nextPage = false;
+            if (addresses.Count() > paginate.Size)
+            {
+                addresses = addresses.Take(addresses.Count()-1);
+                nextPage = true;
+            }
+            var numOfAddresses = await _context.Addresses.CountAsync(c => c.UserId == addresses.First().UserId);
+            var numOfPages = (int)Math.Ceiling((decimal)numOfAddresses / paginate.Size);
+            return Ok(new {Addresses = addresses, NextPage = nextPage, NumOfPages = numOfPages });
         }
 
         [HttpPost]

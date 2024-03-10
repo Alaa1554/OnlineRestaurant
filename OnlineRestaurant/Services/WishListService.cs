@@ -51,7 +51,7 @@ namespace OnlineRestaurant.Services
             
             var WishList= await _context.wishLists.SingleOrDefaultAsync(c=>c.UserId == userid);
             
-            var WishListMeals= _context.WishListMeals.Where(c => c.WishListId == WishList.Id).Include(c => c.Meals).ThenInclude(c=>c.Additions).Include(c=>c.Meals).ThenInclude(c=>c.Category).Include(c=>c.Meals).ThenInclude(c=>c.Chef).GroupBy(c => c.WishListId).Select(c => new WishListMealView {WishListId=c.Key,Meals=c.Select(x=>x.Meals).Select(c=>new MealView { 
+            var WishListMeals= _context.WishListMeals.Where(c => c.WishListId == WishList.Id).Include(c => c.Meals).ThenInclude(c=>c.Additions).Include(c=>c.Meals).ThenInclude(c=>c.Category).Include(c=>c.Meals).ThenInclude(c=>c.Chef).Paginate(dto.Page, dto.Size).GroupBy(c => c.WishListId).Select(c => new WishListMealView {WishListId=c.Key,Meals=c.Select(x=>x.Meals).Select(c=>new MealView { 
                 Id=c.Id,
                 Categoryid=c.CategoryId,
                 Name=c.Name,
@@ -65,8 +65,7 @@ namespace OnlineRestaurant.Services
                 Rate= c.Rate,
                 NumOfRate= c.NumOfRate
             }).ToList()});
-            var result = WishListMeals.Paginate(dto.Page, dto.Size);
-            return result;
+            return WishListMeals;
         }
 
         public async Task<string> RemoveFromWishList(string token, int mealid)

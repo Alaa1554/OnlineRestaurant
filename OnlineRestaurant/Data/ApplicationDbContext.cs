@@ -41,5 +41,6 @@ namespace OnlineRestaurant.Data
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderStaticAddition> OrdersStaticAdditions { get;set; }
         public DbSet<OrderMeal> OrderMeals { get; set; }
+        public DbSet<Coupon> Coupons { get; set; }
     }
 }

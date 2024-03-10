@@ -18,5 +18,6 @@ namespace OnlineRestaurant.Interfaces
         Task<string> RemoveRoleAsync(string userid);
         Task<AuthModelDto> VerifyAccountAsync(VerifyAccountDto verifyaccount);
         Task<string> ResendVerificationCode(string email);
+        IEnumerable<UserView> SearchForUserByName(SearchForUserByName searchForUser);
     }
 }

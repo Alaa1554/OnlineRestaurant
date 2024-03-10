@@ -1,4 +1,5 @@
-﻿using OnlineRestaurant.Models;
+﻿using OnlineRestaurant.Dtos;
+using OnlineRestaurant.Models;
 using OnlineRestaurant.Views;
 
 namespace OnlineRestaurant.Interfaces
@@ -6,6 +7,6 @@ namespace OnlineRestaurant.Interfaces
     public interface IFilterStrategy
     {
         bool CanApply(MealFilter filter);
-        Task<IEnumerable<MealView>> ApplyFilter();
+        IEnumerable<MealView> ApplyFilter();
     }
 }

@@ -1,7 +1,11 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using OnlineRestaurant.Data;
 using OnlineRestaurant.Dtos;
 using OnlineRestaurant.Interfaces;
+using OnlineRestaurant.Models;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace OnlineRestaurant.Controllers
 {
@@ -10,10 +14,13 @@ namespace OnlineRestaurant.Controllers
     public class OrderController : ControllerBase
     {
         private readonly IOrderService _orderService;
-
-        public OrderController(IOrderService orderService)
+        private readonly ApplicationDbContext _context;
+        private readonly IAuthService _authService;
+        public OrderController(IOrderService orderService, ApplicationDbContext context, IAuthService authService)
         {
             _orderService = orderService;
+            _context = context;
+            _authService = authService;
         }
         [HttpPost]
         public async Task<IActionResult> AddOrderAsync([FromHeader] string token, [FromBody] OrderDto order)
@@ -38,13 +45,30 @@ namespace OnlineRestaurant.Controllers
             var orders = await _orderService.GetAllUserOrders(token,paginate);
             if (!orders.Any())
                 return NotFound("No User is Found!");
-            return Ok(orders);
+            bool nextPage = false;
+            if (orders.Count() > paginate.Size)
+            {
+                orders = orders.Take(orders.Count() - 1);
+                nextPage = true;
+            }
+            var userId = _authService.GetUserId(token);
+            var numOfUserOrders = await _context.Orders.CountAsync(c => c.UserId == userId);
+            var numOfPages = (int)Math.Ceiling((decimal)numOfUserOrders / paginate.Size);
+            return Ok(new { Orders = orders, NextPage = nextPage,NumOfPages=numOfPages,NumOfUserOrders=numOfUserOrders});
         }
         [HttpGet("GetAllOrders")]
         public async Task<IActionResult> GetAllOrdersAsync([FromQuery]PaginateDto paginate)
         {
-            var orders = await _orderService.GetAllOrders(paginate);
-            return Ok(orders);
+            var orders =_orderService.GetAllOrders(paginate);
+            bool nextPage = false;
+            if (orders.Count() > paginate.Size)
+            {
+                orders = orders.Take(orders.Count() - 1);
+                nextPage = true;
+            }
+            var numOfOrders = await _context.Orders.CountAsync();
+            var numOfPages = (int)Math.Ceiling((decimal)numOfOrders / paginate.Size);
+            return Ok(new { Orders = orders, NextPage = nextPage,NumOfPages=numOfPages });
         }
         [HttpPut("ChangeOrderStatus")]
         public async Task<IActionResult> ChangeOrderStatusAsync([FromBody] OrderStatusDto orderStatus)

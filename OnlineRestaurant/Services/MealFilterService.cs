@@ -1,4 +1,5 @@
 ﻿
+using Humanizer;
 using Microsoft.EntityFrameworkCore;
 
 using OnlineRestaurant.Data;
@@ -32,17 +33,17 @@ namespace OnlineRestaurant.Services
             {
                 foreach (var view in filterStrategies)
                 {
-                    meals = meals?.Intersect(await view.ApplyFilter()) ?? await view.ApplyFilter();
+                    meals = meals?.Intersect(view.ApplyFilter()) ?? view.ApplyFilter();
                 }
             }
             else
             {
-                 meals = await _context.Meals.Include(meal => meal.Chef).Include(b => b.Category).Select(b => new MealView
+                 meals = _context.Meals.Include(meal => meal.Chef).Include(b => b.Category).Paginate(filter.Page, filter.Size).Select(b => new MealView
                 {
                     Id = b.Id,
                     ChefId = b.ChefId,
                     ChefName = b.Chef.Name,
-                    MealImgUrl = b.MealImgUrl,
+                    MealImgUrl = Path.Combine("https://localhost:7166", "images", b.MealImgUrl),
                     Name = b.Name,
                     Price = b.Price,
                     Categoryid = b.CategoryId,
@@ -52,12 +53,12 @@ namespace OnlineRestaurant.Services
                     OldPrice=b.OldPrice,
 
 
-                }).ToListAsync();
+                }).ToList();
             }
             
             
-            var mealPaginate =meals.Paginate( filter.Page, filter.Size);
-            var orderedMeals = Mealsorder(mealPaginate, filter.OrderMeal);
+            
+            var orderedMeals = Mealsorder(meals, filter.OrderMeal);
             if (token != null) 
             {
                 foreach (var meal in orderedMeals)
@@ -66,7 +67,7 @@ namespace OnlineRestaurant.Services
 
                     var userid = _authService.GetUserId(token);
 
-                    var wishlistid = await _context.wishLists.SingleOrDefaultAsync(v => v.UserId == userid);
+                    var wishlistid =await _context.wishLists.SingleOrDefaultAsync(v => v.UserId == userid);
                     if (await _context.WishListMeals.AnyAsync(w => w.MealId == meal.Id && w.WishListId == wishlistid.Id))
                     {
                         isfavourite = true;

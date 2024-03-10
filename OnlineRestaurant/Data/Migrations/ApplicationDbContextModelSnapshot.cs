@@ -383,6 +383,27 @@ namespace OnlineRestaurant.Migrations
                     b.ToTable("Choice");
                 });
 
+            modelBuilder.Entity("OnlineRestaurant.Models.Coupon", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CouponCode")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<decimal>("DiscountPercentage")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Coupons");
+                });
+
             modelBuilder.Entity("OnlineRestaurant.Models.Meal", b =>
                 {
                     b.Property<int>("Id")
@@ -515,6 +536,12 @@ namespace OnlineRestaurant.Migrations
 
                     b.Property<bool>("IsPaid")
                         .HasColumnType("bit");
+
+                    b.Property<int>("NumOfMeals")
+                        .HasColumnType("int");
+
+                    b.Property<int>("NumOfStaticMealAdditions")
+                        .HasColumnType("int");
 
                     b.Property<string>("PaymentMethod")
                         .IsRequired()

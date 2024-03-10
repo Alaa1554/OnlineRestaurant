@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using OnlineRestaurant.Data;
 using OnlineRestaurant.Dtos;
 using OnlineRestaurant.Interfaces;
 using OnlineRestaurant.Models;
@@ -15,12 +16,14 @@ namespace OnlineRestaurant.Controllers
         private readonly IWishListService _wishListService;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IAuthService _authService;
+        private readonly ApplicationDbContext _context;
 
-        public WishListController(IWishListService wishListService, UserManager<ApplicationUser> userManager, IAuthService authService)
+        public WishListController(IWishListService wishListService, UserManager<ApplicationUser> userManager, IAuthService authService, ApplicationDbContext context)
         {
             _wishListService = wishListService;
             _userManager = userManager;
             _authService = authService;
+            _context = context;
         }
 
         [HttpGet]
@@ -32,7 +35,15 @@ namespace OnlineRestaurant.Controllers
                 return BadRequest( "No User is Found!" );
             }
             var WishListMeals=await _wishListService.GetWishlistAsync(userid,paginate);
-            return Ok(WishListMeals);
+            bool nextPage = false;
+            if (WishListMeals.Count() > paginate.Size)
+            {
+                WishListMeals = WishListMeals.Take(WishListMeals.Count()-1);
+                nextPage = true;
+            }
+            var numOfWishListMeals = await _context.WishListMeals.CountAsync(w=>w.WishListId==WishListMeals.First().WishListId);
+            var numOfPages =(int) Math.Ceiling((decimal)numOfWishListMeals /paginate.Size);
+            return Ok(new { WishListMeals = WishListMeals, NextPage = nextPage,NumOfPages=numOfPages });
         }
         [HttpPost("{mealid}")]
         public async Task<IActionResult> AddToWishListAsync([FromHeader] string token, int mealid)

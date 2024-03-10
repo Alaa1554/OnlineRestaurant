@@ -1,29 +1,33 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using OnlineRestaurant.Data;
 using OnlineRestaurant.Dtos;
 using OnlineRestaurant.Helpers;
 using OnlineRestaurant.Interfaces;
 using OnlineRestaurant.Models;
+using OnlineRestaurant.Views;
 
 namespace OnlineRestaurant.Services
 {
     public class StaticMealAdditionService : IStaticMealAdditionService
     {
-        private readonly IImgService<StaticMealAddition> _imgService;
+        private readonly IImageService _imgService;
         private readonly ApplicationDbContext _context;
+        private readonly IMapper _mapper;
 
-        public StaticMealAdditionService(IImgService<StaticMealAddition> imgService, ApplicationDbContext context)
+        public StaticMealAdditionService(IImageService imgService, ApplicationDbContext context, IMapper mapper)
         {
             _imgService = imgService;
             _context = context;
+            _mapper = mapper;
         }
 
-        public async Task<StaticMealAddition> CreateMealAddition(StaticMealAddition Dto)
+        public async Task<StaticMealAdditionView> CreateMealAddition(StaticMealAddition Dto)
         {
             var errormessages = ValidateHelper<StaticMealAddition>.Validate(Dto);
             if (!string.IsNullOrEmpty(errormessages))
             {
-                return new StaticMealAddition { Message = errormessages };
+                return new StaticMealAdditionView { Message = errormessages };
             }
            
 
@@ -32,20 +36,22 @@ namespace OnlineRestaurant.Services
                 Name = Dto.Name,
                 Price = Dto.Price,
             };
-            _imgService.SetImage(mealAddition, Dto.AdditionImg);
+             mealAddition.AdditionUrl=_imgService.Upload(Dto.AdditionImg);
              if (!string.IsNullOrEmpty(mealAddition.Message))
-                return new StaticMealAddition { Message = mealAddition.Message };
+                return new StaticMealAdditionView { Message = mealAddition.Message };
             await _context.StaticAdditions.AddAsync(mealAddition);
             await _context.SaveChangesAsync();
-            return mealAddition;
+            var staticAdditionView = _mapper.Map<StaticMealAdditionView>(mealAddition);
+            return staticAdditionView;
         }
 
-        public async Task<StaticMealAddition> DeleteMealAddition(StaticMealAddition mealAddition)
+        public async Task<StaticMealAdditionView> DeleteMealAddition(StaticMealAddition mealAddition)
         {
-            _imgService.DeleteImg(mealAddition);
+            _imgService.Delete(mealAddition.AdditionUrl);
             _context.Remove(mealAddition);
             await _context.SaveChangesAsync();
-            return mealAddition;
+            var staticAdditionView = _mapper.Map<StaticMealAdditionView>(mealAddition);
+            return staticAdditionView;
         }
 
         public async Task<StaticMealAddition> GetMealAdditionByIdAsync(int id)
@@ -57,29 +63,30 @@ namespace OnlineRestaurant.Services
         }
        
 
-        public  async Task<StaticMealAddition> UpdateMealAdditionAsync(StaticMealAddition mealAddition, UpdateStaticMealAdditionDto dto)
+        public  async Task<StaticMealAdditionView> UpdateMealAdditionAsync(StaticMealAddition mealAddition, UpdateStaticMealAdditionDto dto)
         {
             var errormessages = ValidateHelper<UpdateStaticMealAdditionDto>.Validate(dto);
             if (!string.IsNullOrEmpty(errormessages))
             {
-                return new StaticMealAddition { Message = errormessages };
+                return new StaticMealAdditionView { Message = errormessages };
             }
 
-            _imgService.UpdateImg(mealAddition, dto.AdditionImg);
+            mealAddition.AdditionUrl=dto.AdditionImg==null?mealAddition.AdditionUrl:_imgService.Update(mealAddition.AdditionUrl, dto.AdditionImg);
             if (!string.IsNullOrEmpty(mealAddition.Message))
-                return new StaticMealAddition { Message = mealAddition.Message };
+                return new StaticMealAdditionView { Message = mealAddition.Message };
             mealAddition.Name = dto.Name ?? mealAddition.Name;
             mealAddition.Price = dto.Price ?? mealAddition.Price;
             _context.Update(mealAddition);
             await _context.SaveChangesAsync();
-            return mealAddition;
+            var staticAdditionView = _mapper.Map<StaticMealAdditionView>(mealAddition);
+            return staticAdditionView;
         }
 
-        public async Task<IEnumerable<StaticMealAddition>> GetAllAdditions(PaginateDto dto)
+        public IEnumerable<StaticMealAdditionView> GetAllAdditions(PaginateDto dto)
         {
-            var Additions = await _context.StaticAdditions.ToListAsync();
-            var result = Additions.Paginate(dto.Page, dto.Size);
-            return result;
+            var Additions = _context.StaticAdditions.Paginate(dto.Page, dto.Size).ToList();
+            var staticAdditionsView = _mapper.Map<IEnumerable<StaticMealAdditionView>>(Additions);
+            return staticAdditionsView;
         }
     }
 }

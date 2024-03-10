@@ -1,5 +1,7 @@
 ﻿
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using OnlineRestaurant.Data;
 using OnlineRestaurant.Dtos;
 using OnlineRestaurant.Interfaces;
 using OnlineRestaurant.Models;
@@ -12,19 +14,29 @@ namespace OnlineRestaurant.Controllers
     public class ChefController : ControllerBase
     {
         private readonly IChefService _chefService;
+        private readonly ApplicationDbContext _context;
 
-        public ChefController(IChefService chefService)
+        public ChefController(IChefService chefService, ApplicationDbContext context)
         {
             _chefService = chefService;
+            _context = context;
         }
 
-        
+
         [HttpGet("GetAllChefs")]
         public async Task<IActionResult> GetAllChefsAsync([FromQuery]PaginateDto paginate)
         {
 
-            var chefs = await _chefService.GetChefsAsync(paginate);
-             return Ok(chefs);
+            var chefs = _chefService.GetChefs(paginate);
+            bool nextPage = false;
+            if (chefs.Count() > paginate.Size)
+            {
+                chefs = chefs.Take(chefs.Count() - 1);
+                nextPage = true;
+            }
+            var numOfChefs = await _context.Chefs.CountAsync();
+            var numOfPages = (int)Math.Ceiling((decimal)numOfChefs / paginate.Size);
+            return Ok(new { Chefs = chefs, NextPage = nextPage,NumOfPages=numOfPages });
         }
         [HttpGet("GetChefsByCategoryId/{id}")]
         public async Task<IActionResult> GetChefsByCategoryIdAsync(int id,[FromQuery] PaginateDto paginate) 
@@ -38,6 +50,7 @@ namespace OnlineRestaurant.Controllers
             var chef = await _chefService.GetChefByIdAsync(id);
             if(!string.IsNullOrEmpty(chef.Message))
                 return NotFound(chef.Message);
+            chef.ChefImgUrl = Path.Combine("https://localhost:7166", "images", chef.ChefImgUrl);
             return Ok(chef);
         }
         [HttpPost]

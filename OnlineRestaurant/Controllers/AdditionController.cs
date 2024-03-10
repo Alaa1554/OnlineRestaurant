@@ -25,13 +25,21 @@ namespace OnlineRestaurant.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetAllAdditionAsync(int id, [FromQuery] PaginateDto paginate)
         {
-            if (!await _context.Meals.AnyAsync(m => m.Id == id))
+            if (!_context.Meals.Any(m => m.Id == id))
             {
                 return NotFound("لم يتم العثور علي اي وجبه");
             }
-            var Additions = await _additionService.GetMealAdditionsAsync(id, paginate);
+            var Additions = _additionService.GetMealAdditions(id, paginate);
 
-            return Ok(Additions);
+            bool nextPage = false;
+            if (Additions.Count() > paginate.Size)
+            {
+                Additions = Additions.Take(Additions.Count()-1);
+                nextPage = true;
+            }
+            var numOfAdditions=await _context.MealAdditions.CountAsync(c=>c.Id==id);
+            var numOfPages= (int)Math.Ceiling((decimal)numOfAdditions /paginate.Size);
+            return Ok(new {Additions = Additions, NextPage = nextPage, NumOfPages = numOfPages });
         }
         [HttpPost]
         public async Task<IActionResult> CreateAdditionAsync([FromBody] MealAddition Dto)

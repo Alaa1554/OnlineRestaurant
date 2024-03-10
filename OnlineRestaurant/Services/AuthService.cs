@@ -28,14 +28,14 @@ namespace OnlineRestaurant.Services
         private readonly IMapper _mapper;
         private readonly JWT _jwt;
         private readonly RoleManager<IdentityRole> _roleManager;
-        private readonly IImgService<ApplicationUser> _imgService;
+        private readonly IImageService _imgService;
         private readonly ApplicationDbContext _context;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IEmailSender _emailSender;
         private readonly IMemoryCache _memorycashe;
         private readonly TimeSpan _codeExpiration=TimeSpan.FromMinutes(15);
 
-        public AuthService(UserManager<ApplicationUser> userManager, IEmailSender emailsender, IMemoryCache memoryCache, IMapper mapper, IOptions<JWT> jwt, RoleManager<IdentityRole> roleManager, IImgService<ApplicationUser> imgService, ApplicationDbContext context, SignInManager<ApplicationUser> signInManager)
+        public AuthService(UserManager<ApplicationUser> userManager, IEmailSender emailsender, IMemoryCache memoryCache, IMapper mapper, IOptions<JWT> jwt, RoleManager<IdentityRole> roleManager, IImageService imgService, ApplicationDbContext context, SignInManager<ApplicationUser> signInManager)
         {
             _userManager = userManager;
             _mapper = mapper;
@@ -63,7 +63,7 @@ namespace OnlineRestaurant.Services
                 return  "اسم المستخدم موجود بالفعل" ;
             }
             var user = _mapper.Map<ApplicationUser>(registermodel);
-            _imgService.SetImage(user, registermodel.UserImg);
+            user.UserImgUrl =registermodel.UserImg==null?null: _imgService.Upload(registermodel.UserImg);
             if (!string.IsNullOrEmpty(user.Message))
             {
                 return  user.Message ;
@@ -110,7 +110,7 @@ namespace OnlineRestaurant.Services
                 Roles = new List<string> { "User" },
                 Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken),
                 UserName = user.UserName,
-                UserImgUrl = user.UserImgUrl,
+                UserImgUrl =user.UserImgUrl==null?null:Path.Combine("https://localhost:7166","images", user.UserImgUrl),
                 FirstName = user.FirstName,
                 LastName = user.LastName,
             };
@@ -149,7 +149,7 @@ namespace OnlineRestaurant.Services
             authModel.Roles = rolelist.ToList();
             authModel.Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
             authModel.UserName = user.UserName;
-            authModel.UserImgUrl = user.UserImgUrl;
+            authModel.UserImgUrl = user.UserImgUrl == null ? null : Path.Combine("https://localhost:7166", "images", user.UserImgUrl);
             authModel.FirstName = user.FirstName;
             authModel.LastName = user.LastName;
 
@@ -223,8 +223,8 @@ namespace OnlineRestaurant.Services
             {
                 return new AuthModelDto { Message = "لم يتم العثور علي اي مستخدم" };
             }
-            
-              _imgService.UpdateImg(user, dto.UserImg);
+
+            user.UserImgUrl = dto.UserImg==null?user.UserImgUrl:_imgService.Update(user.UserImgUrl, dto.UserImg);
                 if (!string.IsNullOrEmpty(user.Message))
                 {
                     return new AuthModelDto { Message = user.Message };
@@ -252,7 +252,7 @@ namespace OnlineRestaurant.Services
             authModel.Roles = rolelist.ToList();
             authModel.Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
             authModel.UserName = user.UserName;
-            authModel.UserImgUrl = user.UserImgUrl;
+            authModel.UserImgUrl = user.UserImgUrl == null ? null : Path.Combine("https://localhost:7166", "images", user.UserImgUrl);
             authModel.FirstName = user.FirstName;
             authModel.LastName=user.LastName;
             return authModel;
@@ -268,7 +268,7 @@ namespace OnlineRestaurant.Services
                 return "لم يتم العثور علي اي مستخدم";
             }
             var user= await _userManager.FindByIdAsync(userid);
-            _imgService.DeleteImg(user);
+            _imgService.Delete(user.UserImgUrl);
             var result= await _userManager.DeleteAsync(user);
             if (!result.Succeeded)
             {
@@ -317,7 +317,7 @@ namespace OnlineRestaurant.Services
                 return "لم يتم العثور علي اي مستخدم";
             }
             var user=await _userManager.FindByIdAsync(userid);
-            _imgService.DeleteImg(user);
+            _imgService.Delete(user.UserImgUrl);
             user.UserImgUrl = null;
             var result = await _userManager.UpdateAsync(user);
             if (!result.Succeeded)
@@ -410,7 +410,39 @@ namespace OnlineRestaurant.Services
             var userid = jwttoken.Claims.FirstOrDefault(c => c.Type == "uid")?.Value;
             return userid;
         }
-        public   IEnumerable<UserView> GetAllUsersAsync(PaginateDto dto)
+        public IEnumerable<UserView> SearchForUserByName(SearchForUserByName searchForUser)
+        {
+            var users = _context.Users.Where(c => c.UserName.Contains(searchForUser.UserName.ToLower().Trim())).Paginate(searchForUser.Page, searchForUser.Size).Select(u => new UserView
+            {
+                UserId = u.Id,
+                UserImgUrl = u.UserImgUrl == null ? null : u.UserImgUrl.Contains("googleusercontent") ? u.UserImgUrl : Path.Combine("https://localhost:7166", "images", u.UserImgUrl),
+                UserName = u.UserName
+
+            }).ToList();
+            if(!users.Any())
+                return Enumerable.Empty<UserView>();
+            var rolesviews = _context.UserRoles.GroupBy(c => c.UserId).Select(r => new RolesView { UserId = r.Key, Roles = r.Select(c => c.RoleId).ToList(), RoleName = null }).ToList();
+            for (int i = 0; i < rolesviews.Count; i++)
+            {
+                if (rolesviews[i].Roles.Count == 1)
+                {
+                    rolesviews[i].RoleName = "User";
+                }
+                else
+                {
+                    rolesviews[i].RoleName = "Admin";
+                }
+
+            }
+            foreach (var user in users)
+            {
+                var userroles = rolesviews.SingleOrDefault(r => r.UserId == user.UserId);
+                if (userroles != null)
+                    user.Role = userroles.RoleName;
+            }
+            return users;
+        }
+        public IEnumerable<UserView> GetAllUsersAsync(PaginateDto dto)
         {
             var rolesviews = _context.UserRoles.GroupBy(c=>c.UserId).Select(r => new RolesView { UserId=r.Key, Roles =r.Select(c=>c.RoleId).ToList(),RoleName=null}).ToList();
             for (int i =0; i<rolesviews.Count;i++ )
@@ -426,10 +458,10 @@ namespace OnlineRestaurant.Services
                     
                 
             }
-            var users = _userManager.Users.Select(u=>new UserView
+            var users = _userManager.Users.Paginate(dto.Page, dto.Size).Select(u=>new UserView
             {
                 UserId=u.Id,
-                UserImgUrl =u.UserImgUrl,
+                UserImgUrl =u.UserImgUrl==null?null:u.UserImgUrl.Contains("googleusercontent")?u.UserImgUrl: Path.Combine("https://localhost:7166", "images", u.UserImgUrl),
                 UserName=u.UserName
                 
             }).ToList();
@@ -439,8 +471,7 @@ namespace OnlineRestaurant.Services
                 if (userroles != null)
                     user.Role= userroles.RoleName;
             }
-            var result = users.Paginate(dto.Page, dto.Size);
-            return result;
+            return users;
         }
 
         private string GenerateRandomCode()

@@ -6,12 +6,12 @@ namespace OnlineRestaurant.Interfaces
 {
     public interface IChefService
     {
-        Task<IEnumerable<ChefView>> GetChefsAsync(PaginateDto dto);
+        IEnumerable<ChefView> GetChefs(PaginateDto dto);
         Task<Chef> GetChefByIdAsync(int id);
-        Task<Chef> CreateChef(Chef chef);
-        Task<Chef> UpdateChefAsync(Chef chef,UpdateChefDto dto);
-        Task<Chef> DeleteChefAsync(Chef chef);
-        Task<IEnumerable<Chef>> GetChefsByCategoryIdAsync(int id, PaginateDto dto);
+        Task<ChefDto> CreateChef(Chef chef);
+        Task<ChefDto> UpdateChefAsync(Chef chef,UpdateChefDto dto);
+        Task<ChefDto> DeleteChefAsync(Chef chef);
+        Task<IEnumerable<ChefDto>> GetChefsByCategoryIdAsync(int id, PaginateDto dto);
         
 
     }

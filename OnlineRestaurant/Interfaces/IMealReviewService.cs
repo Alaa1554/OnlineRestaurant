@@ -6,7 +6,7 @@ namespace OnlineRestaurant.Interfaces
 {
     public interface IMealReviewService
     {
-        Task<IEnumerable<MealReviewView>> GetReviewsAsync(int id, PaginateDto dto);
+        IEnumerable<MealReviewView> GetReviews(int id, PaginateDto dto);
         Task<MealReview> GetReviewByIdAsync(int id);
         Task<MealReviewView> CreateReview(string token,MealReview comment);
         Task<MealReviewView> UpdateReviewAsync(MealReview comment, UpdateReviewDto dto);

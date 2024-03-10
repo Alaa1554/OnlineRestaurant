@@ -1,5 +1,7 @@
 ﻿
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using OnlineRestaurant.Data;
 using OnlineRestaurant.Dtos;
 using OnlineRestaurant.Interfaces;
 using OnlineRestaurant.Models;
@@ -11,18 +13,28 @@ namespace OnlineRestaurant.Controllers
     public class MealReviewController : ControllerBase
     {
         private readonly IMealReviewService _mealReviewService;
+        private readonly ApplicationDbContext _context;
 
-        public MealReviewController(IMealReviewService mealReviewService)
+        public MealReviewController(IMealReviewService mealReviewService, ApplicationDbContext context)
         {
             _mealReviewService = mealReviewService;
+            _context = context;
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetAllAsync(int id,[FromQuery] PaginateDto paginate)
         {
 
-            var Reviews = await _mealReviewService.GetReviewsAsync(id, paginate);
-            return Ok(Reviews);
+            var Reviews = _mealReviewService.GetReviews(id, paginate);
+            bool nextPage = false;
+            if (Reviews.Count() > paginate.Size)
+            {
+                Reviews = Reviews.Take(Reviews.Count() - 1);
+                nextPage = true;
+            }
+            var numOfMealReviews = await _context.MealReviews.CountAsync(c => c.MealId == id);
+            var numOfPages = (int)Math.Ceiling((decimal)numOfMealReviews / paginate.Size);
+            return Ok(new { Reviews = Reviews, NextPage = nextPage, NumOfPages = numOfPages });
         }
         [HttpPost]
 

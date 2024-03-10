@@ -1,8 +1,11 @@
 ﻿
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using OnlineRestaurant.Data;
 using OnlineRestaurant.Dtos;
 using OnlineRestaurant.Interfaces;
 using OnlineRestaurant.Models;
+using static NuGet.Packaging.PackagingConstants;
 
 namespace OnlineRestaurant.Controllers
 {
@@ -12,15 +15,16 @@ namespace OnlineRestaurant.Controllers
     {
 
         private readonly IStaticMealAdditionService _additionService;
-        
+        private readonly ApplicationDbContext _context;
 
-        public StaticAdditionController(IStaticMealAdditionService additionService)
+
+        public StaticAdditionController(IStaticMealAdditionService additionService, ApplicationDbContext context)
         {
             _additionService = additionService;
-           
+            _context = context;
         }
 
-        
+
         [HttpPost]
         public async Task<IActionResult> CreateAdditionAsync([FromForm] StaticMealAddition Dto)
         {
@@ -67,8 +71,16 @@ namespace OnlineRestaurant.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllAsync([FromQuery] PaginateDto paginate)
         {
-            var Additions = await _additionService.GetAllAdditions(paginate);
-            return Ok(Additions);
+            var Additions =_additionService.GetAllAdditions(paginate);
+            bool nextPage = false;
+            if (Additions.Count() > paginate.Size)
+            {
+                Additions = Additions.Take(Additions.Count()-1);
+                nextPage = true;
+            }
+            var numOfStaticAdditions = await _context.StaticAdditions.CountAsync();
+            var numOfPages = (int)Math.Ceiling((decimal)numOfStaticAdditions / paginate.Size);
+            return Ok(new { Additions = Additions, NextPage = nextPage,NumOfPages=numOfPages });
         }
         [HttpGet("{id}")]
         public async Task<IActionResult> GetByIdAsync(int id)
@@ -78,6 +90,7 @@ namespace OnlineRestaurant.Controllers
             {
                 return NotFound(Addition.Message);
             }
+            Addition.AdditionUrl = Path.Combine("https://localhost:7166", "images", Addition.AdditionUrl);
             return Ok(Addition);
         }
 

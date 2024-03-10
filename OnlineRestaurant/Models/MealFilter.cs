@@ -11,8 +11,10 @@ namespace OnlineRestaurant.Models
         public int? FromPrice { get; set; }
         [Range(0, int.MaxValue, ErrorMessage = "ToPrice must be more than -1")]
         public int? ToPrice { get; set; }
-        public int Page { get; set; }
-        public int Size { get; set; }
+        [Range(1,int.MaxValue)]
+        public int Page { get; set; } = 1;
+        [Range(1,int.MaxValue)]
+        public int Size { get; set; } = 10;
         public string? OrderMeal { get; set; }
         
      

@@ -18,33 +18,32 @@ namespace OnlineRestaurant.Services
     {
         private readonly ApplicationDbContext _context;
         
-        private readonly IImgService<Meal> _imgService;
+        private readonly IImageService _imgService;
         private readonly IAuthService _authservice;
         private readonly IMapper _mapper;
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public MealService(ApplicationDbContext context, IImgService<Meal> imgService, IMapper mapper, UserManager<ApplicationUser> userManager, IAuthService authservice)
+        public MealService(ApplicationDbContext context, IImageService imgService, IMapper mapper, UserManager<ApplicationUser> userManager, IAuthService authservice)
         {
             _context = context;
             _imgService = imgService;
-            
             _mapper = mapper;
             _userManager = userManager;
             _authservice = authservice;
         }
-        public async Task<Meal> CreateMeal(Meal mealDto)
+        public async Task<MealDto> CreateMeal(Meal mealDto)
         {
             var errormessages=ValidateHelper<Meal>.Validate(mealDto);
             if (!string.IsNullOrEmpty(errormessages))
             {
-                return new Meal { Message = errormessages };
+                return new MealDto { Message = errormessages };
             }
             if (!await _context.Chefs.AnyAsync(chef=>chef.Id==mealDto.ChefId))
-                return new Meal { Message = $"There is no Chef with Id : {mealDto.ChefId}!"};
+                return new MealDto { Message = $"There is no Chef with Id : {mealDto.ChefId}!"};
             if (!await _context.Categories.AnyAsync(b=>b.Id==mealDto.CategoryId))
-                return new Meal { Message = $"There is no Category with Id : {mealDto.CategoryId}!" };
+                return new MealDto { Message = $"There is no Category with Id : {mealDto.CategoryId}!" };
             if (await _context.Meals.AnyAsync(m => m.Name == mealDto.Name.Trim()))
-                return new Meal { Message = "يوجد وجبه اخري مسجله بهذا الاسم" };
+                return new MealDto { Message = "يوجد وجبه اخري مسجله بهذا الاسم" };
             
             var meal = new Meal 
             { 
@@ -58,23 +57,25 @@ namespace OnlineRestaurant.Services
                 NumOfRate=0,
                 
             };
-            _imgService.SetImage(meal, mealDto.MealImg);
+            meal.MealImgUrl=_imgService.Upload(mealDto.MealImg);
             if (!string.IsNullOrEmpty(meal.Message))
-                return new Meal { Message = meal.Message };
+                return new MealDto { Message = meal.Message };
             
             await _context.AddAsync(meal);
-           await _context.SaveChangesAsync();
-            return meal;
+            await _context.SaveChangesAsync();
+            var mealView=_mapper.Map<MealDto>(meal);
+            return mealView;
 
 
         }
 
-        public async Task<Meal> DeleteMeal(Meal meal)
+        public async Task<MealDto> DeleteMeal(Meal meal)
         {
-            _imgService.DeleteImg(meal);
+            _imgService.Delete(meal.MealImgUrl);
             _context.Remove(meal);
            await _context.SaveChangesAsync();
-            return meal;
+            var mealView = _mapper.Map<MealDto>(meal);
+            return mealView;
         }
 
         public async Task<Meal> GetMealByIdAsync(int id)
@@ -123,7 +124,7 @@ namespace OnlineRestaurant.Services
                 Id = meal.Id,
                 Description = meal.Description ?? null,
                 ChefName = chef.Name,
-                Image = meal.MealImgUrl,
+                Image = Path.Combine("https://localhost:7166", "images", meal.MealImgUrl),
                 Name = meal.Name,
                 Price = meal.Price,
                 IsFavourite = isfavourite,
@@ -187,7 +188,7 @@ namespace OnlineRestaurant.Services
             else
                 selectedmeal.Description = meal.Description ?? selectedmeal.Description;
 
-            _imgService. UpdateImg(selectedmeal, meal.MealImg);
+            selectedmeal.MealImgUrl = meal.MealImg == null ? selectedmeal.MealImgUrl : _imgService.Update(selectedmeal.MealImgUrl, meal.MealImg);
             if(!string.IsNullOrEmpty(selectedmeal.Message))
                 return new MealView { Message =selectedmeal.Message };
             selectedmeal.Price = meal.Price?? selectedmeal.Price;
@@ -200,7 +201,7 @@ namespace OnlineRestaurant.Services
 
             mealview.Id = selectedmeal.Id;
             mealview.ChefId =selectedmeal.ChefId;
-            mealview.MealImgUrl = selectedmeal.MealImgUrl;
+            mealview.MealImgUrl = Path.Combine("https://localhost:7166", "images", selectedmeal.MealImgUrl);
             mealview.Name = selectedmeal.Name;
             mealview.Price = selectedmeal.Price;
             mealview.Categoryid = selectedmeal.CategoryId;

@@ -18,10 +18,10 @@ namespace OnlineRestaurant.Services
         {
             var strategies = new List<IFilterStrategy>
             {
-                new CategoryFilter(filter.Category,_context),
-                new ChefNameFilter(filter.ChefName,_context),
-                new PriceFilter(filter.FromPrice,filter.ToPrice,_context),
-                new MealNameFilter(filter.MealName,_context),
+                new CategoryFilter(filter.Category,_context,filter),
+                new ChefNameFilter(filter.ChefName,_context, filter),
+                new PriceFilter(filter.FromPrice,filter.ToPrice,_context,filter),
+                new MealNameFilter(filter.MealName,_context, filter),
                 
             };
             return strategies.Where(strategy => strategy.CanApply(filter));

@@ -19,6 +19,8 @@ namespace OnlineRestaurant.Models
         public string Street { get; set; }
         [MaxLength(50)]
         public string City { get; set; }
+        public int NumOfMeals { get; set; }
+        public int NumOfStaticMealAdditions { get; set; }
 
         public int DepartmentNum { get; set; }
         [RegularExpression(@"^\d{11}$", ErrorMessage = "Phone number must be 11 digits.")]

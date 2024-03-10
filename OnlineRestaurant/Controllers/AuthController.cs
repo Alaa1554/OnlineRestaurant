@@ -1,8 +1,11 @@
 ﻿
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using OnlineRestaurant.Dtos;
 using OnlineRestaurant.Interfaces;
+using OnlineRestaurant.Models;
 using OnlineRestaurant.Services;
 
 namespace OnlineRestaurant.Controllers
@@ -12,10 +15,11 @@ namespace OnlineRestaurant.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
-        
-        public AuthController(IAuthService authService)
+        private readonly UserManager<ApplicationUser> _userManager;
+        public AuthController(IAuthService authService, UserManager<ApplicationUser> userManager)
         {
             _authService = authService;
+            _userManager = userManager;
         }
         [HttpPost("register")]
         public async Task<IActionResult> RegisterAsync([FromForm] RegisterModelDto model)
@@ -130,10 +134,18 @@ namespace OnlineRestaurant.Controllers
             return Ok(AuthModel);
         }
         [HttpGet("GetAllUsers")]
-        public IActionResult GetAllUsersAsync([FromQuery]PaginateDto paginate)
+        public async Task<IActionResult> GetAllUsersAsync([FromQuery]PaginateDto paginate)
         {
             var users = _authService.GetAllUsersAsync(paginate);
-            return Ok(users);
+            bool nextPage = false;
+            if (users.Count() > paginate.Size)
+            {
+                users = users.Take(users.Count() - 1);
+                nextPage = true;
+            }
+            var numOfUsers = await _userManager.Users.CountAsync();
+            var numOfPages = (int)Math.Ceiling((decimal)numOfUsers / paginate.Size);
+            return Ok(new { Users = users, NextPage = nextPage, NumOfPages = numOfPages });
         }
         [HttpDelete("RemoveRole/{userid}")]
         [Authorize(Roles ="SuperAdmin")]
@@ -149,6 +161,22 @@ namespace OnlineRestaurant.Controllers
                 return BadRequest(result);
             }
             return Ok();
+        }
+        [HttpGet("SearchForUserByName")]
+        public async Task<IActionResult> SearchForUserByName([FromQuery]SearchForUserByName searchForUser)
+        {
+            var users = _authService.SearchForUserByName(searchForUser);
+            if(!users.Any())
+                return NotFound("لم يتم العثور علي اي مستخدم");
+            bool nextPage = false;
+            if (users.Count() > searchForUser.Size)
+            {
+                users = users.Take(users.Count() - 1);
+                nextPage = true;
+            }
+            var numOfUsers = await _userManager.Users.CountAsync(c => c.UserName.Contains(searchForUser.UserName.ToLower().Trim()));
+            var numOfPages = (int)Math.Ceiling((decimal)numOfUsers / searchForUser.Size);
+            return Ok(new { Users = users, NextPage = nextPage, NumOfPages = numOfPages });
         }
     }
 }

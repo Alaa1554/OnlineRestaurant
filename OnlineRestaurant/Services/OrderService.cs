@@ -52,6 +52,8 @@ namespace OnlineRestaurant.Services
                 PhoneNumber = address.PhoneNumber,
                 Street = address.Street,
                 TotalCost = orderDto.TotalPrice,
+                NumOfMeals=orderDto.MealOrders.Count(),
+                NumOfStaticMealAdditions=orderDto.StaticAdditionOrders.Count(),
 
             };
             if(orderDto.PaymentMethod.ToLower().Trim()=="credit")
@@ -113,7 +115,7 @@ namespace OnlineRestaurant.Services
                     Addition = c.Addition,
                     MealName = c.Meal.Name,
                     Amount = c.Amount,
-                    MealImgUrl=c.Meal.MealImgUrl,
+                    MealImgUrl= Path.Combine("https://localhost:7166", "images", c.Meal.MealImgUrl),
                     MealPrice=c.Meal.Price
                     
                 })).ToList(),
@@ -122,7 +124,7 @@ namespace OnlineRestaurant.Services
                     Id = c.StaticMealAdditionId,
                     Amount = c.Amount,
                     StaticAdditionName = c.StaticMealAddition.Name,
-                    StaticAdditionImgUrl=c.StaticMealAddition.AdditionUrl,
+                    StaticAdditionImgUrl= Path.Combine("https://localhost:7166", "images", c.StaticMealAddition.AdditionUrl),
                     StaticAdditionPrice=c.StaticMealAddition.Price
 
                 })).ToList()
@@ -158,7 +160,7 @@ namespace OnlineRestaurant.Services
                     Addition = c.Addition,
                     MealName = c.Meal.Name,
                     Amount = c.Amount,
-                    MealImgUrl = c.Meal.MealImgUrl,
+                    MealImgUrl = Path.Combine("https://localhost:7166", "images", c.Meal.MealImgUrl),
                     MealPrice=c.Meal.Price
                     
                 })).ToList(),
@@ -167,7 +169,7 @@ namespace OnlineRestaurant.Services
                     Id = c.StaticMealAdditionId,
                     Amount = c.Amount,
                     StaticAdditionName = c.StaticMealAddition.Name,
-                    StaticAdditionImgUrl = c.StaticMealAddition.AdditionUrl,
+                    StaticAdditionImgUrl = Path.Combine("https://localhost:7166", "images", c.StaticMealAddition.AdditionUrl),
                     StaticAdditionPrice = c.StaticMealAddition.Price
                 })).ToList()
             };
@@ -183,7 +185,7 @@ namespace OnlineRestaurant.Services
             {
                 return Enumerable.Empty<UserOrderView>();
             }
-            var orders = await _context.Orders.Include(o => o.OrderMeals).Include(o => o.OrderStaticAdditions).Where(o=>o.UserId == userId).Select(o=>new UserOrderView
+            var orders = _context.Orders.Include(o => o.OrderMeals).Include(o => o.OrderStaticAdditions).Where(o=>o.UserId == userId).Paginate(dto.Page, dto.Size).Select(o=>new UserOrderView
             {
                 Id=o.Id,
                 Date=o.Date,
@@ -195,15 +197,14 @@ namespace OnlineRestaurant.Services
                 Status = o.Status,
                 Street = o.Street,
                 TotalCost = o.TotalCost,
-                NumOfMeals=o.OrderMeals.Count(),
-                NumOfStaticMealAdditions=o.OrderStaticAdditions.Count(),
-            }).OrderByDescending(o=>o.Date).ToListAsync();
-            var result = orders.Paginate(dto.Page, dto.Size);
-            return result;
+                NumOfMeals=o.NumOfMeals,
+                NumOfStaticMealAdditions=o.NumOfStaticMealAdditions,
+            }).OrderByDescending(o=>o.Date).ToList();
+            return orders;
         }
-        public async Task<IEnumerable<AdminOrderView>> GetAllOrders(PaginateDto dto)
+        public IEnumerable<AdminOrderView> GetAllOrders(PaginateDto dto)
         {
-            var orders = await _context.Orders.Include(o => o.User).Include(o => o.OrderMeals).Include(o => o.OrderStaticAdditions).Select(o => new AdminOrderView
+            var orders =_context.Orders.Include(o => o.User).Include(o => o.OrderMeals).Include(o => o.OrderStaticAdditions).Paginate(dto.Page, dto.Size).Select(o => new AdminOrderView
             {
                 Id = o.Id,
                 Date = o.Date,
@@ -215,13 +216,12 @@ namespace OnlineRestaurant.Services
                 PhoneNumber = o.PhoneNumber,
                 Status = o.Status,
                 Street = o.Street,
-                UserImg = o.User.UserImgUrl,
+                UserImg = o.User.UserImgUrl==null?null: Path.Combine("https://localhost:7166", "images", o.User.UserImgUrl),
                 UserName = o.User.UserName,
-                NumOfMeals = o.OrderMeals.Count(),
-                NumOfStaticMealAdditions = o.OrderStaticAdditions.Count(),
-            }).OrderByDescending(o => o.Date).ToListAsync();
-            var result =orders.Paginate(dto.Page, dto.Size);
-            return result;
+                NumOfMeals = o.NumOfMeals,
+                NumOfStaticMealAdditions = o.NumOfStaticMealAdditions,
+            }).OrderByDescending(o => o.Date).ToList();
+            return orders;
         }
         public async Task<string> ChangeOrderStatus(OrderStatusDto dto)
         {
@@ -241,7 +241,7 @@ namespace OnlineRestaurant.Services
                 return "لم يتم العثور علي اي طلب";
             if (order.PaymentMethod.ToLower().Trim() == "credit")
                 return "تم تاكيد الدفع مسبقا";
-            if (order.Status.Trim() != "تم التوصيل")
+            if (order.Status.ToLower().Trim() != "delivered")
                 return "يجب ان يتم توصيل الاوردر قبل تاكيد الدفع";
             order.IsPaid=true;
             await _context.SaveChangesAsync();

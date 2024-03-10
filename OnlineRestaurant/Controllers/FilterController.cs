@@ -35,9 +35,16 @@ namespace OnlineRestaurant.Controllers
                 if(!_userManager.Users.Any(u=>u.Id == userid))
                     token = null;
             }
-            var meals= await _mealFilterService.Filter(token,filter);
+            var meals=await _mealFilterService.Filter(token,filter);
+            bool nextPage = false;
+            if (meals.Count() > filter.Size)
+            {
+                meals = meals.Take(meals.Count() - 1);
+                nextPage = true;
+            }
+            
             var maxprice=await _context.Meals.MaxAsync(m=>m.Price);
-            return Ok(new { meals, maxprice });
+            return Ok(new { meals, maxprice,nextPage });
         }
     }
 }

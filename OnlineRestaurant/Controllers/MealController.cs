@@ -30,8 +30,7 @@ namespace OnlineRestaurant.Controllers
             {
                 return NotFound(meal.Message);
             }
-            
-            return Ok( meal);
+            return Ok(meal);
         }
         
         [HttpPost]

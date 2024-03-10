@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using OnlineRestaurant.Data;
+using OnlineRestaurant.Dtos;
+using OnlineRestaurant.Helpers;
 using OnlineRestaurant.Interfaces;
 using OnlineRestaurant.Models;
 using OnlineRestaurant.Views;
@@ -12,21 +14,22 @@ namespace OnlineRestaurant.Filters
     {
         private readonly string? _Category;
         private readonly ApplicationDbContext _context;
-       
-        public CategoryFilter(string? Category, ApplicationDbContext context)
+        private readonly MealFilter _filter;
+
+        public CategoryFilter(string? Category, ApplicationDbContext context, MealFilter filter)
         {
             _Category = Category;
             _context = context;
-            
+            _filter = filter;
         }
 
-        public async Task<IEnumerable<MealView>> ApplyFilter()
+        public IEnumerable<MealView> ApplyFilter()
         {
             var Categories = _Category.Split(',');
             IEnumerable<Meal> Meals = Enumerable.Empty<Meal>();
             foreach (var Category in Categories)
             {
-                Meals = Meals.Union(await _context.Meals.Include(c => c.Category).Include(c=>c.MealReviews).Include(c => c.Chef).Where(m => m.Category.Name == Category.Trim()).ToListAsync());
+                Meals = Meals.Union(_context.Meals.Include(c => c.Category).Include(c=>c.MealReviews).Include(c => c.Chef).Where(m => m.Category.Name == Category.Trim()).Paginate(_filter.Page, _filter.Size).ToList());
             }
             
 
@@ -39,7 +42,7 @@ namespace OnlineRestaurant.Filters
                         CategoryName = m.Category.Name,
                         ChefId = m.ChefId,
                         ChefName = m.Chef.Name,
-                        MealImgUrl = m.MealImgUrl,
+                        MealImgUrl =Path.Combine("https://localhost:7166", "images", m.MealImgUrl),
                         Price = m.Price,
                         OldPrice = m.OldPrice==0.00m?null:m.OldPrice,
                         Rate=m.Rate,

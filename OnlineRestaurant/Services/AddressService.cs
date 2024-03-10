@@ -80,10 +80,9 @@ namespace OnlineRestaurant.Services
             {
                 return null;
             }
-            var addresses =await _context.Addresses.Where(a=>a.UserId== userId).ToListAsync();
-            var result = addresses.Paginate(dto.Page, dto.Size);
-             
-            return result;
+            var addresses =_context.Addresses.Where(a=>a.UserId== userId).Paginate(dto.Page, dto.Size).ToList();
+
+            return addresses;
         }
 
         public async Task<Address> UpdateAddressAsync(Address address,UpdateAddressDto updateAddressDto)

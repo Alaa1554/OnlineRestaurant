@@ -107,12 +107,11 @@ namespace OnlineRestaurant.Services
             
         }
 
-        public async Task<IEnumerable<MealReviewView>> GetReviewsAsync(int id, PaginateDto dto)
+        public IEnumerable<MealReviewView> GetReviews(int id, PaginateDto dto)
         {
-            var Reviews=await _context.MealReviews.Where(c=>c.MealId==id).ToListAsync();
+            var Reviews= _context.MealReviews.Where(c=>c.MealId==id).Paginate(dto.Page, dto.Size).ToList();
             var views = _mapper.Map<IEnumerable< MealReviewView>>(Reviews);
-            var result = views.Paginate(dto.Page, dto.Size);
-            return result;
+            return views;
         }
 
         public async Task<MealReviewView> UpdateReviewAsync(MealReview review, UpdateReviewDto dto)

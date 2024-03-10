@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using OnlineRestaurant.Data;
 using OnlineRestaurant.Dtos;
 using OnlineRestaurant.Helpers;
@@ -11,52 +12,56 @@ namespace OnlineRestaurant.Services
     public class CategoryService : ICategoryService
     {
         private readonly ApplicationDbContext _context;
-        private readonly IImgService<Category> _imgService;
+        private readonly IImageService _imgService;
+        private readonly IMapper _mapper;
 
-        public CategoryService(ApplicationDbContext context, IImgService<Category> imgService)
+        public CategoryService(ApplicationDbContext context, IImageService imgService, IMapper mapper)
         {
             _context = context;
             _imgService = imgService;
+            _mapper = mapper;
         }
 
-        public async Task<Category> CreateCategory(Category category)
+        public async Task<CategoryDto> CreateCategory(Category category)
         {
             var errormessages= ValidateHelper<Category>.Validate(category);
             if (!string.IsNullOrEmpty(errormessages))
-                return new Category { Message = errormessages };
+                return new CategoryDto { Message = errormessages };
             
             var addcategory = new Category
             {
                 Name = category.Name,
             };
-            _imgService.SetImage(addcategory, category.CategoryImg);
+            addcategory.CategoryUrl = _imgService.Upload(category.CategoryImg);
             if (!string.IsNullOrEmpty(addcategory.Message) )
-                return new Category { Message = addcategory.Message };
+                return new CategoryDto { Message = addcategory.Message };
             await _context.Categories.AddAsync(addcategory);
             await _context.SaveChangesAsync();
-            return addcategory;
+            var categoryDto=_mapper.Map<CategoryDto>(addcategory);
+            return categoryDto;
         }
 
-        public async Task<Category> DeleteCategoryAsync(Category category)
+        public async Task<CategoryDto> DeleteCategoryAsync(Category category)
         {
-            _imgService.DeleteImg(category);
+            _imgService.Delete(category.CategoryUrl);
             _context.Categories.Remove(category);
             await _context.SaveChangesAsync();
-            return category;
+            var categoryDto = _mapper.Map<CategoryDto>(category);
+            return categoryDto;
         }
 
-        public async Task<IEnumerable<CategoryView>> GetCategoryAsync(PaginateDto dto)
+        public IEnumerable<CategoryView> GetCategory(PaginateDto dto)
         {
-            var meals =await _context.Categories.Include(c=>c.Chefs).Include(c=>c.Meals).Select(c=>new CategoryView 
+            var meals = _context.Categories.Include(c=>c.Chefs).Include(c=>c.Meals).Paginate(dto.Page, dto.Size).Select(c=>new CategoryView 
             { 
                 Id=c.Id,
                 Name=c.Name,
-                CategoryImg=c.CategoryUrl,
+                CategoryImg=Path.Combine("https://localhost:7166", "images", c.CategoryUrl),
                 NumOfChefs=c.Chefs.Count(),
                 NumOfMeals = c.Meals.Count()
-            }).ToListAsync();
-            var result = meals.Paginate(dto.Page, dto.Size);
-            return result;
+            }).ToList();
+           
+            return meals;
         }
 
         public async Task<Category> GetCategoryByIdAsync(int id)
@@ -67,21 +72,22 @@ namespace OnlineRestaurant.Services
             return category;
         }
 
-        public async Task<Category> UpdateCategoryAsync(Category category, UpdateCategoryDto dto)
+        public async Task<CategoryDto> UpdateCategoryAsync(Category category, UpdateCategoryDto dto)
         {
             var errormessages = ValidateHelper<UpdateCategoryDto>.Validate(dto);
             if (!string.IsNullOrEmpty(errormessages))
             {
-                return new Category { Message = errormessages };
+                return new CategoryDto { Message = errormessages };
             }
            
-            _imgService.UpdateImg(category, dto.CategoryImg);
+            category.CategoryUrl=dto.CategoryImg==null?category.CategoryUrl:_imgService.Update(category.CategoryUrl,dto.CategoryImg);
             if (!string.IsNullOrEmpty(category.Message))
-                return new Category { Message = category.Message };
+                return new CategoryDto { Message = category.Message };
             category.Name = dto.Name ?? category.Name;
             _context.Update(category);
             await _context.SaveChangesAsync();
-            return category;
+            var categoryDto = _mapper.Map<CategoryDto>(category);
+            return categoryDto;
         }
     }
 }
