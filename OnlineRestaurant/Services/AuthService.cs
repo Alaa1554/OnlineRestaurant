@@ -268,7 +268,8 @@ namespace OnlineRestaurant.Services
                 return "لم يتم العثور علي اي مستخدم";
             }
             var user= await _userManager.FindByIdAsync(userid);
-            _imgService.Delete(user.UserImgUrl);
+            if (user.UserImgUrl != null)
+                _imgService.Delete(user.UserImgUrl);
             var result= await _userManager.DeleteAsync(user);
             if (!result.Succeeded)
             {
@@ -317,7 +318,8 @@ namespace OnlineRestaurant.Services
                 return "لم يتم العثور علي اي مستخدم";
             }
             var user=await _userManager.FindByIdAsync(userid);
-            _imgService.Delete(user.UserImgUrl);
+            if(user.UserImgUrl!=null)
+                _imgService.Delete(user.UserImgUrl);
             user.UserImgUrl = null;
             var result = await _userManager.UpdateAsync(user);
             if (!result.Succeeded)
