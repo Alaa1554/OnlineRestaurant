@@ -224,7 +224,7 @@ namespace OnlineRestaurant.Services
                 return new AuthModelDto { Message = "لم يتم العثور علي اي مستخدم" };
             }
 
-            user.UserImgUrl = dto.UserImg==null?user.UserImgUrl:_imgService.Update(user.UserImgUrl, dto.UserImg);
+            user.UserImgUrl = dto.UserImg==null?user.UserImgUrl:user.UserImgUrl==null?_imgService.Upload(dto.UserImg):_imgService.Update(user.UserImgUrl, dto.UserImg);
                 if (!string.IsNullOrEmpty(user.Message))
                 {
                     return new AuthModelDto { Message = user.Message };
