@@ -30,7 +30,10 @@ namespace OnlineRestaurant.Controllers
             {
                 return BadRequest("No User is Found");
             }
-
+            if(!addresses.Any())
+            {
+                return BadRequest("No Addresses is Found");
+            }
             bool nextPage = false;
             if (addresses.Count() > paginate.Size)
             {
