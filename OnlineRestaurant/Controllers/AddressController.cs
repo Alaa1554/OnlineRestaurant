@@ -14,12 +14,14 @@ namespace OnlineRestaurant.Controllers
     {
         private readonly IAddressService _addressService;
         private readonly ApplicationDbContext _context;
+        private readonly IAuthService _authService;
 
 
-        public AddressController(IAddressService addressService, ApplicationDbContext context)
+        public AddressController(IAddressService addressService, ApplicationDbContext context, IAuthService authService)
         {
             _addressService = addressService;
             _context = context;
+            _authService = authService;
         }
 
         [HttpGet]
@@ -30,17 +32,14 @@ namespace OnlineRestaurant.Controllers
             {
                 return BadRequest("No User is Found");
             }
-            if(!addresses.Any())
-            {
-                return BadRequest("No Addresses is Found");
-            }
             bool nextPage = false;
             if (addresses.Count() > paginate.Size)
             {
                 addresses = addresses.Take(addresses.Count()-1);
                 nextPage = true;
             }
-            var numOfAddresses = await _context.Addresses.CountAsync(c => c.UserId == addresses.First().UserId);
+            var userId=_authService.GetUserId(token);
+            var numOfAddresses = await _context.Addresses.CountAsync(c => c.UserId == userId);
             var numOfPages = (int)Math.Ceiling((decimal)numOfAddresses / paginate.Size);
             return Ok(new {Addresses = addresses, NextPage = nextPage, NumOfPages = numOfPages });
         }

@@ -41,7 +41,8 @@ namespace OnlineRestaurant.Controllers
                 WishListMeals = WishListMeals.Take(WishListMeals.Count()-1);
                 nextPage = true;
             }
-            var numOfWishListMeals = await _context.WishListMeals.CountAsync(w=>w.WishListId==WishListMeals.First().WishListId);
+            var wishList=await _context.wishLists.SingleOrDefaultAsync(w=>w.UserId == userid);
+            var numOfWishListMeals = await _context.WishListMeals.CountAsync(w=>w.WishListId==wishList.Id);
             var numOfPages =(int) Math.Ceiling((decimal)numOfWishListMeals /paginate.Size);
             return Ok(new { WishListMeals = WishListMeals, NextPage = nextPage,NumOfPages=numOfPages });
         }
