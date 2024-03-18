@@ -5,7 +5,7 @@ namespace OnlineRestaurant.Interfaces
 {
     public interface IMealFilterService
     {
-        Task<IEnumerable<MealView>> Filter (string? token,MealFilter filter);
+        Task<MealFilterView> Filter (string? token,MealFilter filter);
        
     }
 }

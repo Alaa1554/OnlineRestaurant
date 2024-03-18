@@ -35,7 +35,9 @@ namespace OnlineRestaurant.Controllers
                 if(!_userManager.Users.Any(u=>u.Id == userid))
                     token = null;
             }
-            var meals=await _mealFilterService.Filter(token,filter);
+            var result=await _mealFilterService.Filter(token,filter);
+            var meals=result.Meals;
+            var numOfPages=result.NumOfPages;
             bool nextPage = false;
             if (meals.Count() > filter.Size)
             {
@@ -43,8 +45,8 @@ namespace OnlineRestaurant.Controllers
                 nextPage = true;
             }
             
-            var maxprice=await _context.Meals.MaxAsync(m=>m.Price);
-            return Ok(new { meals, maxprice,nextPage });
+            var maxprice=await _context.Meals.Select(m=>m.Price).DefaultIfEmpty().MaxAsync();
+            return Ok(new { meals, maxprice,nextPage,numOfPages });
         }
     }
 }

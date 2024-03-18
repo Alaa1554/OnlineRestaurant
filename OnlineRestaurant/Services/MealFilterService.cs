@@ -23,42 +23,49 @@ namespace OnlineRestaurant.Services
             _authService = authService;
         }
 
-        public async Task<IEnumerable<MealView>> Filter(string? token,MealFilter filter)
+        public async Task<MealFilterView> Filter(string? token,MealFilter filter)
         {
             var filterFactory = new FilterStrategyFactory(_context);
             var filterStrategies = filterFactory.GetFilterStrategy(filter);
             
-            IEnumerable<MealView> meals = null;
+            IEnumerable<Meal> meals = null;
+            IEnumerable<MealView> mealsView= null;
+            int numOfPages = 0;
+            int numOfMeals= 0;
             if (filterStrategies.Any())
             {
                 foreach (var view in filterStrategies)
                 {
                     meals = meals?.Intersect(view.ApplyFilter()) ?? view.ApplyFilter();
                 }
+                numOfMeals= meals.Count();
+                numOfPages= (int)Math.Ceiling((decimal)numOfMeals / filter.Size);
             }
             else
             {
-                 meals = _context.Meals.Include(meal => meal.Chef).Include(b => b.Category).Paginate(filter.Page, filter.Size).Select(b => new MealView
-                {
-                    Id = b.Id,
-                    ChefId = b.ChefId,
-                    ChefName = b.Chef.Name,
-                    MealImgUrl = Path.Combine("https://localhost:7166", "images", b.MealImgUrl),
-                    Name = b.Name,
-                    Price = b.Price,
-                    Categoryid = b.CategoryId,
-                    CategoryName = b.Category.Name,
-                    Rate = b.Rate,
-                    NumOfRate = b.NumOfRate,
-                    OldPrice=b.OldPrice,
-
-
-                }).ToList();
+                meals = _context.Meals.Include(meal => meal.Chef).Include(b => b.Category);
+                numOfMeals = meals.Count();
+                numOfPages = (int)Math.Ceiling((decimal)numOfMeals / filter.Size);
             }
-            
-            
-            
-            var orderedMeals = Mealsorder(meals, filter.OrderMeal);
+
+            mealsView = meals.Paginate(filter.Page, filter.Size).Select(b => new MealView
+            {
+                Id = b.Id,
+                ChefId = b.ChefId,
+                ChefName = b.Chef.Name,
+                MealImgUrl = Path.Combine("https://localhost:7166", "images", b.MealImgUrl),
+                Name = b.Name,
+                Price = b.Price,
+                Categoryid = b.CategoryId,
+                CategoryName = b.Category.Name,
+                Rate = b.Rate,
+                NumOfRate = b.NumOfRate,
+                OldPrice = b.OldPrice,
+
+
+            }).ToList();
+
+            var orderedMeals = Mealsorder(mealsView, filter.OrderMeal);
             if (token != null) 
             {
                 foreach (var meal in orderedMeals)
@@ -81,7 +88,7 @@ namespace OnlineRestaurant.Services
                 }
             }
             
-            return orderedMeals;
+            return new MealFilterView { Meals=orderedMeals,NumOfPages=numOfPages};
         }
       
         private IEnumerable<MealView> Mealsorder(IEnumerable<MealView> source,string? result)

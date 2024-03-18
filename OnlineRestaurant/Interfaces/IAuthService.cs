@@ -19,5 +19,7 @@ namespace OnlineRestaurant.Interfaces
         Task<AuthModelDto> VerifyAccountAsync(VerifyAccountDto verifyaccount);
         Task<string> ResendVerificationCode(string email);
         IEnumerable<UserView> SearchForUserByName(SearchForUserByName searchForUser);
+        Task<string> ResetPassword(ResetPasswordDto resetPasswordDto);
+        Task<string> ForgetPassword(EmailDto emailDto);
     }
 }

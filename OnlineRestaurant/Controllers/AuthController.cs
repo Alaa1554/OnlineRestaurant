@@ -178,5 +178,26 @@ namespace OnlineRestaurant.Controllers
             var numOfPages = (int)Math.Ceiling((decimal)numOfUsers / searchForUser.Size);
             return Ok(new { Users = users, NextPage = nextPage, NumOfPages = numOfPages });
         }
+        [HttpPost("ForgetPassword")]
+        public async Task<IActionResult> ForgetPassword([FromBody]EmailDto email)
+        {
+            var result= await _authService.ForgetPassword(email);
+            if(!string.IsNullOrEmpty(result))
+                return NotFound(result);
+            return Ok("تم ارسال رابط التحقق الي بريدك الالكتروني");
+            
+        }
+        [HttpPut("ResetPassword")]
+        public async Task<IActionResult> ResetPassword([FromBody]ResetPasswordDto resetPassword)
+        {
+            if (ModelState.IsValid)
+            {
+                var result = await _authService.ResetPassword(resetPassword);
+                if(!string.IsNullOrEmpty(result))
+                    return BadRequest(result);
+                return Ok("تم تغيير كلمه السر بنجاح");
+            }
+            return BadRequest();
+        }
     }
 }

@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
-
+using Azure.Core;
 using Microsoft.AspNetCore.Identity;
-
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
@@ -15,7 +15,9 @@ using OnlineRestaurant.Models;
 using OnlineRestaurant.Views;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Policy;
 using System.Text;
+using System.Text.Encodings.Web;
 
 
 
@@ -117,6 +119,35 @@ namespace OnlineRestaurant.Services
 
             return authmodel;
 
+        }
+        public async Task<string> ForgetPassword(EmailDto emailDto)
+        {
+            var user = await _userManager.FindByEmailAsync(emailDto.Email);
+            if (user == null)
+                return "لم يتم العثور علي اي مستخدم";
+            var code = await _userManager.GeneratePasswordResetTokenAsync(user);
+            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+            var callbackUrl = $"http://localhost:3000/reset-password/{code}";
+             _emailSender.SendEmail(
+                emailDto.Email,
+                "Reset Password",
+                $"Please reset your password by <a href={HtmlEncoder.Default.Encode(callbackUrl)}>clicking here</a>.");
+            return string.Empty;
+        }
+        public async Task<string> ResetPassword(ResetPasswordDto resetPasswordDto)
+        {
+            var user = await _userManager.FindByEmailAsync(resetPasswordDto.Email);
+            if (user == null)
+                return "لم يتم العثور علي اي مستخدم";
+            var bytes = WebEncoders.Base64UrlDecode(resetPasswordDto.Token);
+            var code=Encoding.UTF8.GetString(bytes);
+            var result = await _userManager.VerifyUserTokenAsync(user, _userManager.Options.Tokens.PasswordResetTokenProvider, "ResetPassword",code);
+            if (!result)
+                return "حدثت مشكله اثناء التحقق يرجي المحاوله مره اخري";
+            var resetPasswordResult=await _userManager.ResetPasswordAsync(user,code,resetPasswordDto.NewPassword);
+            if (!resetPasswordResult.Succeeded)
+                return "حدثت مشكله اثناء تغيير الباسورد يرجي المحاوله مره اخري";
+            return string.Empty;
         }
         public async Task<string> ResendVerificationCode(string email)
         {

@@ -23,33 +23,18 @@ namespace OnlineRestaurant.Filters
             _filter = filter;
         }
 
-        public IEnumerable<MealView> ApplyFilter()
+        public IEnumerable<Meal> ApplyFilter()
         {
             var Categories = _Category.Split(',');
             IEnumerable<Meal> Meals = Enumerable.Empty<Meal>();
             foreach (var Category in Categories)
             {
-                Meals = Meals.Union(_context.Meals.Include(c => c.Category).Include(c=>c.MealReviews).Include(c => c.Chef).Where(m => m.Category.Name == Category.Trim()).Paginate(_filter.Page, _filter.Size).ToList());
+                Meals = Meals.Union(_context.Meals.Include(c => c.Category).Include(c=>c.MealReviews).Include(c => c.Chef).Where(m => m.Category.Name == Category.Trim()).ToList());
             }
-            
 
-            var MealsView = Meals.Select(
-                    m => new MealView
-                    {
-                        Id = m.Id,
-                        Categoryid = m.CategoryId,
-                        Name = m.Name,
-                        CategoryName = m.Category.Name,
-                        ChefId = m.ChefId,
-                        ChefName = m.Chef.Name,
-                        MealImgUrl =Path.Combine("https://localhost:7166", "images", m.MealImgUrl),
-                        Price = m.Price,
-                        OldPrice = m.OldPrice==0.00m?null:m.OldPrice,
-                        Rate=m.Rate,
-                        NumOfRate=m.NumOfRate,
-                    }
-                    ).ToList();
-            return MealsView;
+
+
+            return Meals; 
         }
 
         public bool CanApply(MealFilter filter)

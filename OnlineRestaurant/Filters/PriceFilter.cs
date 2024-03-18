@@ -22,24 +22,9 @@ namespace OnlineRestaurant.Filters
             _filter = filter;
         }
 
-        public IEnumerable<MealView> ApplyFilter()
+        public IEnumerable<Meal> ApplyFilter()
         {
-            var Meals =  _context.Meals.Include(c => c.Category).Include(c => c.Chef).Include(c=>c.MealReviews).Where(m => m.Price >= _Fromprice&&m.Price<=_Toprice).Paginate(_filter.Page, _filter.Size).Select(
-                    m => new MealView
-                    {
-                        Id = m.Id,
-                        Categoryid = m.CategoryId,
-                        Name = m.Name,
-                        CategoryName = m.Category.Name,
-                        ChefId = m.ChefId,
-                        ChefName = m.Chef.Name,
-                        MealImgUrl = Path.Combine("https://localhost:7166", "images", m.MealImgUrl),
-                        Price = m.Price,
-                        OldPrice= m.OldPrice==0.00m?null:m.OldPrice,
-                        Rate = m.Rate,
-                        NumOfRate = m.NumOfRate
-                    }
-                    ).ToList();
+            var Meals =  _context.Meals.Include(c => c.Category).Include(c => c.Chef).Include(c=>c.MealReviews).Where(m => m.Price >= _Fromprice&&m.Price<=_Toprice).ToList();
             return Meals;
         }
 

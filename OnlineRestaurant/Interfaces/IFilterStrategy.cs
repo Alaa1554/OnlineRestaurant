@@ -7,6 +7,6 @@ namespace OnlineRestaurant.Interfaces
     public interface IFilterStrategy
     {
         bool CanApply(MealFilter filter);
-        IEnumerable<MealView> ApplyFilter();
+        IEnumerable<Meal> ApplyFilter();
     }
 }
