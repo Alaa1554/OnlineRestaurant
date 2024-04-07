@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OnlineRestaurant.Data;
@@ -16,11 +17,13 @@ namespace OnlineRestaurant.Controllers
         private readonly IOrderService _orderService;
         private readonly ApplicationDbContext _context;
         private readonly IAuthService _authService;
-        public OrderController(IOrderService orderService, ApplicationDbContext context, IAuthService authService)
+        private readonly UserManager<ApplicationUser> _userManager;
+        public OrderController(IOrderService orderService, ApplicationDbContext context, IAuthService authService, UserManager<ApplicationUser> userManager)
         {
             _orderService = orderService;
             _context = context;
             _authService = authService;
+            _userManager = userManager;
         }
         [HttpPost]
         public async Task<IActionResult> AddOrderAsync([FromHeader] string token, [FromBody] OrderDto order)
@@ -42,16 +45,16 @@ namespace OnlineRestaurant.Controllers
         [HttpGet("GetAllUserOrders")]
         public async Task<IActionResult> GetAllUserOrdersAsync([FromHeader] string token,[FromQuery] PaginateDto paginate)
         {
-            var orders = await _orderService.GetAllUserOrders(token,paginate);
-            if (!orders.Any())
+            var userId = _authService.GetUserId(token);
+            if(!await _userManager.Users.AnyAsync(c => c.Id == userId))
                 return NotFound("No User is Found!");
+            var orders = await _orderService.GetAllUserOrders(userId,paginate);
             bool nextPage = false;
             if (orders.Count() > paginate.Size)
             {
                 orders = orders.Take(orders.Count() - 1);
                 nextPage = true;
             }
-            var userId = _authService.GetUserId(token);
             var numOfUserOrders = await _context.Orders.CountAsync(c => c.UserId == userId);
             var numOfPages = (int)Math.Ceiling((decimal)numOfUserOrders / paginate.Size);
             return Ok(new { Orders = orders, NextPage = nextPage,NumOfPages=numOfPages,NumOfUserOrders=numOfUserOrders});

@@ -174,17 +174,11 @@ namespace OnlineRestaurant.Services
                 })).ToList()
             };
         }
-        public async Task<IEnumerable<UserOrderView>> GetAllUserOrders(string token,PaginateDto dto)
+        public async Task<IEnumerable<UserOrderView>> GetAllUserOrders(string userId,PaginateDto dto)
         {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var jwtToken = tokenHandler.ReadJwtToken(token) as JwtSecurityToken;
-
-            var userId = jwtToken.Claims.FirstOrDefault(c => c.Type == "uid")?.Value;
+            
             var user = await _userManger.FindByIdAsync(userId);
-            if (!await _userManger.Users.AnyAsync(c => c.Id == userId))
-            {
-                return Enumerable.Empty<UserOrderView>();
-            }
+            
             var orders = _context.Orders.Include(o => o.OrderMeals).Include(o => o.OrderStaticAdditions).Where(o=>o.UserId == userId).Paginate(dto.Page, dto.Size).Select(o=>new UserOrderView
             {
                 Id=o.Id,
