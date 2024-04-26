@@ -23,6 +23,5 @@ namespace OnlineRestaurant.Models
         public  WishList WishList { get; set; }
         [ValidateNever, JsonIgnore]
         public List<Order> Orders { get; set; }
-
     }
 }

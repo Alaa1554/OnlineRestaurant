@@ -59,10 +59,6 @@ namespace OnlineRestaurant.Services
             }
             var user = _mapper.Map<ApplicationUser>(registermodel);
             user.UserImgUrl =registermodel.UserImg==null?null: _imgService.Upload(registermodel.UserImg);
-            if (!string.IsNullOrEmpty(user.Message))
-            {
-                return  user.Message ;
-            }
             var result = await _userManager.CreateAsync(user, registermodel.Password);
             if (!result.Succeeded)
             {
@@ -90,37 +86,22 @@ namespace OnlineRestaurant.Services
             if (verifyaccount.VerificationCode != cashedcode)
                 return new AuthModelDto { Message = "رمز التحقق الذي ادخلته غير صحيح" };
             user.EmailConfirmed = true;
-            var jwtSecurityToken = await CreateJwtToken(user);
             var userWishList = new WishList
             {
                 UserId = user.Id
             };
             await _context.wishLists.AddAsync(userWishList);
             await _context.SaveChangesAsync();
-            var authModel = new AuthModelDto
-            {
-                Email = user.Email,
-                ExpiresOn = jwtSecurityToken.ValidTo,
-                IsAuthenticated = true,
-                Roles = new List<string> { "User" },
-                Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken),
-                UserName = user.UserName,
-                UserImgUrl =user.UserImgUrl==null?null:Path.Combine("https://localhost:7166","images", user.UserImgUrl),
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-            };
-
-            return authModel;
-
+            return await GetAuthModelDto(user);
         }
         public async Task<string> ForgetPassword(EmailDto emailDto)
         {
             var user = await _userManager.FindByEmailAsync(emailDto.Email);
             if (user == null)
                 return "لم يتم العثور علي اي مستخدم";
-            var code = await _userManager.GeneratePasswordResetTokenAsync(user);
-            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-            var callBackUrl = $"http://localhost:3000/reset-password/{code}";
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            token = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
+            var callBackUrl = $"http://localhost:3000/reset-password/{token}";
              _emailSender.SendEmail(
                 emailDto.Email,
                 "Reset Password",
@@ -133,11 +114,11 @@ namespace OnlineRestaurant.Services
             if (user == null)
                 return "لم يتم العثور علي اي مستخدم";
             var bytes = WebEncoders.Base64UrlDecode(resetPasswordDto.Token);
-            var code=Encoding.UTF8.GetString(bytes);
-            var result = await _userManager.VerifyUserTokenAsync(user, _userManager.Options.Tokens.PasswordResetTokenProvider, "ResetPassword",code);
+            var token = Encoding.UTF8.GetString(bytes);
+            var result = await _userManager.VerifyUserTokenAsync(user, _userManager.Options.Tokens.PasswordResetTokenProvider, "ResetPassword",token);
             if (!result)
                 return "حدثت مشكله اثناء التحقق يرجي المحاوله مره اخري";
-            var resetPasswordResult=await _userManager.ResetPasswordAsync(user,code,resetPasswordDto.NewPassword);
+            var resetPasswordResult=await _userManager.ResetPasswordAsync(user, token, resetPasswordDto.NewPassword);
             if (!resetPasswordResult.Succeeded)
                 return "حدثت مشكله اثناء تغيير الباسورد يرجي المحاوله مره اخري";
             return string.Empty;
@@ -158,25 +139,12 @@ namespace OnlineRestaurant.Services
             {
                 return new AuthModelDto { Message = "الباسورد يجب ان يحتوي علي 6 حروف او ارقام علي الاقل" };
             }
-            var authModel = new AuthModelDto();
             var user = await _userManager.FindByEmailAsync(tokenrequest.Email);
             if (user == null || !await _userManager.CheckPasswordAsync(user, tokenrequest.Password)||!user.EmailConfirmed)
             {
-                authModel.Message = "البريد الالكتروني او كلمه السر غير صحيحه";
-                return authModel;
+                return new AuthModelDto { Message = "البريد الالكتروني او كلمه السر غير صحيحه" };
             }
-            var jwtSecurityToken = await CreateJwtToken(user);
-            var roleList = await _userManager.GetRolesAsync(user);
-            authModel.Email = user.Email;
-            authModel.ExpiresOn = jwtSecurityToken.ValidTo;
-            authModel.IsAuthenticated = true;
-            authModel.Roles = roleList.ToList();
-            authModel.Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
-            authModel.UserName = user.UserName;
-            authModel.UserImgUrl = user.UserImgUrl == null ? null : Path.Combine("https://localhost:7166", "images", user.UserImgUrl);
-            authModel.FirstName = user.FirstName;
-            authModel.LastName = user.LastName;
-            return authModel;
+            return await GetAuthModelDto(user);
         }
         public async Task<string> AddRoleAsync(AddRoleDto role)
         {
@@ -184,7 +152,6 @@ namespace OnlineRestaurant.Services
             if (user == null || await _roleManager.FindByNameAsync(role.Role) == null|| role.Role == "SuperAdmin")
             {
                 return "Role or UserId is Invaild";
-
             }
             if (await _userManager.IsInRoleAsync(user, role.Role))
             {
@@ -242,65 +209,23 @@ namespace OnlineRestaurant.Services
             var user = await _userManager.FindByEmailAsync(registermodel.Email);
             if (user is not null)
             {
-                
-                    if (registermodel.FirstName != user.FirstName ||
-                    registermodel.LastName != user.LastName ||
-                    registermodel.UserName != user.UserName ||
-                    registermodel.UserImgUrl != user.UserImgUrl)
-                    {
-                        user.FirstName = registermodel.FirstName != user.FirstName ? registermodel.FirstName??user.FirstName : user.FirstName;
-                        user.LastName = registermodel.LastName != user.LastName ? registermodel.LastName??user.LastName : user.LastName;
-                        user.UserName = registermodel.UserName != user.UserName ? registermodel.UserName??user.UserName : user.UserName;
-                        user.UserImgUrl = registermodel.UserImgUrl != user.UserImgUrl ? registermodel.UserImgUrl??user.UserImgUrl : user.UserImgUrl;
-                        await _userManager.UpdateAsync(user);
-
-                    }
-                
-                
-                
-                var authModel = new AuthModelDto();
-                var jwtSecurityToken = await CreateJwtToken(user);
-                var roleList = await _userManager.GetRolesAsync(user);
-                authModel.Email = user.Email;
-                authModel.ExpiresOn = jwtSecurityToken.ValidTo;
-                authModel.IsAuthenticated = true;
-                authModel.Roles = roleList.ToList();
-                authModel.Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
-                authModel.UserName = user.UserName;
-                authModel.UserImgUrl = user.UserImgUrl;
-                authModel.FirstName = user.FirstName;
-                authModel.LastName = user.LastName;
-                return authModel;
+                UpdateGmailAccountData(user, registermodel);  
+                await _userManager.UpdateAsync(user);
+                return await GetAuthModelDto(user);
             }
             else 
             {
                 user = _mapper.Map<ApplicationUser>(registermodel);
                 await _userManager.CreateAsync(user);
                 await _userManager.AddToRoleAsync(user, "User");
-                var jwtSecurityToken = await CreateJwtToken(user);
                 var userWishList = new WishList
                 {
                     UserId = user.Id
                 };
                 await _context.wishLists.AddAsync(userWishList);
                 await _context.SaveChangesAsync();
-                var authModel = new AuthModelDto
-                {
-                    Email = user.Email,
-                    ExpiresOn = jwtSecurityToken.ValidTo,
-                    IsAuthenticated = true,
-                    Roles = new List<string> { "User" },
-                    Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken),
-                    UserName = user.UserName,
-                    UserImgUrl = user.UserImgUrl,
-                    FirstName = user.FirstName,
-                    LastName = user.LastName,
-                    
-                };
-
-                return authModel;
+                return await GetAuthModelDto(user);
             }
-            
         }
         public string GetUserId(string token)
         {
@@ -308,6 +233,12 @@ namespace OnlineRestaurant.Services
             var jwtToken = tokenHandler.ReadJwtToken(token) as JwtSecurityToken;
             var userId = jwtToken.Claims.FirstOrDefault(c => c.Type == "uid")?.Value;
             return userId;
+        }
+        public async Task<AuthModelDto> GetAuthModelDto(ApplicationUser user)
+        {
+            var jwtSecurityToken = await CreateJwtToken(user);
+            var roleList = await _userManager.GetRolesAsync(user);
+            return new AuthModelDto(user.Email, jwtSecurityToken.ValidTo, true, roleList.ToList(), new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken), user.UserName, user.UserImgUrl, user.FirstName, user.LastName);
         }
         private string GenerateRandomCode()
         {
@@ -337,7 +268,17 @@ namespace OnlineRestaurant.Services
 
             return randomCode;
         }
-
+        private void UpdateGmailAccountData(ApplicationUser user, GmailRegisterDto dto)
+        {
+            if (dto.FirstName != user.FirstName)
+                user.FirstName = dto.FirstName;
+            if (dto.LastName != user.LastName)
+                user.LastName = dto.LastName;
+            if (dto.UserImgUrl != user.UserImgUrl)
+                user.UserImgUrl = dto.UserImgUrl;
+            if (dto.UserName != user.UserName)
+                user.UserName = dto.UserName;
+        }
     }
 }
 

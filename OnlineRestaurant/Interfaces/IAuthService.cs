@@ -18,5 +18,6 @@ namespace OnlineRestaurant.Interfaces
         Task<string> ResetPassword(ResetPasswordDto resetPasswordDto);
         Task<string> ForgetPassword(EmailDto emailDto);
         string GetUserId(string token);
+        Task<AuthModelDto> GetAuthModelDto(ApplicationUser user);
     }
 }

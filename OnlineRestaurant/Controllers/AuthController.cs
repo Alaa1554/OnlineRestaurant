@@ -48,7 +48,7 @@ namespace OnlineRestaurant.Controllers
         {
            var result = await _authService.ResendVerificationCode(emailDto.Email);
            if (!string.IsNullOrEmpty(result))
-               return BadRequest(result);
+               return NotFound(result);
            return Ok("تم ارسال رمز التحقق مره اخري");
         }
 
@@ -87,8 +87,6 @@ namespace OnlineRestaurant.Controllers
         public async Task<IActionResult> GmailLogIn([FromForm] GmailRegisterDto dto)
         {
             var user=await _authService.GmailRegisterAsync(dto);
-            if(!string.IsNullOrEmpty(user.Message))
-                return BadRequest(user.Message);
             return Ok(user);
         }
        
@@ -105,7 +103,7 @@ namespace OnlineRestaurant.Controllers
             {
                 return BadRequest(result);
             }
-            return Ok();
+            return Ok("تم حذف الصلاحيه بنجاح");
         }
         
         [HttpPost("ForgetPassword")]

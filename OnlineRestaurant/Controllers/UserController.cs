@@ -1,11 +1,9 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OnlineRestaurant.Dtos;
 using OnlineRestaurant.Interfaces;
 using OnlineRestaurant.Models;
-using OnlineRestaurant.Services;
 
 namespace OnlineRestaurant.Controllers
 {
@@ -24,7 +22,7 @@ namespace OnlineRestaurant.Controllers
         [HttpGet("GetAllUsers")]
         public async Task<IActionResult> GetAllUsersAsync([FromQuery] PaginateDto paginate)
         {
-            var users = _userService.GetAllUsersAsync(paginate);
+            var users =await _userService.GetAllUsersAsync(paginate);
             bool nextPage = false;
             if (users.Count() > paginate.Size)
             {
@@ -38,7 +36,7 @@ namespace OnlineRestaurant.Controllers
         [HttpGet("SearchForUserByName")]
         public async Task<IActionResult> SearchForUserByName([FromQuery] SearchForUserByName searchForUser)
         {
-            var users = _userService.SearchForUserByName(searchForUser);
+            var users =await _userService.SearchForUserByName(searchForUser);
             if (!users.Any())
                 return NotFound("لم يتم العثور علي اي مستخدم");
             bool nextPage = false;
