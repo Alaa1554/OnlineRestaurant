@@ -380,7 +380,7 @@ namespace OnlineRestaurant.Migrations
 
                     b.HasIndex("MealAdditionId");
 
-                    b.ToTable("Choice");
+                    b.ToTable("Choices");
                 });
 
             modelBuilder.Entity("OnlineRestaurant.Models.Coupon", b =>
@@ -431,16 +431,10 @@ namespace OnlineRestaurant.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<int>("NumOfRate")
-                        .HasColumnType("int");
-
                     b.Property<decimal?>("OldPrice")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("Rate")
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");

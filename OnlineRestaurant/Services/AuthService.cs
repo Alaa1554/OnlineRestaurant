@@ -1,21 +1,16 @@
 ﻿using AutoMapper;
-using Azure.Core;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-
 using OnlineRestaurant.Data;
 using OnlineRestaurant.Dtos;
 using OnlineRestaurant.Helpers;
 using OnlineRestaurant.Interfaces;
 using OnlineRestaurant.Models;
-using OnlineRestaurant.Views;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Security.Policy;
 using System.Text;
 using System.Text.Encodings.Web;
 
@@ -32,12 +27,11 @@ namespace OnlineRestaurant.Services
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IImageService _imgService;
         private readonly ApplicationDbContext _context;
-        private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IEmailSender _emailSender;
         private readonly IMemoryCache _memorycashe;
         private readonly TimeSpan _codeExpiration=TimeSpan.FromMinutes(15);
 
-        public AuthService(UserManager<ApplicationUser> userManager, IEmailSender emailsender, IMemoryCache memoryCache, IMapper mapper, IOptions<JWT> jwt, RoleManager<IdentityRole> roleManager, IImageService imgService, ApplicationDbContext context, SignInManager<ApplicationUser> signInManager)
+        public AuthService(UserManager<ApplicationUser> userManager, IEmailSender emailsender, IMemoryCache memoryCache, IMapper mapper, IOptions<JWT> jwt, RoleManager<IdentityRole> roleManager, IImageService imgService, ApplicationDbContext context)
         {
             _userManager = userManager;
             _mapper = mapper;
@@ -45,7 +39,6 @@ namespace OnlineRestaurant.Services
             _roleManager = roleManager;
             _imgService = imgService;
             _context = context;
-            _signInManager = signInManager;
             _emailSender = emailsender;
             _memorycashe = memoryCache;
         }
@@ -82,9 +75,9 @@ namespace OnlineRestaurant.Services
             }
             
             await _userManager.AddToRoleAsync(user, "User");
-            var verificationcode = GenerateRandomCode();
-            _emailSender.SendEmail(user.Email, "Verification Code", $"Your verification code is {verificationcode}");
-            _memorycashe.Set($"{user.Id} verification", verificationcode, _codeExpiration);
+            var verificationCode = GenerateRandomCode();
+            _emailSender.SendEmail(user.Email, "Verification Code", $"Your verification code is {verificationCode}");
+            _memorycashe.Set($"{user.Id} verification", verificationCode, _codeExpiration);
             return string.Empty;
         }
         public async Task<AuthModelDto> VerifyAccountAsync(VerifyAccountDto verifyaccount)
@@ -98,13 +91,13 @@ namespace OnlineRestaurant.Services
                 return new AuthModelDto { Message = "رمز التحقق الذي ادخلته غير صحيح" };
             user.EmailConfirmed = true;
             var jwtSecurityToken = await CreateJwtToken(user);
-            var UserWishList = new WishList
+            var userWishList = new WishList
             {
                 UserId = user.Id
             };
-            await _context.wishLists.AddAsync(UserWishList);
+            await _context.wishLists.AddAsync(userWishList);
             await _context.SaveChangesAsync();
-            var authmodel = new AuthModelDto
+            var authModel = new AuthModelDto
             {
                 Email = user.Email,
                 ExpiresOn = jwtSecurityToken.ValidTo,
@@ -117,7 +110,7 @@ namespace OnlineRestaurant.Services
                 LastName = user.LastName,
             };
 
-            return authmodel;
+            return authModel;
 
         }
         public async Task<string> ForgetPassword(EmailDto emailDto)
@@ -127,11 +120,11 @@ namespace OnlineRestaurant.Services
                 return "لم يتم العثور علي اي مستخدم";
             var code = await _userManager.GeneratePasswordResetTokenAsync(user);
             code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-            var callbackUrl = $"http://localhost:3000/reset-password/{code}";
+            var callBackUrl = $"http://localhost:3000/reset-password/{code}";
              _emailSender.SendEmail(
                 emailDto.Email,
                 "Reset Password",
-                $"Please reset your password by <a href={HtmlEncoder.Default.Encode(callbackUrl)}>clicking here</a>.");
+                $"Please reset your password by <a href={HtmlEncoder.Default.Encode(callBackUrl)}>clicking here</a>.");
             return string.Empty;
         }
         public async Task<string> ResetPassword(ResetPasswordDto resetPasswordDto)
@@ -173,20 +166,17 @@ namespace OnlineRestaurant.Services
                 return authModel;
             }
             var jwtSecurityToken = await CreateJwtToken(user);
-            var rolelist = await _userManager.GetRolesAsync(user);
+            var roleList = await _userManager.GetRolesAsync(user);
             authModel.Email = user.Email;
             authModel.ExpiresOn = jwtSecurityToken.ValidTo;
             authModel.IsAuthenticated = true;
-            authModel.Roles = rolelist.ToList();
+            authModel.Roles = roleList.ToList();
             authModel.Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
             authModel.UserName = user.UserName;
             authModel.UserImgUrl = user.UserImgUrl == null ? null : Path.Combine("https://localhost:7166", "images", user.UserImgUrl);
             authModel.FirstName = user.FirstName;
             authModel.LastName = user.LastName;
-
-
             return authModel;
-
         }
         public async Task<string> AddRoleAsync(AddRoleDto role)
         {
@@ -208,14 +198,14 @@ namespace OnlineRestaurant.Services
             var user =await _userManager.FindByIdAsync(userid);
             if (user == null)
                 return "No User is Found";
-            var userroles = await _userManager.GetRolesAsync(user);
-            if (!userroles.Contains("Admin"))
+            var userRoles = await _userManager.GetRolesAsync(user);
+            if (!userRoles.Contains("Admin"))
                 return "Role Already Removed";
             var result = await _userManager.RemoveFromRoleAsync(user, "Admin");
             return result.Succeeded ? string.Empty : "Something Went Wrong";
         }
 
-        private async Task<JwtSecurityToken> CreateJwtToken(ApplicationUser user)
+        public async Task<JwtSecurityToken> CreateJwtToken(ApplicationUser user)
         {
             var userClaims = await _userManager.GetClaimsAsync(user);
             var roles = await _userManager.GetRolesAsync(user);
@@ -245,125 +235,8 @@ namespace OnlineRestaurant.Services
 
             return jwtSecurityToken;
         }
-        public async Task<AuthModelDto> UpdateAccount(string token, UpdateAccountDto dto)
-        {
-
-            var userId = GetUserId(token);
-            var user = await _userManager.FindByIdAsync(userId);
-            if (!await _userManager.Users.AnyAsync(c => c.Id == userId))
-            {
-                return new AuthModelDto { Message = "لم يتم العثور علي اي مستخدم" };
-            }
-
-            user.UserImgUrl = dto.UserImg==null?user.UserImgUrl:user.UserImgUrl==null?_imgService.Upload(dto.UserImg):_imgService.Update(user.UserImgUrl, dto.UserImg);
-                if (!string.IsNullOrEmpty(user.Message))
-                {
-                    return new AuthModelDto { Message = user.Message };
-                }
-            
-            user.FirstName=dto.FirstName??user.FirstName;
-            user.LastName=dto.LastName??user.LastName;
-            user.UserName = dto.UserName ?? user.UserName;
-            var result= await _userManager.UpdateAsync(user);
-            if (!result.Succeeded)
-            {
-                var errors = "";
-                foreach (var error in result.Errors)
-                {
-                    errors += $"{error.Description}\t";
-                }
-                return new AuthModelDto { Message = errors };
-            }
-            var jwtSecurityToken = await CreateJwtToken(user);
-            var rolelist = await _userManager.GetRolesAsync(user);
-            var authModel = new AuthModelDto();
-            authModel.Email = user.Email;
-            authModel.ExpiresOn = jwtSecurityToken.ValidTo;
-            authModel.IsAuthenticated = true;
-            authModel.Roles = rolelist.ToList();
-            authModel.Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
-            authModel.UserName = user.UserName;
-            authModel.UserImgUrl = user.UserImgUrl == null ? null : Path.Combine("https://localhost:7166", "images", user.UserImgUrl);
-            authModel.FirstName = user.FirstName;
-            authModel.LastName=user.LastName;
-            return authModel;
-
-        }
-
-        public async Task<string> DeleteAccountAsync (string token)
-        {
-
-            var userid = GetUserId(token);
-            if (string.IsNullOrEmpty(userid) || !await _userManager.Users.AnyAsync(c => c.Id == userid))
-            {
-                return "لم يتم العثور علي اي مستخدم";
-            }
-            var user= await _userManager.FindByIdAsync(userid);
-            if (user.UserImgUrl != null)
-                _imgService.Delete(user.UserImgUrl);
-            var result= await _userManager.DeleteAsync(user);
-            if (!result.Succeeded)
-            {
-                var errors = "";
-                foreach (var error in result.Errors)
-                {
-                    errors += $"{error.Description}\t";
-                }
-                return  errors ;
-            }
-            return string.Empty ;
-        }
-        public async Task<string> UpdatePassword(string token,UpdatePasswordDto dto)
-        {
-            
-            var userid=GetUserId(token);
-            
-            if (string.IsNullOrEmpty(userid)||!await _userManager.Users.AnyAsync(c => c.Id == userid))
-            {
-                return  "لم يتم العثور علي اي مستخدم" ;
-            }
-            var user = await _userManager.FindByIdAsync(userid);
-            if (!await _userManager.CheckPasswordAsync(user, dto.OldPassword)) 
-            { 
-                return  "كلمه السر غير صحيحه" ;
-            }
-           var result= await _userManager.ChangePasswordAsync(user, dto.OldPassword, dto.Password);
-            if (!result.Succeeded)
-            {
-                var errors = "";
-                foreach (var error in result.Errors)
-                {
-                    errors += $"{error.Description}";
-                }
-                return errors;
-            }
-            await _signInManager.RefreshSignInAsync(user);
-            return string.Empty;
-            
-        }
-        public async Task<string> DeleteUserImage(string token)
-        {
-           var userid= GetUserId(token);
-            if(string.IsNullOrEmpty(userid) || !await _userManager.Users.AnyAsync(c => c.Id == userid))
-            {
-                return "لم يتم العثور علي اي مستخدم";
-            }
-            var user=await _userManager.FindByIdAsync(userid);
-            if(user.UserImgUrl!=null)
-                _imgService.Delete(user.UserImgUrl);
-            user.UserImgUrl = null;
-            var result = await _userManager.UpdateAsync(user);
-            if (!result.Succeeded)
-            {
-                var errors = "";
-                foreach (var error in result.Errors)
-                {
-                    errors += $"{error.Description}\t";
-                }
-                return $"{errors}" ;
-            }
-            return string.Empty;
-        }
+       
+       
         public async Task<AuthModelDto> GmailRegisterAsync(GmailRegisterDto registermodel)
         {
             var user = await _userManager.FindByEmailAsync(registermodel.Email);
@@ -371,7 +244,7 @@ namespace OnlineRestaurant.Services
             {
                 
                     if (registermodel.FirstName != user.FirstName ||
-                   registermodel.LastName != user.LastName ||
+                    registermodel.LastName != user.LastName ||
                     registermodel.UserName != user.UserName ||
                     registermodel.UserImgUrl != user.UserImgUrl)
                     {
@@ -387,36 +260,31 @@ namespace OnlineRestaurant.Services
                 
                 var authModel = new AuthModelDto();
                 var jwtSecurityToken = await CreateJwtToken(user);
-                var rolelist = await _userManager.GetRolesAsync(user);
+                var roleList = await _userManager.GetRolesAsync(user);
                 authModel.Email = user.Email;
                 authModel.ExpiresOn = jwtSecurityToken.ValidTo;
                 authModel.IsAuthenticated = true;
-                authModel.Roles = rolelist.ToList();
+                authModel.Roles = roleList.ToList();
                 authModel.Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
                 authModel.UserName = user.UserName;
                 authModel.UserImgUrl = user.UserImgUrl;
                 authModel.FirstName = user.FirstName;
                 authModel.LastName = user.LastName;
-
-
                 return authModel;
             }
             else 
             {
                 user = _mapper.Map<ApplicationUser>(registermodel);
-                
                 await _userManager.CreateAsync(user);
-               
-            
                 await _userManager.AddToRoleAsync(user, "User");
                 var jwtSecurityToken = await CreateJwtToken(user);
-                var UserWishList = new WishList
+                var userWishList = new WishList
                 {
                     UserId = user.Id
                 };
-                await _context.wishLists.AddAsync(UserWishList);
-               await _context.SaveChangesAsync();
-                var authmodel = new AuthModelDto
+                await _context.wishLists.AddAsync(userWishList);
+                await _context.SaveChangesAsync();
+                var authModel = new AuthModelDto
                 {
                     Email = user.Email,
                     ExpiresOn = jwtSecurityToken.ValidTo,
@@ -430,83 +298,17 @@ namespace OnlineRestaurant.Services
                     
                 };
 
-                return authmodel;
+                return authModel;
             }
             
-            
         }
-
         public string GetUserId(string token)
         {
-            var tokenhandler = new JwtSecurityTokenHandler();
-            var jwttoken = tokenhandler.ReadJwtToken(token) as JwtSecurityToken;
-            var userid = jwttoken.Claims.FirstOrDefault(c => c.Type == "uid")?.Value;
-            return userid;
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var jwtToken = tokenHandler.ReadJwtToken(token) as JwtSecurityToken;
+            var userId = jwtToken.Claims.FirstOrDefault(c => c.Type == "uid")?.Value;
+            return userId;
         }
-        public IEnumerable<UserView> SearchForUserByName(SearchForUserByName searchForUser)
-        {
-            var users = _context.Users.Where(c => c.UserName.Contains(searchForUser.UserName.ToLower().Trim())).Paginate(searchForUser.Page, searchForUser.Size).Select(u => new UserView
-            {
-                UserId = u.Id,
-                UserImgUrl = u.UserImgUrl == null ? null : u.UserImgUrl.Contains("googleusercontent") ? u.UserImgUrl : Path.Combine("https://localhost:7166", "images", u.UserImgUrl),
-                UserName = u.UserName
-
-            }).ToList();
-            if(!users.Any())
-                return Enumerable.Empty<UserView>();
-            var rolesviews = _context.UserRoles.GroupBy(c => c.UserId).Select(r => new RolesView { UserId = r.Key, Roles = r.Select(c => c.RoleId).ToList(), RoleName = null }).ToList();
-            for (int i = 0; i < rolesviews.Count; i++)
-            {
-                if (rolesviews[i].Roles.Count == 1)
-                {
-                    rolesviews[i].RoleName = "User";
-                }
-                else
-                {
-                    rolesviews[i].RoleName = "Admin";
-                }
-
-            }
-            foreach (var user in users)
-            {
-                var userroles = rolesviews.SingleOrDefault(r => r.UserId == user.UserId);
-                if (userroles != null)
-                    user.Role = userroles.RoleName;
-            }
-            return users;
-        }
-        public IEnumerable<UserView> GetAllUsersAsync(PaginateDto dto)
-        {
-            var rolesviews = _context.UserRoles.GroupBy(c=>c.UserId).Select(r => new RolesView { UserId=r.Key, Roles =r.Select(c=>c.RoleId).ToList(),RoleName=null}).ToList();
-            for (int i =0; i<rolesviews.Count;i++ )
-            {
-                if (rolesviews[i].Roles.Count == 1)
-                {
-                    rolesviews[i].RoleName = "User";
-                }
-                else
-                {
-                    rolesviews[i].RoleName = "Admin";
-                }
-                    
-                
-            }
-            var users = _userManager.Users.Paginate(dto.Page, dto.Size).Select(u=>new UserView
-            {
-                UserId=u.Id,
-                UserImgUrl =u.UserImgUrl==null?null:u.UserImgUrl.Contains("googleusercontent")?u.UserImgUrl: Path.Combine("https://localhost:7166", "images", u.UserImgUrl),
-                UserName=u.UserName
-                
-            }).ToList();
-            foreach (var user in users)
-            {
-                var userroles =rolesviews.SingleOrDefault(r => r.UserId == user.UserId);
-                if (userroles != null)
-                    user.Role= userroles.RoleName;
-            }
-            return users;
-        }
-
         private string GenerateRandomCode()
         {
             const string characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -515,19 +317,13 @@ namespace OnlineRestaurant.Services
 
             Random random = new Random();
             char[] code = new char[codeLength];
-
-          
             code[0] = characters[random.Next(characters.Length)];
-
-            
             code[1] = numbers[random.Next(numbers.Length)];
-
            
             for (int i = 2; i < codeLength; i++)
             {
                 code[i] = characters[random.Next(characters.Length)];
             }
-
             
             for (int i = 0; i < codeLength; i++)
             {

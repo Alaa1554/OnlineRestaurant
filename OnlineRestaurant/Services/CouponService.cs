@@ -21,7 +21,7 @@ namespace OnlineRestaurant.Services
         public async Task<Coupon> CreateCouponAsync(CouponDto coupon)
         {
             if( _context.Coupons.AsEnumerable().Any(c=> c.CouponCode.Equals(coupon.CouponCode.Trim(), StringComparison.Ordinal)))
-                return new Coupon();
+                return new Coupon { Message = "الكوبون لا يمكن ان يتكرر" };
             var newCoupon=_mapper.Map<Coupon>(coupon);
             await _context.AddAsync(newCoupon);
             await _context.SaveChangesAsync();
@@ -32,7 +32,7 @@ namespace OnlineRestaurant.Services
         {
             var coupon=await _context.Coupons.SingleOrDefaultAsync(c=>c.Id==couponId);
             if(coupon==null)
-                return new Coupon();
+                return new Coupon { Message = "لم يتم العثور علي اي كوبون" };
             _context.Remove(coupon);
             await _context.SaveChangesAsync();
             return coupon;
@@ -51,18 +51,17 @@ namespace OnlineRestaurant.Services
             return coupon.DiscountPercentage;
         }
 
-        public async Task<Coupon> UpdateCouponAsync(int id,UpdateCouponDto updateCoupon)
+        public async Task<Coupon> UpdateCouponAsync(int id,CouponDto dto)
         {
             var coupon = await _context.Coupons.SingleOrDefaultAsync(c => c.Id == id);
             if (coupon == null)
-                return new Coupon();
-            if (updateCoupon.CouponCode != null)
+                return new Coupon { Message="لم يتم العثور علي اي كوبون"};
+            if(dto.CouponCode.Trim() != coupon.CouponCode)
             {
-                if ( _context.Coupons.AsEnumerable().Any(c => c.CouponCode.Equals(updateCoupon.CouponCode.Trim(), StringComparison.Ordinal))&&updateCoupon.CouponCode.Trim()!=coupon.CouponCode)
-                    return new Coupon { CouponCode = "الكوبون لا يمكن ان يتكرر" };
-                coupon.CouponCode = updateCoupon.CouponCode.Trim();
+                if (_context.Coupons.AsEnumerable().Any(c => c.CouponCode.Equals(dto.CouponCode.Trim(), StringComparison.Ordinal)))
+                    return new Coupon { Message = "الكوبون لا يمكن ان يتكرر" };
             }
-            coupon.DiscountPercentage=updateCoupon.DiscountPercentage??coupon.DiscountPercentage;
+            _mapper.Map(dto, coupon);    
             await _context.SaveChangesAsync();
             return coupon;
         }

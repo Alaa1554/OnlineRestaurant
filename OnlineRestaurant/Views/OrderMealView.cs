@@ -2,7 +2,7 @@
 {
     public class OrderMealView
     {
-        public int Id { get; set; }
+        public int MealId { get; set; }
         public string MealName { get; set; }
         public string Addition { get; set;}
         public int Amount { get; set; }

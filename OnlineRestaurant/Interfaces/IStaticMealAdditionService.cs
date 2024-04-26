@@ -6,11 +6,10 @@ namespace OnlineRestaurant.Interfaces
 {
     public interface IStaticMealAdditionService
     {
-        Task<StaticMealAddition> GetMealAdditionByIdAsync(int id);
         Task<StaticMealAdditionView> CreateMealAddition(StaticMealAddition Dto);
-        Task<StaticMealAdditionView> UpdateMealAdditionAsync(StaticMealAddition mealAddition, UpdateStaticMealAdditionDto dto);
-        Task<StaticMealAdditionView> DeleteMealAddition(StaticMealAddition mealAddition);
+        Task<StaticMealAdditionView> UpdateMealAdditionAsync(int id, UpdateStaticMealAdditionDto dto);
+        Task<StaticMealAdditionView> DeleteMealAddition(int id);
         IEnumerable<StaticMealAdditionView> GetAllAdditions(PaginateDto dto);
-        
+        Task<StaticMealAdditionView> GetMealAdditionByIdAsync(int id);
     }
 }

@@ -29,9 +29,8 @@ namespace OnlineRestaurant.Controllers
         {
             var addresses = await _addressService.GetAddressesAsync(token,paginate);
             if(addresses==null)
-            {
                 return BadRequest("No User is Found");
-            }
+            
             bool nextPage = false;
             if (addresses.Count() > paginate.Size)
             {
@@ -47,45 +46,32 @@ namespace OnlineRestaurant.Controllers
         [HttpPost]
         public async Task<IActionResult> AddAddressAsync([FromHeader] string token,[FromBody] Address dto)
         {
-            var Address = await _addressService.CreateAddressAsync(token, dto);
-            if (!string.IsNullOrEmpty(Address.Message))
-            {
-                return BadRequest(Address.Message);
-            }
-            var Message = "تم اضافه العنوان بنجاح";
-            return Ok(new { Address, Message });
-
-
+            var address = await _addressService.CreateAddressAsync(token, dto);
+            if (!string.IsNullOrEmpty(address.Message))
+                return BadRequest(address.Message);
+            
+            var message = "تم اضافه العنوان بنجاح";
+            return Ok(new { address, message });
         }
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateAddressAsync(int id, [FromBody] UpdateAddressDto dto)
         {
-            var getaddress = await _addressService.GetAddressByIdAsync(id);
-
-            if (!string.IsNullOrEmpty(getaddress.Message))
-            {
-                return NotFound(getaddress.Message);
-            }
-
-            var UpdatedData = await _addressService.UpdateAddressAsync(getaddress, dto);
-            if (!string.IsNullOrEmpty(UpdatedData.Message))
-            {
-                return BadRequest(UpdatedData.Message);
-            }
-            var Message = "تم تعديل العنوان بنجاح";
-            return Ok(new { UpdatedData, Message });
+            var result = await _addressService.UpdateAddressAsync(id, dto);
+            if (!string.IsNullOrEmpty(result.Message))
+                return BadRequest(result.Message);
+            
+            var message = "تم تعديل العنوان بنجاح";
+            return Ok(new { result, message });
         }
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAddress(int id)
         {
-            var address = await _addressService.GetAddressByIdAsync(id);
-            if (!string.IsNullOrEmpty(address.Message))
-            {
-                return NotFound(address.Message);
-            }
-            var DeletedData =await _addressService.DeleteAddress(address);
-            var Message = "تم حذف العنوان بنجاح";
-            return Ok(new { DeletedData, Message });
+            var result =await _addressService.DeleteAddress(id);
+            if (!string.IsNullOrEmpty(result.Message))
+                return NotFound(result.Message);
+            
+            var message = "تم حذف العنوان بنجاح";
+            return Ok(new { result, message });
         }
     }
 }

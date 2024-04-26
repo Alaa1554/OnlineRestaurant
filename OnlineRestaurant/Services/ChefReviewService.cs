@@ -7,7 +7,6 @@ using OnlineRestaurant.Helpers;
 using OnlineRestaurant.Interfaces;
 using OnlineRestaurant.Models;
 using OnlineRestaurant.Views;
-using System.IdentityModel.Tokens.Jwt;
 
 namespace OnlineRestaurant.Services
 {
@@ -15,29 +14,24 @@ namespace OnlineRestaurant.Services
      {
          private readonly ApplicationDbContext _context;
          private readonly UserManager<ApplicationUser> _userManager;
-        private readonly IMapper _mapper;
-        public ChefReviewService(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IMapper mapper)
+         private readonly IMapper _mapper;
+         private readonly IAuthService _authService;
+        public ChefReviewService(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IMapper mapper, IAuthService authService)
 
         {
             _context = context;
             _userManager = userManager;
             _mapper = mapper;
+            _authService = authService;
         }
 
         public async Task<ChefReviewView> CreateReview(string token,ChefReview review)
          {
-             var errormessages = ValidateHelper<ChefReview>.Validate(review);
-             if (!string.IsNullOrEmpty(errormessages))
-             {
-                 return new ChefReviewView { Message = errormessages };
-             }
+            
             if (!await _context.Chefs.AnyAsync(chef => chef.Id == review.ChefId))
                 return new ChefReviewView { Message = $"There is no Chef with Id : {review.ChefId}!" };
 
-            var tokenHandler = new JwtSecurityTokenHandler();
-             var jwtToken = tokenHandler.ReadJwtToken(token) as JwtSecurityToken;
-
-             var userId = jwtToken.Claims.FirstOrDefault(c => c.Type == "uid")?.Value;
+            var userId = _authService.GetUserId(token);
             if (!await _userManager.Users.AnyAsync(c => c.Id == userId))
             {
                 return new ChefReviewView { Message = "No User is Found!" };
@@ -47,7 +41,7 @@ namespace OnlineRestaurant.Services
             {
                 return new ChefReviewView { Message = "You Already Have a Review" };
             }
-            var Review = new ChefReview
+            var newReview = new ChefReview
              {
                  UserName = user.UserName,
                  CreatedDate = DateTime.UtcNow,
@@ -57,10 +51,10 @@ namespace OnlineRestaurant.Services
                  Rate = review.Rate,
                  UserImg= user.UserImgUrl == null ? null : Path.Combine("https://localhost:7166", "images", user.UserImgUrl)
             };
-            var view = _mapper.Map<ChefReviewView>(Review);
-             await _context.ChefReviews.AddAsync(Review);
+             var view = _mapper.Map<ChefReviewView>(newReview);
+             await _context.ChefReviews.AddAsync(newReview);
              _context.SaveChanges();
-            view.Id= Review.Id;
+             view.Id= newReview.Id;
              return view;
          }
 
@@ -68,36 +62,31 @@ namespace OnlineRestaurant.Services
          {
              _context.ChefReviews.Remove(review);
              _context.SaveChanges();
-            var view = _mapper.Map<ChefReviewView>(review); 
-            
+             var view = _mapper.Map<ChefReviewView>(review); 
              return view;
          }
 
          public async Task<ChefReview> GetReviewByIdAsync(int id)
          {
-             var Review = await _context.ChefReviews.FirstOrDefaultAsync(c => c.Id == id);
-             if (Review == null)
+             var review = await _context.ChefReviews.FirstOrDefaultAsync(c => c.Id == id);
+             if (review == null)
                  return new ChefReview { Message = $"There is No Comment With Id:{id}" };
-             return Review;
+             return review;
 
          }
 
          public IEnumerable<ChefReviewView> GetReviews(int id, PaginateDto dto)
          {
-             var Reviews = _context.ChefReviews.Where(c=>c.ChefId==id).Paginate(dto.Page,dto.Size).ToList();
-             var views=_mapper.Map<IEnumerable<ChefReviewView>>(Reviews);
-            
+             var reviews = _context.ChefReviews.Where(c=>c.ChefId==id).Paginate(dto.Page,dto.Size).ToList();
+             var views=_mapper.Map<IEnumerable<ChefReviewView>>(reviews);
              return views;
          }
 
          public ChefReviewView UpdateReviewAsync(ChefReview review, UpdateReviewDto dto)
          {
-             review.Text = dto.Text ?? review.Text;
-            review.Rate = dto.Rate ?? review.Rate;
-             _context.Update(review);
-                _context.SaveChanges();
-            var view=_mapper.Map<ChefReviewView>(review);
-            
+            _mapper.Map(dto, review);
+            _context.SaveChanges();
+             var view=_mapper.Map<ChefReviewView>(review);
              return view;
          }
      }

@@ -1,5 +1,4 @@
-﻿
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OnlineRestaurant.Data;
 using OnlineRestaurant.Dtos;
@@ -25,60 +24,52 @@ namespace OnlineRestaurant.Controllers
         public async Task<IActionResult> GetAllAsync(int id,[FromQuery] PaginateDto paginate)
         {
 
-            var Reviews = _mealReviewService.GetReviews(id, paginate);
+            var reviews = _mealReviewService.GetReviews(id, paginate);
             bool nextPage = false;
-            if (Reviews.Count() > paginate.Size)
+            if (reviews.Count() > paginate.Size)
             {
-                Reviews = Reviews.Take(Reviews.Count() - 1);
+                reviews = reviews.Take(reviews.Count() - 1);
                 nextPage = true;
             }
             var numOfMealReviews = await _context.MealReviews.CountAsync(c => c.MealId == id);
             var numOfPages = (int)Math.Ceiling((decimal)numOfMealReviews / paginate.Size);
-            return Ok(new { Reviews = Reviews, NextPage = nextPage, NumOfPages = numOfPages });
+            return Ok(new { Reviews = reviews, NextPage = nextPage, NumOfPages = numOfPages });
         }
         [HttpPost]
 
-        public async Task<IActionResult> CreateReviewAsync([FromHeader] string token,[FromBody] MealReview review)
+        public async Task<IActionResult> CreateReviewAsync([FromHeader] string token,[FromBody] MealReview dto)
         {
-
-            var Review = await _mealReviewService.CreateReview(token,review);
-            if (!string.IsNullOrEmpty(Review.Message))
+            var review = await _mealReviewService.CreateReview(token,dto);
+            if (!string.IsNullOrEmpty(review.Message))
             {
-                return BadRequest(Review.Message);
+                return BadRequest(review.Message);
             }
-            var Message = "تم اضافه تعليقك بنجاح";
-            return Ok(new { Review, Message });
+            var message = "تم اضافه تعليقك بنجاح";
+            return Ok(new { review, message });
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateReviewAsync(int id, [FromBody] UpdateReviewDto dto)
         {
-            var GetReview = await _mealReviewService.GetReviewByIdAsync(id);
-
-            if (!string.IsNullOrEmpty(GetReview.Message))
+            var result = await _mealReviewService.UpdateReviewAsync(id, dto);
+            if (!string.IsNullOrEmpty(result.Message))
             {
-                return NotFound(GetReview.Message);
+                return NotFound(result.Message);
             }
-
-            var UpdatedData = await _mealReviewService.UpdateReviewAsync(GetReview, dto);
-            
-            var Message = "تم تعديل تعليقك بنجاح";
-            return Ok(new { UpdatedData, Message });
+            var message = "تم تعديل تعليقك بنجاح";
+            return Ok(new { result, message });
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteReviewAsync(int id)
         {
-
-            var GetReview = await _mealReviewService.GetReviewByIdAsync(id);
-
-            if (!string.IsNullOrEmpty(GetReview.Message))
+            var deletedData = await _mealReviewService.DeleteReviewAsync(id);
+            if (!string.IsNullOrEmpty(deletedData.Message))
             {
-                return NotFound(GetReview.Message);
+                return NotFound(deletedData.Message);
             }
-            var DeletedData = await _mealReviewService.DeleteReviewAsync(GetReview);
-            var Message = "تم حذف تعليقك بنجاح";
-            return Ok(new { DeletedData, Message });
+            var message = "تم حذف تعليقك بنجاح";
+            return Ok(new { deletedData, message });
         }
     }
 }

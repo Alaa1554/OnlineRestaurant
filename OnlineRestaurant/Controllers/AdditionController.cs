@@ -1,5 +1,4 @@
-﻿
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OnlineRestaurant.Data;
 using OnlineRestaurant.Dtos;
@@ -25,83 +24,63 @@ namespace OnlineRestaurant.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetAllAdditionAsync(int id, [FromQuery] PaginateDto paginate)
         {
-            if (!_context.Meals.Any(m => m.Id == id))
-            {
-                return NotFound("لم يتم العثور علي اي وجبه");
-            }
-            var Additions = _additionService.GetMealAdditions(id, paginate);
-
+            var additions = _additionService.GetMealAdditions(id, paginate);
+            if(additions.Any(a=>a.Message!=null))
+                return NotFound(additions.First().Message);
             bool nextPage = false;
-            if (Additions.Count() > paginate.Size)
+            if (additions.Count() > paginate.Size)
             {
-                Additions = Additions.Take(Additions.Count()-1);
+                additions = additions.Take(additions.Count()-1);
                 nextPage = true;
             }
             var numOfAdditions=await _context.MealAdditions.CountAsync(c=>c.Id==id);
             var numOfPages= (int)Math.Ceiling((decimal)numOfAdditions /paginate.Size);
-            return Ok(new {Additions = Additions, NextPage = nextPage, NumOfPages = numOfPages });
+            return Ok(new {Additions = additions, NextPage = nextPage, NumOfPages = numOfPages });
         }
         [HttpPost]
         public async Task<IActionResult> CreateAdditionAsync([FromBody] MealAddition Dto)
         {
-            var Addition = await _additionService.CreateMealAddition(Dto);
-            if (!string.IsNullOrEmpty(Addition.Message))
-            {
-                return BadRequest(Addition.Message);
-            }
-            var Message = "تم اضافه الاضافه بنجاح";
-            return Ok(new { Addition, Message });
+            var addition = await _additionService.CreateMealAddition(Dto);
+            if (!string.IsNullOrEmpty(addition.Message))
+                return BadRequest(addition.Message);
+            var message = "تم اضافه الاضافه بنجاح";
+            return Ok(new { addition, message });
 
         }
-        [HttpPut("{id}/{choiceid?}")]
-        public async Task<IActionResult> UpdateAdditionAsync(int id, [FromBody] UpdateMealAdditionDto dto, int? choiceid)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateAdditionAsync(int id, [FromBody] UpdateMealAdditionDto dto)
         {
-            var getaddition = await _additionService.GetMealAdditionByIdAsync(id);
-
-            if (!string.IsNullOrEmpty(getaddition.Message))
-            {
-                return NotFound(getaddition.Message);
-            }
-
-            var UpdatedData = await _additionService.UpdateMealAdditionAsync(getaddition, dto, choiceid);
-            if (!string.IsNullOrEmpty(UpdatedData.Message))
-            {
-                return BadRequest(UpdatedData.Message);
-            }
-            var Message = "تم تعديل الاضافه بنجاح";
-            return Ok(new { UpdatedData, Message });
+            var result = await _additionService.UpdateMealAdditionAsync(id, dto);
+            if (!string.IsNullOrEmpty(result.Message))
+                return NotFound(result.Message);
+            var message = "تم تعديل الاضافه بنجاح";
+            return Ok(new { result, message });
         }
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAddition(int id)
         {
-            var getaddition = await _additionService.GetMealAdditionByIdAsync(id);
+            var deletedData = await _additionService.DeleteMealAddition(id);
+            if (!string.IsNullOrEmpty(deletedData.Message))
+                return NotFound(deletedData.Message);
 
-            if (!string.IsNullOrEmpty(getaddition.Message))
-            {
-                return NotFound(getaddition.Message);
-            }
-            var DeletedData = await _additionService.DeleteMealAddition(getaddition);
-            var Message = "تم حذف الاضافه بنجاح";
-            return Ok(new { DeletedData, Message });
+            var message = "تم حذف الاضافه بنجاح";
+            return Ok(new { deletedData, message });
         }
-        [HttpDelete("DeleteChoice/{additionid}/{choiceid}")]
-        public async Task<IActionResult> DeleteChoiceAsync(int additionid, int choiceid)
+        [HttpDelete("DeleteChoice/{choiceid}")]
+        public async Task<IActionResult> DeleteChoiceAsync(int choiceid)
         {
-            var Message = await _additionService.DeleteChoiceAsync(additionid, choiceid);
-            if (!string.IsNullOrEmpty(Message))
-            {
-                return NotFound(Message);
-            }
+            var result = await _additionService.DeleteChoiceAsync(choiceid);
+            if (!string.IsNullOrEmpty(result))
+                return NotFound(result);
             return Ok("تم حذف الاختيار بنجاح");
         }
-        [HttpPost("AddChoice/{AdditionId}")]
-        public async Task<IActionResult> AddChoiceAsync(int AdditionId, [FromBody] Choice choice)
+        [HttpPost("AddChoice")]
+        public async Task<IActionResult> AddChoiceAsync([FromBody] Choice choice)
         {
-            var Message=await _additionService.AddChoiceAsync(AdditionId, choice);
-            if (!string.IsNullOrEmpty(Message))
-            {
-                return NotFound(Message);
-            }
+            var result=await _additionService.AddChoiceAsync(choice);
+            if (!string.IsNullOrEmpty(result))
+                return NotFound(result);
+
             return Ok("تم اضافه الاختيار بنجاح");
         }
         

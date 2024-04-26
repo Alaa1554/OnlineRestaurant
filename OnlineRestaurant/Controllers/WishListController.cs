@@ -1,5 +1,4 @@
-﻿
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OnlineRestaurant.Data;
@@ -29,37 +28,37 @@ namespace OnlineRestaurant.Controllers
         [HttpGet]
        public async Task<IActionResult> GetWishListAsync([FromHeader] string token, [FromQuery] PaginateDto paginate) 
         {
-            var userid=_authService.GetUserId(token);
-            if (!await _userManager.Users.AnyAsync(c => c.Id == userid))
+            var userId=_authService.GetUserId(token);
+            var wishListMeals=await _wishListService.GetWishlistAsync(userId,paginate);
+            if (wishListMeals.WishListId==-1)
             {
-                return BadRequest( "No User is Found!" );
+                return NotFound("No User is Found!");
             }
-            var WishListMeals=await _wishListService.GetWishlistAsync(userid,paginate);
             bool nextPage = false;
-            if (WishListMeals.Count() > paginate.Size)
+            if (wishListMeals.Meals.Count() > paginate.Size)
             {
-                WishListMeals = WishListMeals.Take(WishListMeals.Count()-1);
+                wishListMeals.Meals = wishListMeals.Meals.Take(wishListMeals.Meals.Count()-1);
                 nextPage = true;
             }
-            var wishList=await _context.wishLists.SingleOrDefaultAsync(w=>w.UserId == userid);
+            var wishList=await _context.wishLists.SingleOrDefaultAsync(w=>w.UserId == userId);
             var numOfWishListMeals = await _context.WishListMeals.CountAsync(w=>w.WishListId==wishList.Id);
             var numOfPages =(int) Math.Ceiling((decimal)numOfWishListMeals /paginate.Size);
-            return Ok(new { WishListMeals = WishListMeals, NextPage = nextPage,NumOfPages=numOfPages });
+            return Ok(new { WishListMeals = wishListMeals, NextPage = nextPage,NumOfPages=numOfPages });
         }
         [HttpPost("{mealid}")]
         public async Task<IActionResult> AddToWishListAsync([FromHeader] string token, int mealid)
         {
-            var message=await _wishListService.AddToWishList(token, mealid);
-            if(!string.IsNullOrEmpty(message))
-                return BadRequest(message);
+            var errorMessage = await _wishListService.AddToWishList(token, mealid);
+            if(!string.IsNullOrEmpty(errorMessage))
+                return BadRequest(errorMessage);
             return Ok("تم اضافه الوجبه بنجاح الي المفضله");
         }
         [HttpDelete("{mealid}")]
         public async Task<IActionResult> DeleteFromWishListAsync([FromHeader]string token,int mealid)
         {
-            var message=await _wishListService.RemoveFromWishList(token, mealid);
-            if (!string.IsNullOrEmpty(message))
-                return BadRequest(message);
+            var errorMessage = await _wishListService.RemoveFromWishList(token, mealid);
+            if (!string.IsNullOrEmpty(errorMessage))
+                return NotFound(errorMessage);
             return Ok("تم حذف الوجبه بنجاح من المفضله");
         }
     }

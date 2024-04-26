@@ -26,12 +26,12 @@ namespace OnlineRestaurant.Controllers
             _userManager = userManager;
         }
         [HttpPost]
-        public async Task<IActionResult> AddOrderAsync([FromHeader] string token, [FromBody] OrderDto order)
+        public async Task<IActionResult> AddOrderAsync([FromHeader] string token, [FromBody] OrderDto dto)
         {
-            var orderview = await _orderService.AddOrderAsync(token, order);
-            if(!string.IsNullOrEmpty(orderview.Message))
-                return NotFound(orderview.Message);
-         return Ok(orderview);
+            var order = await _orderService.AddOrderAsync(token, dto);
+            if(!string.IsNullOrEmpty(order.Message))
+                return NotFound(order.Message);
+         return Ok(order);
         }
         [HttpGet("{id}")]
         public async Task<IActionResult> GetOrderByIdAsync(string id)
@@ -46,9 +46,9 @@ namespace OnlineRestaurant.Controllers
         public async Task<IActionResult> GetAllUserOrdersAsync([FromHeader] string token,[FromQuery] PaginateDto paginate)
         {
             var userId = _authService.GetUserId(token);
-            if(!await _userManager.Users.AnyAsync(c => c.Id == userId))
-                return NotFound("No User is Found!");
             var orders = await _orderService.GetAllUserOrders(userId,paginate);
+            if(orders.Any(c=>c.Id=="-1"))
+                return NotFound("No user is found");
             bool nextPage = false;
             if (orders.Count() > paginate.Size)
             {
@@ -76,17 +76,17 @@ namespace OnlineRestaurant.Controllers
         [HttpPut("ChangeOrderStatus")]
         public async Task<IActionResult> ChangeOrderStatusAsync([FromBody] OrderStatusDto orderStatus)
         {
-            var Message = await _orderService.ChangeOrderStatus(orderStatus);
-            if (!string.IsNullOrEmpty(Message))
-                return NotFound(Message);
+            var result = await _orderService.ChangeOrderStatus(orderStatus);
+            if (!string.IsNullOrEmpty(result))
+                return NotFound(result);
             return Ok("تم تغيير حاله الاوردر بنجاح");
         }
         [HttpPost("ConfirmPayment")]
         public async Task<IActionResult> ConfirmPaymentAsync(ConfirmPaymentDto confirmPayment)
         {
-            var Message = await _orderService.ConfirmPayment(confirmPayment);
-            if(!string.IsNullOrEmpty(Message))
-                return NotFound(Message);
+            var result = await _orderService.ConfirmPayment(confirmPayment);
+            if(!string.IsNullOrEmpty(result))
+                return NotFound(result);
             return Ok("تم تاكيد الدفع");
         }
     }

@@ -6,6 +6,7 @@ using OnlineRestaurant.Helpers;
 using OnlineRestaurant.Interfaces;
 using OnlineRestaurant.Models;
 using OnlineRestaurant.Views;
+using System;
 
 namespace OnlineRestaurant.Services
 {
@@ -24,69 +25,45 @@ namespace OnlineRestaurant.Services
 
         public async Task<StaticMealAdditionView> CreateMealAddition(StaticMealAddition Dto)
         {
-            var errormessages = ValidateHelper<StaticMealAddition>.Validate(Dto);
-            if (!string.IsNullOrEmpty(errormessages))
-            {
-                return new StaticMealAdditionView { Message = errormessages };
-            }
-           
-
-            var mealAddition = new StaticMealAddition
-            {
-                Name = Dto.Name,
-                Price = Dto.Price,
-            };
-             mealAddition.AdditionUrl=_imgService.Upload(Dto.AdditionImg);
-             if (!string.IsNullOrEmpty(mealAddition.Message))
-                return new StaticMealAdditionView { Message = mealAddition.Message };
-            await _context.StaticAdditions.AddAsync(mealAddition);
+            Dto.AdditionUrl=_imgService.Upload(Dto.AdditionImg);
+            await _context.StaticAdditions.AddAsync(Dto);
             await _context.SaveChangesAsync();
-            var staticAdditionView = _mapper.Map<StaticMealAdditionView>(mealAddition);
-            return staticAdditionView;
+            return _mapper.Map<StaticMealAdditionView>(Dto);
         }
 
-        public async Task<StaticMealAdditionView> DeleteMealAddition(StaticMealAddition mealAddition)
-        {
+        public async Task<StaticMealAdditionView> DeleteMealAddition(int id)
+        {   var mealAddition= await _context.StaticAdditions.SingleOrDefaultAsync(addition => addition.Id == id); 
+            if (mealAddition == null)
+                return new StaticMealAdditionView { Message = $"There is no Addition with Id :{id}" };
             _imgService.Delete(mealAddition.AdditionUrl);
             _context.Remove(mealAddition);
             await _context.SaveChangesAsync();
-            var staticAdditionView = _mapper.Map<StaticMealAdditionView>(mealAddition);
-            return staticAdditionView;
+            return _mapper.Map<StaticMealAdditionView>(mealAddition);
         }
 
-        public async Task<StaticMealAddition> GetMealAdditionByIdAsync(int id)
+        public async Task<StaticMealAdditionView> GetMealAdditionByIdAsync(int id)
         {
-            var mealaddition = await _context.StaticAdditions.SingleOrDefaultAsync(addition => addition.Id == id);
-            if (mealaddition == null)
-                return new StaticMealAddition { Message = $"There is no Addition with Id :{id}" };
-            return mealaddition;
+            var mealAddition=_mapper.Map<StaticMealAdditionView >( await _context.StaticAdditions.SingleOrDefaultAsync(addition => addition.Id == id));
+            if (mealAddition == null)
+                return new StaticMealAdditionView { Message = $"There is no Addition with Id :{id}" };
+            return mealAddition;
         }
        
 
-        public  async Task<StaticMealAdditionView> UpdateMealAdditionAsync(StaticMealAddition mealAddition, UpdateStaticMealAdditionDto dto)
+        public async Task<StaticMealAdditionView> UpdateMealAdditionAsync(int id, UpdateStaticMealAdditionDto dto)
         {
-            var errormessages = ValidateHelper<UpdateStaticMealAdditionDto>.Validate(dto);
-            if (!string.IsNullOrEmpty(errormessages))
-            {
-                return new StaticMealAdditionView { Message = errormessages };
-            }
-
-            mealAddition.AdditionUrl=dto.AdditionImg==null?mealAddition.AdditionUrl:_imgService.Update(mealAddition.AdditionUrl, dto.AdditionImg);
-            if (!string.IsNullOrEmpty(mealAddition.Message))
-                return new StaticMealAdditionView { Message = mealAddition.Message };
-            mealAddition.Name = dto.Name ?? mealAddition.Name;
-            mealAddition.Price = dto.Price ?? mealAddition.Price;
-            _context.Update(mealAddition);
+            var mealAddition = await _context.StaticAdditions.SingleOrDefaultAsync(addition => addition.Id == id);
+            if (mealAddition == null)
+                return new StaticMealAdditionView { Message = $"There is no Addition with Id :{id}" };
+            _mapper.Map(dto,mealAddition);
+            mealAddition.AdditionUrl=_imgService.Update(mealAddition.AdditionUrl, dto.AdditionImg);
             await _context.SaveChangesAsync();
-            var staticAdditionView = _mapper.Map<StaticMealAdditionView>(mealAddition);
-            return staticAdditionView;
+            return _mapper.Map<StaticMealAdditionView>(mealAddition);
         }
 
         public IEnumerable<StaticMealAdditionView> GetAllAdditions(PaginateDto dto)
         {
-            var Additions = _context.StaticAdditions.Paginate(dto.Page, dto.Size).ToList();
-            var staticAdditionsView = _mapper.Map<IEnumerable<StaticMealAdditionView>>(Additions);
-            return staticAdditionsView;
+            return _mapper.Map<IEnumerable<StaticMealAdditionView>>(_context.StaticAdditions.Paginate(dto.Page, dto.Size));
         }
     }
 }

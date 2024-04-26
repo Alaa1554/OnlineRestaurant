@@ -35,11 +35,11 @@ namespace OnlineRestaurant.Services
             if (image == null)
                 return "Noimg.jpg";
             var uploadPath = Path.Combine(_webHostEnvironment.WebRootPath, "Images");
-            var ImageName = Guid.NewGuid().ToString() + "_" + image.FileName;
-            var ImagePath = Path.Combine(uploadPath, ImageName);
-            using var fileStream = new FileStream(ImagePath, FileMode.Create);
+            var imageName = Guid.NewGuid().ToString() + "_" + image.FileName;
+            var imagePath = Path.Combine(uploadPath, imageName);
+            using var fileStream = new FileStream(imagePath, FileMode.Create);
             image.CopyTo(fileStream);
-            return ImageName;
+            return imageName;
         }
     }
 }

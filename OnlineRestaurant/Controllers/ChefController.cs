@@ -1,5 +1,4 @@
-﻿
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OnlineRestaurant.Data;
 using OnlineRestaurant.Dtos;
@@ -22,11 +21,9 @@ namespace OnlineRestaurant.Controllers
             _context = context;
         }
 
-
         [HttpGet("GetAllChefs")]
         public async Task<IActionResult> GetAllChefsAsync([FromQuery]PaginateDto paginate)
         {
-
             var chefs = _chefService.GetChefs(paginate);
             bool nextPage = false;
             if (chefs.Count() > paginate.Size)
@@ -39,71 +36,49 @@ namespace OnlineRestaurant.Controllers
             return Ok(new { Chefs = chefs, NextPage = nextPage,NumOfPages=numOfPages });
         }
         [HttpGet("GetChefsByCategoryId/{id}")]
-        public async Task<IActionResult> GetChefsByCategoryIdAsync(int id,[FromQuery] PaginateDto paginate) 
+        public IActionResult GetChefsByCategoryIdAsync(int id,[FromQuery] PaginateDto paginate) 
         {
-            var chefs = await _chefService.GetChefsByCategoryIdAsync(id,paginate);
-            return Ok(chefs);
+            return Ok(_chefService.GetChefsByCategoryIdAsync(id, paginate));
         }
         [HttpGet("{id}")]
         public async Task<IActionResult> GetChefByIdAsync(int id)
         {
             var chef = await _chefService.GetChefByIdAsync(id);
-            if(!string.IsNullOrEmpty(chef.Message))
-                return NotFound(chef.Message);
-            chef.ChefImgUrl = Path.Combine("https://localhost:7166", "images", chef.ChefImgUrl);
+            if(chef==null)
+                return NotFound($"No Chef is found with Id :{id}");
             return Ok(chef);
         }
         [HttpPost]
-       
         public async Task<IActionResult> CreateChefAsync([FromForm] Chef dto)
         {
-            
-           var Chef = await _chefService.CreateChef(dto);
-            if (!string.IsNullOrEmpty(Chef.Message))
-            {
-                return BadRequest(Chef.Message);
-            }
-            var Message = "تم اضافه الشيف بنجاح";
-            return Ok(new { Chef, Message });
-            
+           var chef = await _chefService.CreateChef(dto);
+            if (!string.IsNullOrEmpty(chef.Message))
+                return BadRequest(chef.Message);
+
+            var message = "تم اضافه الشيف بنجاح";
+            return Ok(new { chef, message });
         }
         
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateChefAsync(int id, [FromForm] UpdateChefDto chef)
+        public async Task<IActionResult> UpdateChefAsync(int id, [FromForm] UpdateChefDto dto)
         {
-            var getchef = await _chefService.GetChefByIdAsync(id);
+            var result = await _chefService.UpdateChefAsync(id, dto);
+            if (!string.IsNullOrEmpty(result.Message))
+                return NotFound(result.Message);
 
-            if (!string.IsNullOrEmpty(getchef.Message))
-            {
-                return NotFound(getchef.Message);
-            }
-
-            var UpdatedData = await _chefService.UpdateChefAsync(getchef, chef);
-            if (!string.IsNullOrEmpty(UpdatedData.Message))
-            {
-                return BadRequest(UpdatedData.Message);
-            }
-            var Message = "تم تعديل الشيف  بنجاح";
-            return Ok(new { UpdatedData, Message });
+            var message = "تم تعديل الشيف  بنجاح";
+            return Ok(new { result, message });
         }
         
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteChefAsync(int id)
         {
-            
-            var chef = await _chefService.GetChefByIdAsync(id);
+            var deletedData =await _chefService.DeleteChefAsync(id);
+            if (!string.IsNullOrEmpty(deletedData.Message))
+                return BadRequest(deletedData.Message);
 
-            if (!string.IsNullOrEmpty(chef.Message))
-            {
-                return NotFound(chef.Message);
-            }
-            var DeletedData =await _chefService.DeleteChefAsync(chef);
-            if (!string.IsNullOrEmpty(DeletedData.Message))
-            {
-                return BadRequest(DeletedData.Message);
-            }
-            var Message = "تم حذف الشيف بنجاح";
-            return Ok(new { DeletedData, Message });
+            var message = "تم حذف الشيف بنجاح";
+            return Ok(new { deletedData, message });
         }
     }
 }

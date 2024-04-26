@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using OnlineRestaurant.Data;
 using OnlineRestaurant.Dtos;
@@ -6,102 +7,69 @@ using OnlineRestaurant.Helpers;
 using OnlineRestaurant.Interfaces;
 using OnlineRestaurant.Models;
 
-using System.IdentityModel.Tokens.Jwt;
-
 namespace OnlineRestaurant.Services
 {
     public class AddressService : IAddressService
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IAuthService _authService;
+        private readonly IMapper _mapper;
 
-        public AddressService(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+        public AddressService(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IAuthService authService, IMapper mapper)
         {
             _context = context;
             _userManager = userManager;
+            _authService = authService;
+            _mapper = mapper;
         }
 
         public async Task<Address> CreateAddressAsync(string token,Address address)
         {
-            var errormessages = ValidateHelper<Address>.Validate(address);
-            if (!string.IsNullOrEmpty(errormessages))
-            {
-                return new Address { Message = errormessages };
-            }
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var jwtToken = tokenHandler.ReadJwtToken(token) as JwtSecurityToken;
-
-            var userId = jwtToken.Claims.FirstOrDefault(c => c.Type == "uid")?.Value;
-            
+            var userId = _authService.GetUserId(token);
+            address.UserId = userId;
             if (!await _userManager.Users.AnyAsync(c => c.Id == userId))
-            {
                 return new Address { Message = "No User is Found!" };
-            }
             
-
-            var Address = new Address
-            {
-                DepartmentNum=address.DepartmentNum,
-                City=address.City,
-                PhoneNumber=address.PhoneNumber,
-                Street=address.Street,
-                UserId=userId,
-            };
-            
-            await _context.AddAsync(Address);
-           await _context.SaveChangesAsync();
-            return Address;
-
-        }
-
-        public async Task<Address> DeleteAddress(Address address)
-        {
-            _context.Remove(address);
-           await _context.SaveChangesAsync();
+            await _context.AddAsync(address);
+            await _context.SaveChangesAsync();
             return address;
+
         }
 
-        public async Task<Address> GetAddressByIdAsync(int id)
+        public async Task<Address> DeleteAddress(int id)
         {
-            var address = await _context.Addresses.SingleOrDefaultAsync(a => a.Id == id);
+            var address = await GetAddressByIdAsync(id);
             if (address == null)
                 return new Address { Message = $"There is no Address with Id :{id}" };
+            _context.Remove(address);
+            await _context.SaveChangesAsync();
             return address;
+        }
+
+        private async Task<Address> GetAddressByIdAsync(int id)
+        {
+            return  await _context.Addresses.SingleOrDefaultAsync(a => a.Id == id);
         }
 
         public async Task<IEnumerable<Address>> GetAddressesAsync(string token,PaginateDto dto)
         {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var jwtToken = tokenHandler.ReadJwtToken(token) as JwtSecurityToken;
-
-            var userId = jwtToken.Claims.FirstOrDefault(c => c.Type == "uid")?.Value;
+            var userId = _authService.GetUserId(token);
             
             if (!await _userManager.Users.AnyAsync(c => c.Id == userId))
-            {
                 return null;
-            }
-            var addresses =_context.Addresses.Where(a=>a.UserId== userId).Paginate(dto.Page, dto.Size).ToList();
 
-            return addresses;
+            return _context.Addresses.Where(a=>a.UserId== userId).Paginate(dto.Page, dto.Size).ToList();
         }
 
-        public async Task<Address> UpdateAddressAsync(Address address,UpdateAddressDto updateAddressDto)
+        public async Task<Address> UpdateAddressAsync(int id,UpdateAddressDto updateAddressDto)
         {
-            var errormessages = ValidateHelper<UpdateAddressDto>.Validate(updateAddressDto);
-            if (!string.IsNullOrEmpty(errormessages))
-            {
-                return new Address { Message = errormessages };
-            }
-            
-            address.Street=updateAddressDto.Street??address.Street;
-            address.City=updateAddressDto.City??address.City;
-            address.PhoneNumber = updateAddressDto.PhoneNumber ?? address.PhoneNumber;
-            address.DepartmentNum=updateAddressDto.DepartmentNum??address.DepartmentNum;
-            
+            var address=await GetAddressByIdAsync(id);
+            if (address == null)
+                return new Address { Message = $"There is no Address with Id :{id}" };
 
-            _context.Update(address);
-           await _context.SaveChangesAsync();
-
+            _mapper.Map(updateAddressDto, address);
+            await _context.SaveChangesAsync();
             return address;
         }
     }

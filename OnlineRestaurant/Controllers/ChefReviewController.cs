@@ -1,6 +1,4 @@
-﻿
-using Microsoft.AspNet.Identity;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OnlineRestaurant.Data;
 using OnlineRestaurant.Dtos;
@@ -25,65 +23,63 @@ namespace OnlineRestaurant.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetAllAsync(int id,[FromQuery] PaginateDto paginate)
         {
-
-            var Reviews =  _chefReviewService.GetReviews(id,paginate);
+            var reviews =  _chefReviewService.GetReviews(id,paginate);
             bool nextPage = false;
-            if (Reviews.Count() > paginate.Size)
+            if (reviews.Count() > paginate.Size)
             {
-                Reviews = Reviews.Take(Reviews.Count() - 1);
+                reviews = reviews.Take(reviews.Count() - 1);
                 nextPage = true;
             }
             var numOfChefReviews = await _context.ChefReviews.CountAsync(c=>c.ChefId==id);
             var numOfPages = (int)Math.Ceiling((decimal)numOfChefReviews / paginate.Size);
-            return Ok(new { Reviews = Reviews, NextPage = nextPage,NumOfPages=numOfPages });
+            return Ok(new { Reviews = reviews, NextPage = nextPage,NumOfPages=numOfPages });
         }
         [HttpPost]
 
-        public async Task<IActionResult> CreateReviewAsync([FromHeader]string token, [FromBody] ChefReview review)
+        public async Task<IActionResult> CreateReviewAsync([FromHeader]string token, [FromBody] ChefReview dto)
         {
-
-            var Review = await _chefReviewService.CreateReview(token, review);
-            if (!string.IsNullOrEmpty(Review.Message))
+            var review = await _chefReviewService.CreateReview(token, dto);
+            if (!string.IsNullOrEmpty(review.Message))
             {
-                return BadRequest(Review.Message);
+                return BadRequest(review.Message);
             }
-            var Message = "تم اضافه تعليقك بنجاح";
-            return Ok(new { Review, Message });
+            var message = "تم اضافه تعليقك بنجاح";
+            return Ok(new { review, message });
             
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateReviewAsync(int id, [FromBody] UpdateReviewDto dto)
         {
-            var GetReview = await _chefReviewService.GetReviewByIdAsync(id);
+            var review = await _chefReviewService.GetReviewByIdAsync(id);
 
-            if (!string.IsNullOrEmpty(GetReview.Message))
+            if (!string.IsNullOrEmpty(review.Message))
             {
-                return NotFound(GetReview.Message);
+                return NotFound(review.Message);
             }
 
-            var UpdatedData = _chefReviewService.UpdateReviewAsync(GetReview, dto);
-            if (!string.IsNullOrEmpty(UpdatedData.Message))
+            var result = _chefReviewService.UpdateReviewAsync(review, dto);
+            if (!string.IsNullOrEmpty(result.Message))
             {
-                return BadRequest(UpdatedData.Message);
+                return BadRequest(result.Message);
             }
-            var Message = "تم تعديل تعليقك بنجاح";
-            return Ok(new { UpdatedData, Message });
+            var message = "تم تعديل تعليقك بنجاح";
+            return Ok(new { result, message });
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteReviewAsync(int id)
         {
 
-            var GetReview = await _chefReviewService.GetReviewByIdAsync(id);
+            var review = await _chefReviewService.GetReviewByIdAsync(id);
 
-            if (!string.IsNullOrEmpty(GetReview.Message))
+            if (!string.IsNullOrEmpty(review.Message))
             {
-                return NotFound(GetReview.Message);
+                return NotFound(review.Message);
             }
-            var DeletedData = _chefReviewService.DeleteReviewAsync(GetReview);
-            var Message = "تم حذف تعليقك بنجاح";
-            return Ok(new { DeletedData, Message });
+            var deletedData = _chefReviewService.DeleteReviewAsync(review);
+            var message = "تم حذف تعليقك بنجاح";
+            return Ok(new { deletedData, message });
         }
     }
 }

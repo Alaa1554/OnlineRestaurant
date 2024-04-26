@@ -27,10 +27,10 @@ namespace OnlineRestaurant.Views
         [RegularExpression(@"^\d{11}$", ErrorMessage = "Phone number must be 11 digits.")]
         public string PhoneNumber { get; set; }
 
-        public List<OrderMealView> Meals { get; set; }
+        public List<OrderMealView> OrderMeals { get; set; }
         
         [JsonIgnore(Condition =JsonIgnoreCondition.WhenWritingNull)]
-        public List<OrderStaticAdditionView>? StaticAdditions { get; set; }
+        public List<OrderStaticAdditionView>? OrderStaticAdditions { get; set; }
         [JsonIgnore]
         public string Message { get; set; }
 

@@ -24,25 +24,18 @@ namespace OnlineRestaurant.Services
 
         public async Task<CategoryDto> CreateCategory(Category category)
         {
-            var errormessages= ValidateHelper<Category>.Validate(category);
-            if (!string.IsNullOrEmpty(errormessages))
-                return new CategoryDto { Message = errormessages };
-            
-            var addcategory = new Category
-            {
-                Name = category.Name,
-            };
-            addcategory.CategoryUrl = _imgService.Upload(category.CategoryImg);
-            if (!string.IsNullOrEmpty(addcategory.Message) )
-                return new CategoryDto { Message = addcategory.Message };
-            await _context.Categories.AddAsync(addcategory);
+            category.CategoryUrl = _imgService.Upload(category.CategoryImg);
+            await _context.Categories.AddAsync(category);
             await _context.SaveChangesAsync();
-            var categoryDto=_mapper.Map<CategoryDto>(addcategory);
+            var categoryDto=_mapper.Map<CategoryDto>(category);
             return categoryDto;
         }
 
-        public async Task<CategoryDto> DeleteCategoryAsync(Category category)
+        public async Task<CategoryDto> DeleteCategoryAsync(int id)
         {
+            var category= await _context.Categories.SingleOrDefaultAsync(b => b.Id == id);
+            if (category == null)
+                return new CategoryDto { Message = $"No Category is found with Id :{id}" };
             _imgService.Delete(category.CategoryUrl);
             _context.Categories.Remove(category);
             await _context.SaveChangesAsync();
@@ -52,39 +45,21 @@ namespace OnlineRestaurant.Services
 
         public IEnumerable<CategoryView> GetCategory(PaginateDto dto)
         {
-            var meals = _context.Categories.Include(c=>c.Chefs).Include(c=>c.Meals).Paginate(dto.Page, dto.Size).Select(c=>new CategoryView 
-            { 
-                Id=c.Id,
-                Name=c.Name,
-                CategoryImg=Path.Combine("https://localhost:7166", "images", c.CategoryUrl),
-                NumOfChefs=c.Chefs.Count(),
-                NumOfMeals = c.Meals.Count()
-            }).ToList();
-           
-            return meals;
+            return _mapper.Map<IEnumerable<CategoryView>>(_context.Categories.Include(c => c.Chefs).Include(c => c.Meals).Paginate(dto.Page, dto.Size));
         }
 
-        public async Task<Category> GetCategoryByIdAsync(int id)
+        public async Task<CategoryDto> GetCategoryByIdAsync(int id)
         {
-            var category = await _context.Categories.SingleOrDefaultAsync(b=>b.Id==id);
+            return _mapper.Map<CategoryDto>(await _context.Categories.SingleOrDefaultAsync(b => b.Id == id));
+        }
+
+        public async Task<CategoryDto> UpdateCategoryAsync(int id, Category dto)
+        {
+            var category = await _context.Categories.SingleOrDefaultAsync(b => b.Id == id);
             if (category == null)
-                return new Category { Message = $"No Category is found with Id :{id}" };
-            return category;
-        }
-
-        public async Task<CategoryDto> UpdateCategoryAsync(Category category, UpdateCategoryDto dto)
-        {
-            var errormessages = ValidateHelper<UpdateCategoryDto>.Validate(dto);
-            if (!string.IsNullOrEmpty(errormessages))
-            {
-                return new CategoryDto { Message = errormessages };
-            }
-           
-            category.CategoryUrl=dto.CategoryImg==null?category.CategoryUrl:_imgService.Update(category.CategoryUrl,dto.CategoryImg);
-            if (!string.IsNullOrEmpty(category.Message))
-                return new CategoryDto { Message = category.Message };
-            category.Name = dto.Name ?? category.Name;
-            _context.Update(category);
+                return new CategoryDto { Message = $"No Category is found with Id :{id}" };
+            category.CategoryUrl=_imgService.Update(category.CategoryUrl,dto.CategoryImg);
+            category.Name = dto.Name;
             await _context.SaveChangesAsync();
             var categoryDto = _mapper.Map<CategoryDto>(category);
             return categoryDto;

@@ -19,8 +19,7 @@ namespace OnlineRestaurant.Controllers
         [HttpGet("GetAllCoupons")]
         public async Task<IActionResult> GetAllCoupons() 
         { 
-            var coupons=await _couponService.GetAllCouponsAsync();
-            return Ok(coupons);
+            return Ok(await _couponService.GetAllCouponsAsync());
         }
         [HttpGet("GetDiscountPercentage")]
         public IActionResult GetDiscountPercentage([FromQuery] CouponCodeDto couponCode)
@@ -40,22 +39,20 @@ namespace OnlineRestaurant.Controllers
             if(ModelState.IsValid)
             {
                 var newCoupon = await _couponService.CreateCouponAsync(coupon);
-                if (newCoupon.CouponCode == null)
-                    return BadRequest("الكوبون لا يمكن ان يتكرر");
+                if (!string.IsNullOrEmpty(newCoupon.Message))
+                    return BadRequest(newCoupon.Message);
                 return Ok(newCoupon);
             }
             return BadRequest(coupon);
         }
         [HttpPut("UpdateCoupon/{id}")]
-        public async Task<IActionResult> UpdateCoupon(int id,[FromBody]UpdateCouponDto coupon)
+        public async Task<IActionResult> UpdateCoupon(int id,[FromBody]CouponDto coupon)
         {
             if (ModelState.IsValid)
             {
                 var updatedCoupon = await _couponService.UpdateCouponAsync(id,coupon);
-                if (updatedCoupon.CouponCode == null)
-                    return BadRequest("لم يتم العثور علي اي كوبون");
-                if (updatedCoupon.CouponCode == "الكوبون لا يمكن ان يتكرر")
-                    return BadRequest("الكوبون لا يمكن ان يتكرر");
+                if (!string.IsNullOrEmpty(updatedCoupon.Message))
+                   return BadRequest(updatedCoupon.Message);
                 return Ok(updatedCoupon);
             }
             return BadRequest(coupon);
@@ -64,8 +61,8 @@ namespace OnlineRestaurant.Controllers
         public async Task<IActionResult> DeleteCoupon(int id)
         {
             var coupon=await _couponService.DeleteCouponAsync(id);
-            if (coupon.CouponCode == null)
-                return BadRequest("لم يتم العثور علي اي كوبون");
+            if (!string.IsNullOrEmpty(coupon.Message))
+                return NotFound(coupon.Message);
             return Ok(coupon);
         }
     }

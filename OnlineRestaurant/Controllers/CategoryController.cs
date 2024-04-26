@@ -42,57 +42,37 @@ namespace OnlineRestaurant.Controllers
         public async Task<IActionResult> GetCategoryByIdAsync(int id)
         {
             var category=await _categoryService.GetCategoryByIdAsync(id);
-            if(!string.IsNullOrEmpty(category.Message))
-              return NotFound(category.Message);
-            category.CategoryUrl = Path.Combine("https://localhost:7166", "images", category.CategoryUrl);
+            if(category==null)
+              return NotFound($"No Category is found with Id :{id}");
             return Ok(category);
         }
         [HttpPost]
 
         public async Task<IActionResult> CreateCategoryAsync([FromForm] Category dto)
         {
-
-            var Category = await _categoryService.CreateCategory(dto);
-            if (!string.IsNullOrEmpty(Category.Message))
-            {
-                return BadRequest(Category.Message);
-            }
-            var Message =  "تم اضافه التصنيف بنجاح" ;
-            return Ok(new {Category,Message});
+            var category = await _categoryService.CreateCategory(dto);
+            var message =  "تم اضافه التصنيف بنجاح" ;
+            return Ok(new {category,message});
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateCategoryAsync(int id, [FromForm] UpdateCategoryDto dto)
+        public async Task<IActionResult> UpdateCategoryAsync(int id, [FromForm] Category dto)
         {
-            var getcategory = await _categoryService.GetCategoryByIdAsync(id);
-
-            if (!string.IsNullOrEmpty(getcategory.Message))
-            {
-                return NotFound(getcategory.Message);
-            }
-
-            var UpdatedData = await _categoryService.UpdateCategoryAsync(getcategory, dto);
-            if (!string.IsNullOrEmpty(UpdatedData.Message))
-            {
-                return BadRequest(UpdatedData.Message);
-            }
-            var Message = "تم تعديل التصنيف بنجاح";
-            return Ok(new { UpdatedData, Message });
+            var result = await _categoryService.UpdateCategoryAsync(id, dto);
+            if (!string.IsNullOrEmpty(result.Message))
+                return NotFound(result.Message);
+            var message = "تم تعديل التصنيف بنجاح";
+            return Ok(new { result, message });
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCategoryAsync(int id)
         {
-
-            var category = await _categoryService.GetCategoryByIdAsync(id);
-
-            if (!string.IsNullOrEmpty(category.Message))
-            {
-                return NotFound(category.Message);
-            }
-            var DeletedData = await _categoryService.DeleteCategoryAsync(category);
-            var Message = "تم حذف التصنيف بنجاح";
-            return Ok(new { DeletedData, Message });
+            var deletedData = await _categoryService.DeleteCategoryAsync(id);
+            if (!string.IsNullOrEmpty(deletedData.Message))
+                return NotFound(deletedData.Message);
+            var message = "تم حذف التصنيف بنجاح";
+            return Ok(new { deletedData, message });
         }
     }
 }

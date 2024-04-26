@@ -1,10 +1,6 @@
-﻿
-using Microsoft.AspNetCore.Mvc;
-
-using OnlineRestaurant.Data;
+﻿using Microsoft.AspNetCore.Mvc;
 using OnlineRestaurant.Dtos;
 using OnlineRestaurant.Interfaces;
-using OnlineRestaurant.Models;
 
 
 namespace OnlineRestaurant.Controllers
@@ -14,12 +10,10 @@ namespace OnlineRestaurant.Controllers
     public class MealController : ControllerBase
     {
         private readonly IMealService _mealService;
-       
 
         public MealController(IMealService mealService)
         {
             _mealService = mealService;
-            
         }
 
         [HttpGet]
@@ -34,47 +28,37 @@ namespace OnlineRestaurant.Controllers
         }
         
         [HttpPost]
-        public async Task<IActionResult> CreateMealAsync([FromForm] Meal mealDto)
+        public async Task<IActionResult> CreateMealAsync([FromForm] InsertMealDto mealDto)
         {
-            var Meal = await _mealService.CreateMeal(mealDto);
-            if (!string.IsNullOrEmpty(Meal.Message)) 
+            var meal = await _mealService.CreateMeal(mealDto);
+            if (!string.IsNullOrEmpty(meal.Message)) 
             {
-               return BadRequest(Meal.Message);
+               return BadRequest(meal.Message);
             }
-            var Message =  "تم اضافه الوجبه بنجاح" ;
-            return Ok(new { Meal, Message });
-            
-
+            var message =  "تم اضافه الوجبه بنجاح" ;
+            return Ok(new { meal, message });
         }
         [HttpPut("{name}")]
-        public async Task<IActionResult> UpdateMealAsync(string name, [FromForm] UpdateMealDto meal)
+        public async Task<IActionResult> UpdateMealAsync(string name, [FromForm] InsertMealDto dto)
         {
-            var getmeal = await _mealService.GetMealByNameAsync(name);
-
-            if (!string.IsNullOrEmpty(getmeal.Message))
+            var result = await _mealService.UpdateMealAsync(name, dto);
+            if (!string.IsNullOrEmpty(result.Message))
             {
-                return NotFound(getmeal.Message);
+               return BadRequest(result.Message);
             }
-
-            var UpdatedData = await _mealService.UpdateMealAsync(getmeal, meal);
-            if (!string.IsNullOrEmpty(UpdatedData.Message))
-            {
-               return BadRequest(UpdatedData.Message);
-            }
-            var Message = "تم تعديل الوجبه بنجاح";
-            return Ok(new { UpdatedData, Message });
+            var message = "تم تعديل الوجبه بنجاح";
+            return Ok(new { result, message });
         }
         [HttpDelete("{name}")]
         public async Task<IActionResult> DeleteMeal(string name)
         {
-            var meal =await _mealService.GetMealByNameAsync(name);
-            if (!string.IsNullOrEmpty(meal.Message))
+            var deletedData =await _mealService.DeleteMeal(name);
+            if (!string.IsNullOrEmpty(deletedData.Message))
             {
-               return NotFound(meal.Message);
+                return NotFound(deletedData.Message);
             }
-            var DeletedData =await _mealService.DeleteMeal(meal);
-            var Message = "تم حذف الوجبه بنجاح";
-            return Ok(new { DeletedData, Message });
+            var message = "تم حذف الوجبه بنجاح";
+            return Ok(new { deletedData, message });
         }
     }
 }

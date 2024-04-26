@@ -7,11 +7,10 @@ namespace OnlineRestaurant.Interfaces
     public interface IMealAdditionService
     {
         IEnumerable<MealAddition> GetMealAdditions(int id, PaginateDto dto);
-        Task<MealAddition> GetMealAdditionByIdAsync(int id);
         Task<MealAddition> CreateMealAddition(MealAddition Dto);
-        Task<MealAddition> UpdateMealAdditionAsync(MealAddition mealAddition, UpdateMealAdditionDto dto,int? id);
-        Task<MealAddition> DeleteMealAddition(MealAddition mealAddition);
-        Task<string> DeleteChoiceAsync(int AdditionId, int ChoiceId);
-        Task<string> AddChoiceAsync(int AdditionId, Choice choice);
+        Task<MealAddition> UpdateMealAdditionAsync(int id, UpdateMealAdditionDto dto);
+        Task<MealAddition> DeleteMealAddition(int id);
+        Task<string> DeleteChoiceAsync(int ChoiceId);
+        Task<string> AddChoiceAsync(Choice choice);
     }
 }

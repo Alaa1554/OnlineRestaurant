@@ -51,6 +51,7 @@ builder.Services.AddScoped<IStaticMealAdditionService, StaticMealAdditionService
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IImageService,ImageService>();
 builder.Services.AddScoped<ICouponService, CouponService>();
+builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddCors();
 builder.Services.AddMemoryCache();
 builder.Services.Configure<MessageSender>(builder.Configuration.GetSection("MessageSender"));

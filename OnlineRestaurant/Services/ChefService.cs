@@ -12,7 +12,6 @@ namespace OnlineRestaurant.Services
     public class ChefService : IChefService
     {
         private readonly ApplicationDbContext _context;
-       
         private readonly IImageService _imgService;
         private readonly IMapper _mapper;
 
@@ -24,112 +23,58 @@ namespace OnlineRestaurant.Services
         }
         public async Task<ChefDto> CreateChef(Chef chef)
         {
-            var errormessages = ValidateHelper<Chef>.Validate(chef);
-            if (!string.IsNullOrEmpty(errormessages)) 
-            {
-                return new ChefDto { Message = errormessages };
-            }
             if (!await _context.Categories.AnyAsync(b=>b.Id == chef.CategoryId)) 
-            {
                 return new ChefDto { Message = $"No Category with id :{chef.CategoryId} is found" };
-            }
-            var Chef = new Chef
-            {
-                Name = chef.Name,
-                CategoryId = chef.CategoryId,
-            };
-            Chef.ChefImgUrl = _imgService.Upload(chef.ChefImg);
-            if (!string.IsNullOrEmpty(Chef.Message)) 
-                return new ChefDto { Message = Chef.Message };
-            await _context.Chefs.AddAsync(Chef);
+            
+            chef.ChefImgUrl = _imgService.Upload(chef.ChefImg);
+            await _context.Chefs.AddAsync(chef);
             await _context.SaveChangesAsync();
-            var chefDto=_mapper.Map<ChefDto>(Chef);
+            var chefDto=_mapper.Map<ChefDto>(chef);
             return chefDto;
 
-           
         }
 
-        public async Task<ChefDto> DeleteChefAsync(Chef chef)
+        public async Task<ChefDto> DeleteChefAsync(int id)
         {
-            if(await _context.Meals.AnyAsync(c => c.ChefId == chef.Id))
-            {
+            var chef = await _context.Chefs.Include(c => c.Meals).SingleOrDefaultAsync(chef => chef.Id == id);
+            if (chef == null)
+                return new ChefDto { Message = $"There is no Chef with Id :{id}" };
+            if (chef.Meals.Any())
                 return new ChefDto { Message = "لا يمكن حذف الشيف الا بعد حذف كل وجباته" };
-            }
+
             _imgService.Delete(chef.ChefImgUrl);
             _context.Chefs.Remove(chef);
-           await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();
             var chefDto = _mapper.Map<ChefDto>(chef);
             return chefDto;
-
         }
-
-        public async Task<Chef> GetChefByIdAsync(int id)
+   
+        public async Task<ChefView> GetChefByIdAsync(int id)
         {
-           var chef = await _context.Chefs.Include(c=>c.Category).SingleOrDefaultAsync(chef => chef.Id==id);
-            if (chef == null)
-                return new Chef { Message = $"There is no Chef with Id :{id}" };
-            chef.CategoryName = chef.Category.Name;
-            return chef;
+            return _mapper.Map<ChefView>(await _context.Chefs.Include(c => c.ChefReviews).Include(c => c.Meals).Include(c => c.Category).SingleOrDefaultAsync(chef => chef.Id==id));
         }
 
         public IEnumerable<ChefView> GetChefs(PaginateDto dto)
         {
-            var chefs = _context.Chefs.Include(c=>c.ChefReviews).Include(c=>c.Meals).Include(c=>c.Category).Paginate(dto.Page, dto.Size).Select(c=>new ChefView { 
-                Id=c.Id,
-                CategoryName=c.Category.Name,
-                ChefImgUrl=Path.Combine("https://localhost:7166","images", c.ChefImgUrl),
-                Name=c.Name,
-                Rate= decimal.Round(c.ChefReviews.Sum(b => b.Rate) /
-               c.ChefReviews.Where(b => b.Rate > 0).DefaultIfEmpty().Count(), 1),
-                NumOfRate =c.ChefReviews.Count(c=>c.Rate>0),
-                NumOfMeals=c.Meals.Count()
-            }).ToList();
-            
-            return chefs;
+            return _mapper.Map<IEnumerable<ChefView>>(_context.Chefs.Include(c => c.ChefReviews).Include(c => c.Meals).Include(c => c.Category).Paginate(dto.Page, dto.Size));
         }
 
-        public async Task<IEnumerable<ChefDto>> GetChefsByCategoryIdAsync(int id, PaginateDto dto)
+        public IEnumerable<ChefDto> GetChefsByCategoryIdAsync(int id, PaginateDto dto)
         {
-            var chefs = await _context.Chefs.Where(c=>c.CategoryId==id).ToListAsync();
-            var chefsDto=_mapper.Map<IEnumerable<ChefDto>>(chefs);
-            var result = chefsDto.Paginate(dto.Page, dto.Size);
-            return result;
+            return _mapper.Map<IEnumerable<ChefDto>>(_context.Chefs.Where(c => c.CategoryId == id).Paginate(dto.Page, dto.Size));
         }
-        public async Task<ChefDto> UpdateChefAsync(Chef chef,UpdateChefDto chefDto)
+        public async Task<ChefDto> UpdateChefAsync(int id,UpdateChefDto chefDto)
         {
-            var errormessages = ValidateHelper<UpdateChefDto>.Validate(chefDto);
-            if (!string.IsNullOrEmpty(errormessages))
-            {
-                return new ChefDto { Message = errormessages };
-            }
-            if (chefDto.CategoryId.HasValue)
-            {
-                if (!await _context.Categories.AnyAsync(b => b.Id == chefDto.CategoryId))
-                {
+             var chef= await _context.Chefs.Include(c => c.Meals).SingleOrDefaultAsync(chef => chef.Id == id);
+            if (chef == null)
+                return new ChefDto { Message = $"There is no Chef with Id :{id}" };
+            if (!await _context.Categories.AnyAsync(b => b.Id == chefDto.CategoryId))
                     return new ChefDto { Message = $"No Category with id :{chef.CategoryId} is found" };
-                }
-                chef.CategoryId = chefDto.CategoryId??chef.CategoryId;
-                if(await _context.Meals.AnyAsync(m => m.ChefId == chef.Id))
-                {
-                    var meals = _context.Meals.Where(m => m.ChefId == chef.Id);
-                    foreach(var meal in meals)
-                    {
-                        meal.CategoryId = (int)chefDto.CategoryId;
-                    }
-                    
-                }
-                chef.CategoryName = null;
-            }
+             if(chef.Meals.Any())
+                    chef.Meals.ForEach(m => m.CategoryId = chefDto.CategoryId);
 
-
-            chef.ChefImgUrl = chefDto.ChefImg == null ? chef.ChefImgUrl : _imgService.Update(chef.ChefImgUrl, chefDto.ChefImg);
-                if (!string.IsNullOrEmpty(chef.Message))
-                    return new ChefDto { Message = chef.Message };
-            
-           
-                chef.Name = chefDto.Name?? chef.Name ;
-               
-            _context.Update(chef);
+            chef.ChefImgUrl = _imgService.Update(chef.ChefImgUrl, chefDto.ChefImg);
+            _mapper.Map(chefDto,chef);
             await _context.SaveChangesAsync();
             var chefView = _mapper.Map<ChefDto>(chef);
             return chefView;

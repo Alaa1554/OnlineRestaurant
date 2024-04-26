@@ -2,7 +2,7 @@
 {
     public class OrderStaticAdditionView
     {
-        public int Id { get; set; }
+        public int StaticMealAdditionId { get; set; }
         public string StaticAdditionName { get; set; }
         public int Amount { get; set; }
         public string StaticAdditionImgUrl { get; set; }

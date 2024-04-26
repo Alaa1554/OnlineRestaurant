@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
-using Microsoft.EntityFrameworkCore;
 using OnlineRestaurant.Services;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
@@ -37,15 +36,6 @@ namespace OnlineRestaurant.Models
         public decimal? OldPrice { get; set; }
         [NotMapped, ValidateNever, JsonIgnore]
         public string Message { get; set; }
-        [NotMapped,Required(ErrorMessage = "This Field is Required"), JsonIgnore]
-        public IFormFile MealImg { get; set; }
-        [ValidateNever]
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-        public decimal Rate { get; set; }
-        [ValidateNever]
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-        [Range(0,int.MaxValue,ErrorMessage = "NumOfRate can't be less than zero")]
-        public int NumOfRate { get; set; }
         
         [ValidateNever,JsonIgnore]
         public List<MealAddition> Additions { get; set; }
@@ -61,8 +51,6 @@ namespace OnlineRestaurant.Models
         public List<Order> Orders { get; set; }
         [ValidateNever, JsonIgnore]
         public List<OrderMeal> OrderMeals { get; set; }
-       
-        
 
     }
 }

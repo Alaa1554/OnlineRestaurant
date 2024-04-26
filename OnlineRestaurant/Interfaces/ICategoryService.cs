@@ -6,10 +6,10 @@ namespace OnlineRestaurant.Interfaces
 {
     public interface ICategoryService
     {
-       IEnumerable<CategoryView> GetCategory(PaginateDto dto);
-        Task<Category> GetCategoryByIdAsync(int id);
+        IEnumerable<CategoryView> GetCategory(PaginateDto dto);
+        Task<CategoryDto> GetCategoryByIdAsync(int id);
         Task<CategoryDto> CreateCategory(Category category);
-       Task<CategoryDto> UpdateCategoryAsync(Category category, UpdateCategoryDto dto);
-        Task<CategoryDto> DeleteCategoryAsync(Category category);
+        Task<CategoryDto> UpdateCategoryAsync(int id, Category dto);
+        Task<CategoryDto> DeleteCategoryAsync(int id);
     }
 }

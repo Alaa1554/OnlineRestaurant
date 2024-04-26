@@ -16,8 +16,6 @@ namespace OnlineRestaurant.Models
         [ValidateNever]
         [JsonIgnore]
         public MealAddition MealAddition { get; set; }
-        [ValidateNever]
-        [JsonIgnore]
         public int MealAdditionId { get; set; }
     }
 }
