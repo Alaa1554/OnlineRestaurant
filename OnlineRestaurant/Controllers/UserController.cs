@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OnlineRestaurant.Dtos;
@@ -20,6 +21,8 @@ namespace OnlineRestaurant.Controllers
             _userManager = userManager;
         }
         [HttpGet("GetAllUsers")]
+
+        [Authorize(Roles ="Admin,SuperAdmin")]
         public async Task<IActionResult> GetAllUsersAsync([FromQuery] PaginateDto paginate)
         {
             var users =await _userService.GetAllUsersAsync(paginate);
@@ -34,6 +37,7 @@ namespace OnlineRestaurant.Controllers
             return Ok(new { Users = users, NextPage = nextPage, NumOfPages = numOfPages });
         }
         [HttpGet("SearchForUserByName")]
+        [Authorize(Roles = "Admin,SuperAdmin")]
         public async Task<IActionResult> SearchForUserByName([FromQuery] SearchForUserByName searchForUser)
         {
             var users =await _userService.SearchForUserByName(searchForUser);
@@ -50,6 +54,7 @@ namespace OnlineRestaurant.Controllers
             return Ok(new { Users = users, NextPage = nextPage, NumOfPages = numOfPages });
         }
         [HttpPut("UpdateAccount")]
+        [Authorize]
         public async Task<IActionResult> UpdateAccount([FromHeader] string token, [FromForm] UpdateAccountDto dto)
         {
             var user = await _userService.UpdateAccount(token, dto);
@@ -61,6 +66,7 @@ namespace OnlineRestaurant.Controllers
             return Ok(new { user, message });
         }
         [HttpPut("UpdatePassword")]
+        [Authorize]
         public async Task<IActionResult> UpdatePasswordAsync([FromHeader] string token, [FromBody] UpdatePasswordDto dto)
         {
             var errorMessage = await _userService.UpdatePassword(token, dto);
@@ -72,6 +78,7 @@ namespace OnlineRestaurant.Controllers
             return Ok(message);
         }
         [HttpDelete("DeleteAccount")]
+        [Authorize]
         public async Task<IActionResult> DeleteAccountAsync([FromHeader] string token)
         {
             var errorMessage = await _userService.DeleteAccountAsync(token);
@@ -83,6 +90,7 @@ namespace OnlineRestaurant.Controllers
             return Ok(message);
         }
         [HttpDelete("DeleteImage")]
+        [Authorize]
         public async Task<IActionResult> DeleteImageAsync([FromHeader] string token)
         {
             var errorMessage = await _userService.DeleteUserImage(token);

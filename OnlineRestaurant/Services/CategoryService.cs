@@ -58,7 +58,7 @@ namespace OnlineRestaurant.Services
             var category = await _context.Categories.SingleOrDefaultAsync(b => b.Id == id);
             if (category == null)
                 return new CategoryDto { Message = $"No Category is found with Id :{id}" };
-            category.CategoryUrl=_imgService.Update(category.CategoryUrl,dto.CategoryImg);
+            category.CategoryUrl=dto.CategoryImg==null?category.CategoryUrl:_imgService.Update(category.CategoryUrl,dto.CategoryImg);
             category.Name = dto.Name;
             await _context.SaveChangesAsync();
             var categoryDto = _mapper.Map<CategoryDto>(category);

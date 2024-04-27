@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OnlineRestaurant.Data;
 using OnlineRestaurant.Dtos;
@@ -49,6 +50,7 @@ namespace OnlineRestaurant.Controllers
             return Ok(chef);
         }
         [HttpPost]
+        [Authorize("Admin,SuperAdmin")]
         public async Task<IActionResult> CreateChefAsync([FromForm] Chef dto)
         {
            var chef = await _chefService.CreateChef(dto);
@@ -60,6 +62,7 @@ namespace OnlineRestaurant.Controllers
         }
         
         [HttpPut("{id}")]
+        [Authorize("Admin,SuperAdmin")]
         public async Task<IActionResult> UpdateChefAsync(int id, [FromForm] UpdateChefDto dto)
         {
             var result = await _chefService.UpdateChefAsync(id, dto);
@@ -71,6 +74,8 @@ namespace OnlineRestaurant.Controllers
         }
         
         [HttpDelete("{id}")]
+        [Authorize("Admin,SuperAdmin")]
+
         public async Task<IActionResult> DeleteChefAsync(int id)
         {
             var deletedData =await _chefService.DeleteChefAsync(id);

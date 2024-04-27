@@ -18,6 +18,6 @@ namespace OnlineRestaurant.Dtos
         public int CategoryId { get; set; }
         [Range(0, int.MaxValue, ErrorMessage = "OldPrice must be more than -1")]
         public decimal? OldPrice { get; set; }
-        public IFormFile MealImg { get; set; }
+        public IFormFile? MealImg { get; set; }
     }
 }

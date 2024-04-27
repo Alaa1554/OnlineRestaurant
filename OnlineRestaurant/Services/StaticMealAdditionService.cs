@@ -56,7 +56,7 @@ namespace OnlineRestaurant.Services
             if (mealAddition == null)
                 return new StaticMealAdditionView { Message = $"There is no Addition with Id :{id}" };
             _mapper.Map(dto,mealAddition);
-            mealAddition.AdditionUrl=_imgService.Update(mealAddition.AdditionUrl, dto.AdditionImg);
+            mealAddition.AdditionUrl=dto.AdditionImg == null ? mealAddition.AdditionUrl : _imgService.Update(mealAddition.AdditionUrl, dto.AdditionImg);
             await _context.SaveChangesAsync();
             return _mapper.Map<StaticMealAdditionView>(mealAddition);
         }

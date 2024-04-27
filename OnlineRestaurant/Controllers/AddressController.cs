@@ -1,4 +1,5 @@
 ﻿
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OnlineRestaurant.Data;
@@ -25,6 +26,7 @@ namespace OnlineRestaurant.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public async Task<IActionResult> GetAllAddressesAsync([FromHeader] string token, [FromQuery] PaginateDto paginate)
         {
             var addresses = await _addressService.GetAddressesAsync(token,paginate);
@@ -44,6 +46,7 @@ namespace OnlineRestaurant.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> AddAddressAsync([FromHeader] string token,[FromBody] Address dto)
         {
             var address = await _addressService.CreateAddressAsync(token, dto);
@@ -54,6 +57,7 @@ namespace OnlineRestaurant.Controllers
             return Ok(new { address, message });
         }
         [HttpPut("{id}")]
+        [Authorize]
         public async Task<IActionResult> UpdateAddressAsync(int id, [FromBody] UpdateAddressDto dto)
         {
             var result = await _addressService.UpdateAddressAsync(id, dto);
@@ -64,6 +68,7 @@ namespace OnlineRestaurant.Controllers
             return Ok(new { result, message });
         }
         [HttpDelete("{id}")]
+        [Authorize]
         public async Task<IActionResult> DeleteAddress(int id)
         {
             var result =await _addressService.DeleteAddress(id);

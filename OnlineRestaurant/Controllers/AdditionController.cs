@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OnlineRestaurant.Data;
 using OnlineRestaurant.Dtos;
@@ -38,6 +39,7 @@ namespace OnlineRestaurant.Controllers
             return Ok(new {Additions = additions, NextPage = nextPage, NumOfPages = numOfPages });
         }
         [HttpPost]
+        [Authorize("Admin,SuperAdmin")]
         public async Task<IActionResult> CreateAdditionAsync([FromBody] MealAddition Dto)
         {
             var addition = await _additionService.CreateMealAddition(Dto);
@@ -48,6 +50,7 @@ namespace OnlineRestaurant.Controllers
 
         }
         [HttpPut("{id}")]
+        [Authorize("Admin,SuperAdmin")]
         public async Task<IActionResult> UpdateAdditionAsync(int id, [FromBody] UpdateMealAdditionDto dto)
         {
             var result = await _additionService.UpdateMealAdditionAsync(id, dto);
@@ -57,6 +60,7 @@ namespace OnlineRestaurant.Controllers
             return Ok(new { result, message });
         }
         [HttpDelete("{id}")]
+        [Authorize("Admin,SuperAdmin")]
         public async Task<IActionResult> DeleteAddition(int id)
         {
             var deletedData = await _additionService.DeleteMealAddition(id);
@@ -67,6 +71,7 @@ namespace OnlineRestaurant.Controllers
             return Ok(new { deletedData, message });
         }
         [HttpDelete("DeleteChoice/{choiceid}")]
+        [Authorize("Admin,SuperAdmin")]
         public async Task<IActionResult> DeleteChoiceAsync(int choiceid)
         {
             var result = await _additionService.DeleteChoiceAsync(choiceid);
@@ -75,6 +80,7 @@ namespace OnlineRestaurant.Controllers
             return Ok("تم حذف الاختيار بنجاح");
         }
         [HttpPost("AddChoice")]
+        [Authorize("Admin,SuperAdmin")]
         public async Task<IActionResult> AddChoiceAsync([FromBody] Choice choice)
         {
             var result=await _additionService.AddChoiceAsync(choice);

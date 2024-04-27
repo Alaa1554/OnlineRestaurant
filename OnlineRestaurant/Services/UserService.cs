@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Humanizer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using OnlineRestaurant.Data;
@@ -35,10 +36,19 @@ namespace OnlineRestaurant.Services
             {
                 return new AuthModelDto { Message = "لم يتم العثور علي اي مستخدم" };
             }
-            if(await _userManager.FindByNameAsync(dto.UserName) != null&&user.UserName!=dto.UserName)
+            dto.UserName = Helpers.Encryption.Encrypt(dto.UserName);
+            if (await _userManager.FindByNameAsync(dto.UserName) != null&&user.UserName!=dto.UserName)
             {
                 return new AuthModelDto { Message = "اسم المستخدم موجود بالفعل" };
             }
+            // Encrypt the Firstname
+            dto.FirstName = Helpers.Encryption.Encrypt(dto.FirstName);
+
+            // Encrypt the Lastname
+            dto.LastName = Helpers.Encryption.Encrypt(dto.LastName);
+
+            // Encrypt the Username
+            dto.UserName = Helpers.Encryption.Encrypt(dto.UserName);
             _mapper.Map(dto,user);
             user.UserImgUrl = dto.UserImg == null ? user.UserImgUrl : user.UserImgUrl == null ? _imgService.Upload(dto.UserImg) : _imgService.Update(user.UserImgUrl, dto.UserImg);
             var result = await _userManager.UpdateAsync(user);
@@ -100,7 +110,7 @@ namespace OnlineRestaurant.Services
         }
         public async Task<IEnumerable<UserView>> SearchForUserByName(SearchForUserByName searchForUser)
         {
-            var users = _context.Users.Where(c => c.UserName.Contains(searchForUser.UserName.ToLower().Trim())).Paginate(searchForUser.Page, searchForUser.Size);
+            var users = _context.Users.AsEnumerable().Where(c => Helpers.Encryption.Decrypt(c.UserName).Contains(searchForUser.UserName)).Paginate(searchForUser.Page, searchForUser.Size);
             if (!users.Any())
                 return Enumerable.Empty<UserView>();
             return await GetUserView(users); 
@@ -151,6 +161,5 @@ namespace OnlineRestaurant.Services
             }
             return userViews;
         }
-
     }
 }

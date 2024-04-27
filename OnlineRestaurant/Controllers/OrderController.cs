@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -6,7 +7,6 @@ using OnlineRestaurant.Data;
 using OnlineRestaurant.Dtos;
 using OnlineRestaurant.Interfaces;
 using OnlineRestaurant.Models;
-using System.IdentityModel.Tokens.Jwt;
 
 namespace OnlineRestaurant.Controllers
 {
@@ -26,6 +26,7 @@ namespace OnlineRestaurant.Controllers
             _userManager = userManager;
         }
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> AddOrderAsync([FromHeader] string token, [FromBody] OrderDto dto)
         {
             var order = await _orderService.AddOrderAsync(token, dto);
@@ -34,6 +35,7 @@ namespace OnlineRestaurant.Controllers
          return Ok(order);
         }
         [HttpGet("{id}")]
+        [Authorize]
         public async Task<IActionResult> GetOrderByIdAsync(string id)
         {
             var order = await _orderService.GetOrderByIdAsync(id);
@@ -43,6 +45,7 @@ namespace OnlineRestaurant.Controllers
 
         }
         [HttpGet("GetAllUserOrders")]
+        [Authorize(Roles ="User")]
         public async Task<IActionResult> GetAllUserOrdersAsync([FromHeader] string token,[FromQuery] PaginateDto paginate)
         {
             var userId = _authService.GetUserId(token);
@@ -60,6 +63,7 @@ namespace OnlineRestaurant.Controllers
             return Ok(new { Orders = orders, NextPage = nextPage,NumOfPages=numOfPages,NumOfUserOrders=numOfUserOrders});
         }
         [HttpGet("GetAllOrders")]
+        [Authorize(Roles = "Admin,SuperAdmin")]
         public async Task<IActionResult> GetAllOrdersAsync([FromQuery]PaginateDto paginate)
         {
             var orders =_orderService.GetAllOrders(paginate);
@@ -74,6 +78,7 @@ namespace OnlineRestaurant.Controllers
             return Ok(new { Orders = orders, NextPage = nextPage,NumOfPages=numOfPages });
         }
         [HttpPut("ChangeOrderStatus")]
+        [Authorize(Roles = "Admin,SuperAdmin")]
         public async Task<IActionResult> ChangeOrderStatusAsync([FromBody] OrderStatusDto orderStatus)
         {
             var result = await _orderService.ChangeOrderStatus(orderStatus);
@@ -82,6 +87,7 @@ namespace OnlineRestaurant.Controllers
             return Ok("تم تغيير حاله الاوردر بنجاح");
         }
         [HttpPost("ConfirmPayment")]
+        [Authorize(Roles = "Admin,SuperAdmin")]
         public async Task<IActionResult> ConfirmPaymentAsync(ConfirmPaymentDto confirmPayment)
         {
             var result = await _orderService.ConfirmPayment(confirmPayment);

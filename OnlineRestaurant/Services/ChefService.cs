@@ -49,9 +49,9 @@ namespace OnlineRestaurant.Services
             return chefDto;
         }
    
-        public async Task<ChefView> GetChefByIdAsync(int id)
+        public async Task<ChefDto> GetChefByIdAsync(int id)
         {
-            return _mapper.Map<ChefView>(await _context.Chefs.Include(c => c.ChefReviews).Include(c => c.Meals).Include(c => c.Category).SingleOrDefaultAsync(chef => chef.Id==id));
+            return _mapper.Map<ChefDto>(await _context.Chefs.SingleOrDefaultAsync(chef => chef.Id==id));
         }
 
         public IEnumerable<ChefView> GetChefs(PaginateDto dto)
@@ -73,7 +73,7 @@ namespace OnlineRestaurant.Services
              if(chef.Meals.Any())
                     chef.Meals.ForEach(m => m.CategoryId = chefDto.CategoryId);
 
-            chef.ChefImgUrl = _imgService.Update(chef.ChefImgUrl, chefDto.ChefImg);
+            chef.ChefImgUrl =chefDto.ChefImg==null?chef.ChefImgUrl:_imgService.Update(chef.ChefImgUrl, chefDto.ChefImg);
             _mapper.Map(chefDto,chef);
             await _context.SaveChangesAsync();
             var chefView = _mapper.Map<ChefDto>(chef);

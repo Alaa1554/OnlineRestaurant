@@ -18,7 +18,7 @@ namespace OnlineRestaurant.Models
         [ValidateNever,JsonIgnore]
         public List<Chef> Chefs { get; set; }
         [NotMapped,JsonIgnore]
-        public IFormFile CategoryImg { get; set; }
+        public IFormFile? CategoryImg { get; set; }
         [NotMapped, ValidateNever, JsonIgnore]
         public string Message { get; set; }
        

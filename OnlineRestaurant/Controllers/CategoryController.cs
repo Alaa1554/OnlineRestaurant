@@ -1,5 +1,6 @@
 ﻿
 using Microsoft.AspNet.Identity;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -47,6 +48,7 @@ namespace OnlineRestaurant.Controllers
             return Ok(category);
         }
         [HttpPost]
+        [Authorize("Admin,SuperAdmin")]
 
         public async Task<IActionResult> CreateCategoryAsync([FromForm] Category dto)
         {
@@ -56,6 +58,8 @@ namespace OnlineRestaurant.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize("Admin,SuperAdmin")]
+
         public async Task<IActionResult> UpdateCategoryAsync(int id, [FromForm] Category dto)
         {
             var result = await _categoryService.UpdateCategoryAsync(id, dto);
@@ -66,6 +70,8 @@ namespace OnlineRestaurant.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize("Admin,SuperAdmin")]
+
         public async Task<IActionResult> DeleteCategoryAsync(int id)
         {
             var deletedData = await _categoryService.DeleteCategoryAsync(id);

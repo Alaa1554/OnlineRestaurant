@@ -6,7 +6,7 @@ namespace OnlineRestaurant.Dtos
     {
         [MaxLength(100)]
         public string Name { get; set; }
-        public  IFormFile ChefImg { get; set; }
+        public  IFormFile? ChefImg { get; set; }
         public int CategoryId { get; set; }
     }
 }

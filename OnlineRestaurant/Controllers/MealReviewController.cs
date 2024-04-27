@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OnlineRestaurant.Data;
 using OnlineRestaurant.Dtos;
@@ -23,7 +24,6 @@ namespace OnlineRestaurant.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetAllAsync(int id,[FromQuery] PaginateDto paginate)
         {
-
             var reviews = _mealReviewService.GetReviews(id, paginate);
             bool nextPage = false;
             if (reviews.Count() > paginate.Size)
@@ -36,7 +36,7 @@ namespace OnlineRestaurant.Controllers
             return Ok(new { Reviews = reviews, NextPage = nextPage, NumOfPages = numOfPages });
         }
         [HttpPost]
-
+        [Authorize]
         public async Task<IActionResult> CreateReviewAsync([FromHeader] string token,[FromBody] MealReview dto)
         {
             var review = await _mealReviewService.CreateReview(token,dto);
@@ -49,6 +49,7 @@ namespace OnlineRestaurant.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize]
         public async Task<IActionResult> UpdateReviewAsync(int id, [FromBody] UpdateReviewDto dto)
         {
             var result = await _mealReviewService.UpdateReviewAsync(id, dto);
@@ -61,6 +62,7 @@ namespace OnlineRestaurant.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize]
         public async Task<IActionResult> DeleteReviewAsync(int id)
         {
             var deletedData = await _mealReviewService.DeleteReviewAsync(id);

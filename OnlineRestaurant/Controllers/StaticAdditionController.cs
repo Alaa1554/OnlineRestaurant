@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OnlineRestaurant.Data;
 using OnlineRestaurant.Dtos;
@@ -24,6 +25,7 @@ namespace OnlineRestaurant.Controllers
 
 
         [HttpPost]
+        [Authorize(Roles = "Admin,SuperAdmin")]
         public async Task<IActionResult> CreateAdditionAsync([FromForm] StaticMealAddition Dto)
         {
             var addition = await _additionService.CreateMealAddition(Dto);
@@ -32,6 +34,7 @@ namespace OnlineRestaurant.Controllers
 
         }
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin,SuperAdmin")]
         public async Task<IActionResult> UpdateAdditionAsync(int id, [FromForm] UpdateStaticMealAdditionDto dto)
         {
             var result = await _additionService.UpdateMealAdditionAsync(id, dto);
@@ -43,6 +46,7 @@ namespace OnlineRestaurant.Controllers
             return Ok(new { result, message });
         }
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin,SuperAdmin")]
         public async Task<IActionResult> DeleteAddition(int id)
         {
             var deletedData = await _additionService.DeleteMealAddition(id);

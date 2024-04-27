@@ -45,11 +45,21 @@ namespace OnlineRestaurant.Services
 
         public async Task<string> RegisterAsync(RegisterModelDto registermodel)
         {
+            string encryptedEmail = Helpers.Encryption.Encrypt(registermodel.Email);
+
+            // Encrypt the Firstname
+            registermodel.FirstName = Helpers.Encryption.Encrypt(registermodel.FirstName);
+
+            // Encrypt the Lastname
+            registermodel.LastName = Helpers.Encryption.Encrypt(registermodel.LastName);
+
+            // Encrypt the Username
+            registermodel.UserName = Helpers.Encryption.Encrypt(registermodel.UserName);
             if (registermodel.Password.Length < 6)
             {
                 return  "الباسورد يجب ان يحتوي علي 6 حروف او ارقام علي الاقل" ;
             }
-            if (await _userManager.FindByEmailAsync(registermodel.Email) is not null)
+            if (await _userManager.FindByEmailAsync(encryptedEmail) is not null)
             {
                 return "البريد الالكتروني موجود بالفعل" ;
             }
@@ -58,6 +68,7 @@ namespace OnlineRestaurant.Services
                 return  "اسم المستخدم موجود بالفعل" ;
             }
             var user = _mapper.Map<ApplicationUser>(registermodel);
+            user.Email= encryptedEmail;
             user.UserImgUrl =registermodel.UserImg==null?null: _imgService.Upload(registermodel.UserImg);
             var result = await _userManager.CreateAsync(user, registermodel.Password);
             if (!result.Succeeded)
@@ -72,13 +83,14 @@ namespace OnlineRestaurant.Services
             
             await _userManager.AddToRoleAsync(user, "User");
             var verificationCode = GenerateRandomCode();
-            _emailSender.SendEmail(user.Email, "Verification Code", $"Your verification code is {verificationCode}");
+            _emailSender.SendEmail(registermodel.Email, "Verification Code", $"Your verification code is {verificationCode}");
             _memorycashe.Set($"{user.Id} verification", verificationCode, _codeExpiration);
             return string.Empty;
         }
         public async Task<AuthModelDto> VerifyAccountAsync(VerifyAccountDto verifyaccount)
         {
-            var user=await _userManager.FindByEmailAsync(verifyaccount.Email);
+            string encryptedEmail = Helpers.Encryption.Encrypt(verifyaccount.Email);
+            var user=await _userManager.FindByEmailAsync(encryptedEmail);
             if(user==null)
                 return new AuthModelDto { Message= "لم يتم العثور علي اي مستخدم" };
             if (!_memorycashe.TryGetValue($"{user.Id} verification", out string cashedcode))
@@ -96,7 +108,8 @@ namespace OnlineRestaurant.Services
         }
         public async Task<string> ForgetPassword(EmailDto emailDto)
         {
-            var user = await _userManager.FindByEmailAsync(emailDto.Email);
+            string encryptedEmail = Helpers.Encryption.Encrypt(emailDto.Email);
+            var user = await _userManager.FindByEmailAsync(encryptedEmail);
             if (user == null)
                 return "لم يتم العثور علي اي مستخدم";
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
@@ -110,12 +123,13 @@ namespace OnlineRestaurant.Services
         }
         public async Task<string> ResetPassword(ResetPasswordDto resetPasswordDto)
         {
-            var user = await _userManager.FindByEmailAsync(resetPasswordDto.Email);
+            string encryptedEmail = Helpers.Encryption.Encrypt(resetPasswordDto.Email);
+            var user = await _userManager.FindByEmailAsync(encryptedEmail);
             if (user == null)
                 return "لم يتم العثور علي اي مستخدم";
             var bytes = WebEncoders.Base64UrlDecode(resetPasswordDto.Token);
             var token = Encoding.UTF8.GetString(bytes);
-            var result = await _userManager.VerifyUserTokenAsync(user, _userManager.Options.Tokens.PasswordResetTokenProvider, "ResetPassword",token);
+            var result = await _userManager.VerifyUserTokenAsync(user, _userManager.Options.Tokens.PasswordResetTokenProvider,"ResetPassword",token);
             if (!result)
                 return "حدثت مشكله اثناء التحقق يرجي المحاوله مره اخري";
             var resetPasswordResult=await _userManager.ResetPasswordAsync(user, token, resetPasswordDto.NewPassword);
@@ -125,11 +139,12 @@ namespace OnlineRestaurant.Services
         }
         public async Task<string> ResendVerificationCode(string email)
         {
-            var user = await _userManager.FindByEmailAsync(email);
+            string encryptedEmail = Helpers.Encryption.Encrypt(email);
+            var user = await _userManager.FindByEmailAsync(encryptedEmail);
             if (user == null)
                 return "لم يتم العثور علي اي مستخدم";
             var verificationCode = GenerateRandomCode();
-            _emailSender.SendEmail(user.Email, "Verification Code", $"Your verification code is {verificationCode}");
+            _emailSender.SendEmail(email, "Verification Code", $"Your verification code is {verificationCode}");
             _memorycashe.Set($"{user.Id} verification", verificationCode, _codeExpiration);
             return string.Empty;
         } 
@@ -139,7 +154,8 @@ namespace OnlineRestaurant.Services
             {
                 return new AuthModelDto { Message = "الباسورد يجب ان يحتوي علي 6 حروف او ارقام علي الاقل" };
             }
-            var user = await _userManager.FindByEmailAsync(tokenrequest.Email);
+            string encryptedEmail = Helpers.Encryption.Encrypt(tokenrequest.Email);
+            var user = await _userManager.FindByEmailAsync(encryptedEmail);
             if (user == null || !await _userManager.CheckPasswordAsync(user, tokenrequest.Password)||!user.EmailConfirmed)
             {
                 return new AuthModelDto { Message = "البريد الالكتروني او كلمه السر غير صحيحه" };

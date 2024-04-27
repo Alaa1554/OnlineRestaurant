@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OnlineRestaurant.Data;
@@ -26,7 +27,8 @@ namespace OnlineRestaurant.Controllers
         }
 
         [HttpGet]
-       public async Task<IActionResult> GetWishListAsync([FromHeader] string token, [FromQuery] PaginateDto paginate) 
+        [Authorize]
+        public async Task<IActionResult> GetWishListAsync([FromHeader] string token, [FromQuery] PaginateDto paginate) 
         {
             var userId=_authService.GetUserId(token);
             var wishListMeals=await _wishListService.GetWishlistAsync(userId,paginate);
@@ -46,6 +48,7 @@ namespace OnlineRestaurant.Controllers
             return Ok(new { WishListMeals = wishListMeals, NextPage = nextPage,NumOfPages=numOfPages });
         }
         [HttpPost("{mealid}")]
+        [Authorize]
         public async Task<IActionResult> AddToWishListAsync([FromHeader] string token, int mealid)
         {
             var errorMessage = await _wishListService.AddToWishList(token, mealid);
@@ -54,6 +57,7 @@ namespace OnlineRestaurant.Controllers
             return Ok("تم اضافه الوجبه بنجاح الي المفضله");
         }
         [HttpDelete("{mealid}")]
+        [Authorize]
         public async Task<IActionResult> DeleteFromWishListAsync([FromHeader]string token,int mealid)
         {
             var errorMessage = await _wishListService.RemoveFromWishList(token, mealid);

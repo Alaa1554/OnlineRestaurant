@@ -16,7 +16,7 @@ namespace OnlineRestaurant.Dtos
         [DisplayName("Image")]
         [ValidateNever]
         public string ChefImgUrl { get; set; }
-        [ValidateNever, JsonIgnore]
+        [ValidateNever]
         public int CategoryId { get; set; }
         
         [NotMapped, ValidateNever, JsonIgnore]

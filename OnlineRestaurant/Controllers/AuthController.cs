@@ -68,6 +68,7 @@ namespace OnlineRestaurant.Controllers
         }
 
         [HttpPost("addrole")]
+        [Authorize(Roles = "Admin,SuperAdmin")]
         public async Task<IActionResult> AddRoleAsync([FromBody] AddRoleDto model)
         {
             if (!ModelState.IsValid)

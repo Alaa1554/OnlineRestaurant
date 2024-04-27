@@ -15,7 +15,7 @@ namespace OnlineRestaurant.Models
         [ValidateNever]
         public string AdditionUrl { get; set; }
         [NotMapped, Required(ErrorMessage = "This Field is Required"), JsonIgnore]
-        public IFormFile AdditionImg { get; set; }
+        public IFormFile? AdditionImg { get; set; }
         [ValidateNever,JsonIgnore]
         public List<Order> Orders { get; set; }
         [ValidateNever,JsonIgnore]

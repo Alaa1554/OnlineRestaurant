@@ -4,6 +4,6 @@
     {
         public string Name { get; set; }
         public decimal Price { get; set; }
-        public IFormFile AdditionImg { get; set; }
+        public IFormFile? AdditionImg { get; set; }
     }
 }

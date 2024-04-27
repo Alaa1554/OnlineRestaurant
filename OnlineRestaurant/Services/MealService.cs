@@ -88,7 +88,7 @@ namespace OnlineRestaurant.Services
             if (dto.Name!=meal.Name&&await _context.Meals.AnyAsync(m => m.Name == dto.Name.Trim()))
                 return new MealDto { Message = "يوجد وجبه اخري مسجله بهذا الاسم" };
             _mapper.Map(dto, meal);
-            meal.MealImgUrl = _imgService.Update(meal.MealImgUrl, dto.MealImg);
+            meal.MealImgUrl = dto.MealImg == null ? meal.MealImgUrl : _imgService.Update(meal.MealImgUrl, dto.MealImg);
             await _context.SaveChangesAsync();
             return _mapper.Map<MealDto>(meal);
         }
