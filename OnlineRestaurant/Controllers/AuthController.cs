@@ -88,6 +88,8 @@ namespace OnlineRestaurant.Controllers
         public async Task<IActionResult> GmailLogIn([FromForm] GmailRegisterDto dto)
         {
             var user=await _authService.GmailRegisterAsync(dto);
+            if (!string.IsNullOrEmpty(user.Message))
+                return BadRequest(user.Message);
             return Ok(user);
         }
        

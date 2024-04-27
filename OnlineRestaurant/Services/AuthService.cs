@@ -222,22 +222,58 @@ namespace OnlineRestaurant.Services
        
         public async Task<AuthModelDto> GmailRegisterAsync(GmailRegisterDto registermodel)
         {
-            var user = await _userManager.FindByEmailAsync(registermodel.Email);
+            string encryptedEmail = Helpers.Encryption.Encrypt(registermodel.Email);
+            var user = await _userManager.FindByEmailAsync(encryptedEmail);
+            registermodel.Email = encryptedEmail;
+
+            // Encrypt the Firstname
+            registermodel.FirstName = Helpers.Encryption.Encrypt(registermodel.FirstName);
+
+            // Encrypt the Lastname
+            registermodel.LastName = Helpers.Encryption.Encrypt(registermodel.LastName);
+
+            // Encrypt the Username
+            registermodel.UserName = Helpers.Encryption.Encrypt(registermodel.UserName);
             if (user is not null)
             {
                 UpdateGmailAccountData(user, registermodel);  
-                await _userManager.UpdateAsync(user);
+                var result= await _userManager.UpdateAsync(user);
+                if (!result.Succeeded)
+                {
+                    var errors = "";
+                    foreach (var error in result.Errors)
+                    {
+                        errors += $"{error.Description}\t";
+                    }
+                    return new AuthModelDto { Message = errors };
+                }
                 return await GetAuthModelDto(user);
             }
             else 
             {
+                if (await _userManager.FindByNameAsync(registermodel.UserName) is not null)
+                {
+                    return new AuthModelDto { Message = "اسم المستخدم موجود بالفعل" };
+                }
                 user = _mapper.Map<ApplicationUser>(registermodel);
-                await _userManager.CreateAsync(user);
+                user.EmailConfirmed = true;
+                var result= await _userManager.CreateAsync(user);
+                if (!result.Succeeded)
+                {
+                    var errors = "";
+                    foreach (var error in result.Errors)
+                    {
+                        errors += $"{error.Description}\t";
+                    }
+                    return new AuthModelDto { Message = errors };
+                }
                 await _userManager.AddToRoleAsync(user, "User");
+
                 var userWishList = new WishList
                 {
                     UserId = user.Id
                 };
+
                 await _context.wishLists.AddAsync(userWishList);
                 await _context.SaveChangesAsync();
                 return await GetAuthModelDto(user);
