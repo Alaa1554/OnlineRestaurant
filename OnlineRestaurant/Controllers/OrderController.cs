@@ -63,7 +63,7 @@ namespace OnlineRestaurant.Controllers
             return Ok(new { Orders = orders, NextPage = nextPage,NumOfPages=numOfPages,NumOfUserOrders=numOfUserOrders});
         }
         [HttpGet("GetAllOrders")]
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAllOrdersAsync([FromQuery]PaginateDto paginate)
         {
             var orders =_orderService.GetAllOrders(paginate);
@@ -78,7 +78,7 @@ namespace OnlineRestaurant.Controllers
             return Ok(new { Orders = orders, NextPage = nextPage,NumOfPages=numOfPages });
         }
         [HttpPut("ChangeOrderStatus")]
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ChangeOrderStatusAsync([FromBody] OrderStatusDto orderStatus)
         {
             var result = await _orderService.ChangeOrderStatus(orderStatus);
@@ -87,7 +87,7 @@ namespace OnlineRestaurant.Controllers
             return Ok("تم تغيير حاله الاوردر بنجاح");
         }
         [HttpPost("ConfirmPayment")]
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ConfirmPaymentAsync(ConfirmPaymentDto confirmPayment)
         {
             var result = await _orderService.ConfirmPayment(confirmPayment);

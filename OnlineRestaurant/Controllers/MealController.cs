@@ -29,7 +29,7 @@ namespace OnlineRestaurant.Controllers
         }
         
         [HttpPost]
-        [Authorize("Admin,SuperAdmin")]
+        [Authorize("Admin")]
         public async Task<IActionResult> CreateMealAsync([FromForm] InsertMealDto mealDto)
         {
             var meal = await _mealService.CreateMeal(mealDto);
@@ -41,7 +41,7 @@ namespace OnlineRestaurant.Controllers
             return Ok(new { meal, message });
         }
         [HttpPut("{name}")]
-        [Authorize("Admin,SuperAdmin")]
+        [Authorize("Admin")]
         public async Task<IActionResult> UpdateMealAsync(string name, [FromForm] InsertMealDto dto)
         {
             var result = await _mealService.UpdateMealAsync(name, dto);
@@ -53,7 +53,7 @@ namespace OnlineRestaurant.Controllers
             return Ok(new { result, message });
         }
         [HttpDelete("{name}")]
-        [Authorize("Admin,SuperAdmin")]
+        [Authorize("Admin")]
         public async Task<IActionResult> DeleteMeal(string name)
         {
             var deletedData =await _mealService.DeleteMeal(name);

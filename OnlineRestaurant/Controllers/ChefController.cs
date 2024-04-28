@@ -50,7 +50,7 @@ namespace OnlineRestaurant.Controllers
             return Ok(chef);
         }
         [HttpPost]
-        [Authorize("Admin,SuperAdmin")]
+        [Authorize("Admin")]
         public async Task<IActionResult> CreateChefAsync([FromForm] Chef dto)
         {
            var chef = await _chefService.CreateChef(dto);
@@ -62,7 +62,7 @@ namespace OnlineRestaurant.Controllers
         }
         
         [HttpPut("{id}")]
-        [Authorize("Admin,SuperAdmin")]
+        [Authorize("Admin")]
         public async Task<IActionResult> UpdateChefAsync(int id, [FromForm] UpdateChefDto dto)
         {
             var result = await _chefService.UpdateChefAsync(id, dto);
@@ -74,7 +74,7 @@ namespace OnlineRestaurant.Controllers
         }
         
         [HttpDelete("{id}")]
-        [Authorize("Admin,SuperAdmin")]
+        [Authorize("Admin")]
 
         public async Task<IActionResult> DeleteChefAsync(int id)
         {

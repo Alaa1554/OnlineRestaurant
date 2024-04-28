@@ -22,7 +22,7 @@ namespace OnlineRestaurant.Controllers
         }
         [HttpGet("GetAllUsers")]
 
-        [Authorize(Roles ="Admin,SuperAdmin")]
+        [Authorize(Roles ="Admin")]
         public async Task<IActionResult> GetAllUsersAsync([FromQuery] PaginateDto paginate)
         {
             var users =await _userService.GetAllUsersAsync(paginate);
@@ -37,7 +37,7 @@ namespace OnlineRestaurant.Controllers
             return Ok(new { Users = users, NextPage = nextPage, NumOfPages = numOfPages });
         }
         [HttpGet("SearchForUserByName")]
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> SearchForUserByName([FromQuery] SearchForUserByName searchForUser)
         {
             var users =await _userService.SearchForUserByName(searchForUser);
