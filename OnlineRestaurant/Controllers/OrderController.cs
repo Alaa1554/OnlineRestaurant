@@ -45,7 +45,7 @@ namespace OnlineRestaurant.Controllers
 
         }
         [HttpGet("GetAllUserOrders")]
-        [Authorize(Roles ="User")]
+        [Authorize]
         public async Task<IActionResult> GetAllUserOrdersAsync([FromHeader] string token,[FromQuery] PaginateDto paginate)
         {
             var userId = _authService.GetUserId(token);

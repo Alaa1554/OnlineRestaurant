@@ -48,8 +48,7 @@ namespace OnlineRestaurant.Controllers
             return Ok(category);
         }
         [HttpPost]
-        [Authorize("Admin")]
-
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateCategoryAsync([FromForm] Category dto)
         {
             var category = await _categoryService.CreateCategory(dto);
@@ -58,8 +57,7 @@ namespace OnlineRestaurant.Controllers
         }
 
         [HttpPut("{id}")]
-        [Authorize("Admin")]
-
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateCategoryAsync(int id, [FromForm] Category dto)
         {
             var result = await _categoryService.UpdateCategoryAsync(id, dto);
@@ -70,7 +68,7 @@ namespace OnlineRestaurant.Controllers
         }
 
         [HttpDelete("{id}")]
-        [Authorize("Admin")]
+        [Authorize(Roles ="Admin")]
 
         public async Task<IActionResult> DeleteCategoryAsync(int id)
         {
