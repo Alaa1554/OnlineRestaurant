@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNet.Identity;
 using OnlineRestaurant.Dtos;
 using OnlineRestaurant.Models;
 using OnlineRestaurant.Services;
@@ -18,7 +19,9 @@ namespace OnlineRestaurant.Helpers
             CreateMap<CouponDto, Coupon>().
                 ForMember(c => c.CouponCode, m => m.MapFrom(i => i.CouponCode.Trim())) ;
             CreateMap<GmailRegisterDto, ApplicationUser>();
-            CreateMap<MealReview, MealReviewView>().ForMember(c => c.UserImg, m => m.MapFrom(i=>i.UserImg == null ? null : i.UserImg.Contains("googleusercontent") ? i.UserImg : Path.Combine(_baseUrl, "images", i.UserImg))); 
+            CreateMap<MealReview, MealReviewView>()
+                .ForMember(c => c.UserImg, m => m.MapFrom(i=>i.UserImg == null ? null : i.UserImg.Contains("googleusercontent") ? i.UserImg : Path.Combine(_baseUrl, "images", i.UserImg))).
+                 ForMember(des=>des.UserName,m=>m.MapFrom(src=> Helpers.Encryption.Decrypt(src.UserName))); 
             CreateMap<ChefReview, ChefReviewView>()
                 .ForMember(c => c.UserImg, m => m.MapFrom(i => i.UserImg == null ? null : i.UserImg.Contains("googleusercontent") ? i.UserImg : Path.Combine(_baseUrl, "images", i.UserImg)));
             CreateMap<Category,CategoryDto>().

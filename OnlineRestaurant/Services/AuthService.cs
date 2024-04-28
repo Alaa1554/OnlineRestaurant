@@ -290,7 +290,7 @@ namespace OnlineRestaurant.Services
         {
             var jwtSecurityToken = await CreateJwtToken(user);
             var roleList = await _userManager.GetRolesAsync(user);
-            return new AuthModelDto(user.Email, jwtSecurityToken.ValidTo, true, roleList.ToList(), new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken), user.UserName, user.UserImgUrl, user.FirstName, user.LastName);
+            return new AuthModelDto(Helpers.Encryption.Decrypt(user.Email), jwtSecurityToken.ValidTo, true, roleList.ToList(), new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken), Helpers.Encryption.Decrypt(user.UserName), user.UserImgUrl, Helpers.Encryption.Decrypt(user.FirstName), Helpers.Encryption.Decrypt(user.LastName));
         }
         private string GenerateRandomCode()
         {

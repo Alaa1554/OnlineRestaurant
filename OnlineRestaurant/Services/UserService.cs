@@ -154,6 +154,7 @@ namespace OnlineRestaurant.Services
             var roles =await _context.UserRoles.Where(ur=>userIds.Contains(ur.UserId)).ToListAsync();
             foreach (var user in users)
             {
+                user.UserName= Helpers.Encryption.Decrypt(user.UserName);
                 var role = roles.Where(ur=>ur.UserId==user.Id);
                 var userView = _mapper.Map<UserView>(user);
                 userView.Role = role.Count() == 1 ? "User" : "Admin";
