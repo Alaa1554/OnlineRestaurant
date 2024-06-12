@@ -18,7 +18,8 @@ namespace OnlineRestaurant.Helpers
             CreateMap<CouponDto, Coupon>().
                 ForMember(c => c.CouponCode, m => m.MapFrom(i => i.CouponCode.Trim())) ;
             CreateMap<GmailRegisterDto, ApplicationUser>();
-            CreateMap<MealReview, MealReviewView>().ForMember(c => c.UserImg, m => m.MapFrom(i=>i.UserImg == null ? null : i.UserImg.Contains("googleusercontent") ? i.UserImg : Path.Combine(_baseUrl, "images", i.UserImg))); 
+            CreateMap<MealReview, MealReviewView>()
+                .ForMember(c => c.UserImg, m => m.MapFrom(i => i.UserImg == null ? null : i.UserImg.Contains("googleusercontent") ? i.UserImg : Path.Combine(_baseUrl, "images", i.UserImg)));
             CreateMap<ChefReview, ChefReviewView>()
                 .ForMember(c => c.UserImg, m => m.MapFrom(i => i.UserImg == null ? null : i.UserImg.Contains("googleusercontent") ? i.UserImg : Path.Combine(_baseUrl, "images", i.UserImg)));
             CreateMap<Category,CategoryDto>().

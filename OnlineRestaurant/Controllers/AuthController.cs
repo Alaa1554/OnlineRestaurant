@@ -91,7 +91,6 @@ namespace OnlineRestaurant.Controllers
         }
        
         [HttpDelete("RemoveRole/{userid}")]
-        [Authorize(Roles ="SuperAdmin")]
         public async Task<IActionResult> RemoveRoleAsync(string userid)
         {
             if (!ModelState.IsValid)

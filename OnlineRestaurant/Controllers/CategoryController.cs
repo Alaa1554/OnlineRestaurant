@@ -47,7 +47,6 @@ namespace OnlineRestaurant.Controllers
             return Ok(category);
         }
         [HttpPost]
-
         public async Task<IActionResult> CreateCategoryAsync([FromForm] Category dto)
         {
             var category = await _categoryService.CreateCategory(dto);

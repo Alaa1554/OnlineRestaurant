@@ -35,7 +35,7 @@ namespace OnlineRestaurant.Services
             {
                 return new AuthModelDto { Message = "لم يتم العثور علي اي مستخدم" };
             }
-            if(await _userManager.FindByNameAsync(dto.UserName) != null&&user.UserName!=dto.UserName)
+            if (await _userManager.FindByNameAsync(dto.UserName) != null&&user.UserName!=dto.UserName)
             {
                 return new AuthModelDto { Message = "اسم المستخدم موجود بالفعل" };
             }
@@ -100,7 +100,7 @@ namespace OnlineRestaurant.Services
         }
         public async Task<IEnumerable<UserView>> SearchForUserByName(SearchForUserByName searchForUser)
         {
-            var users = _context.Users.Where(c => c.UserName.Contains(searchForUser.UserName.ToLower().Trim())).Paginate(searchForUser.Page, searchForUser.Size);
+            var users = _context.Users.Where(c => c.UserName.ToLower().Trim().Contains(searchForUser.UserName.ToLower().Trim())).Paginate(searchForUser.Page, searchForUser.Size);
             if (!users.Any())
                 return Enumerable.Empty<UserView>();
             return await GetUserView(users); 

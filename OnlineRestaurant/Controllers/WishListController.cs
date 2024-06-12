@@ -26,7 +26,7 @@ namespace OnlineRestaurant.Controllers
         }
 
         [HttpGet]
-       public async Task<IActionResult> GetWishListAsync([FromHeader] string token, [FromQuery] PaginateDto paginate) 
+        public async Task<IActionResult> GetWishListAsync([FromHeader] string token, [FromQuery] PaginateDto paginate) 
         {
             var userId=_authService.GetUserId(token);
             var wishListMeals=await _wishListService.GetWishlistAsync(userId,paginate);
